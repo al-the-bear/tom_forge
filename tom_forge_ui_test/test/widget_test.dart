@@ -29,8 +29,9 @@ void main() {
       shell: shell,
       application: app,
       navigatorKey: navigatorKey,
+      onWorkspaceSelected: (_) {},
     ));
 
-    expect(find.text('Forge Test IDE'), findsOneWidget);
+    expect(find.text('Tom Forge'), findsOneWidget);
   });
 }
