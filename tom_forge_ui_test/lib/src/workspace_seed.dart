@@ -9,6 +9,7 @@ const Map<String, String> workspaceSeed = {
   '/lib/src/utils.dart': _utilsDart,
   '/test/app_test.dart': _appTest,
   '/doc/architecture.md': _architectureMd,
+  '/doc/notes.txt': _notesTxt,
 };
 
 const _readme = '''
@@ -170,4 +171,11 @@ Pure functions with no side effects.
 
 Unit tests cover all public API surfaces.
 Each utility function has at least one positive and one edge-case test.
+''';
+
+const _notesTxt = '''
+Tom Forge Stage D Notes
+
+- Plain text editing support is enabled for .txt files in staging.
+- This file is used to verify file-type opening behavior.
 ''';

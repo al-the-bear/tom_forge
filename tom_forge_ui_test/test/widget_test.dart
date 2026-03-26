@@ -34,4 +34,29 @@ void main() {
 
     expect(find.text('Tom Forge'), findsOneWidget);
   });
+
+  test('layout opens seeded .txt file with markdown editor adapter', () async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final shell = DefaultShellApi.withDefaults(
+      fileSystemSeed: workspaceSeed,
+      appName: 'Test',
+      navigatorKey: navigatorKey,
+    );
+
+    final registry = shell.modules as DefaultModuleRegistry;
+    final shellModule = TomForgeShellModule();
+    shellModule.activate(shell);
+    registry.register(shellModule);
+    final appModule = TestAppModule();
+    appModule.activate(shell);
+    registry.register(appModule);
+
+    shell.layout.openFile(Uri.parse('file:///doc/notes.txt'));
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    final active = shell.systemState.activeEditor;
+    expect(active, isNotNull);
+    expect(active, isA<ForgeMdEditor>());
+    expect(active!.uri.path, endsWith('/doc/notes.txt'));
+  });
 }
