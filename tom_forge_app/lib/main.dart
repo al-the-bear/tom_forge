@@ -1,121 +1,130 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:tom_forge_ui/tom_forge_ui.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'src/app.dart';
+import 'src/forge_app_module.dart';
+
+void main() => runApp(const ForgeLauncher());
+
+/// Launcher widget that manages workspace selection and app creation.
+class ForgeLauncher extends StatefulWidget {
+  const ForgeLauncher({super.key});
+
+  @override
+  State<ForgeLauncher> createState() => _ForgeLauncherState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _ForgeLauncherState extends State<ForgeLauncher> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  DefaultShellApi? _shell;
+  ForgeApplication? _application;
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+  void _initializeWithWorkspace(Directory workspaceDir) {
+    // Create real file system backed by the selected directory
+    final realFs = RealFileSystem(rootDirectory: workspaceDir);
+
+    final shell = DefaultShellApi.withDefaultsAndFileSystem(
+      fileSystem: realFs,
+      appName: 'Tom Forge',
+      navigatorKey: _navigatorKey,
     );
-  }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+    // Register modules
+    final registry = shell.modules as DefaultModuleRegistry;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+    final shellModule = TomForgeShellModule();
+    shellModule.activate(shell);
+    registry.register(shellModule);
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+    final appModule = ForgeAppModule();
+    appModule.activate(shell);
+    registry.register(appModule);
 
-  final String title;
+    // Build application layout from module views
+    ForgeView viewById(String title) =>
+        appModule.views.firstWhere((v) => v.title.value == title);
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+    final app = ForgeApplication(
+      title: 'Tom Forge - ${workspaceDir.path.split('/').last}',
+      layout: ApplicationLayout(
+        leftPanel: PanelConfig(
+          initialSize: 250,
+          tabs: [
+            PanelTabConfig(
+              title: 'Explorer',
+              icon: Icons.folder_outlined,
+              sections: [viewById('Explorer')],
+            ),
+            PanelTabConfig(
+              title: 'Search',
+              icon: Icons.search,
+              sections: [viewById('Search')],
+            ),
+          ],
+        ),
+        rightPanel: PanelConfig(
+          initialSize: 220,
+          tabs: [
+            PanelTabConfig(
+              title: 'Outline',
+              icon: Icons.account_tree,
+              sections: [viewById('Outline')],
+            ),
+          ],
+        ),
+        bottomPanel: PanelConfig(
+          initialSize: 180,
+          tabs: [
+            PanelTabConfig(
+              title: 'Problems',
+              icon: Icons.error_outline,
+              sections: [viewById('Problems')],
+            ),
+            PanelTabConfig(
+              title: 'Output',
+              icon: Icons.terminal,
+              sections: [viewById('Output')],
+            ),
+          ],
+        ),
+        middlePanels: [const MiddlePanelConfig()],
+      ),
+    );
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _shell = shell;
+      _application = app;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    return ForgeApp(
+      shell: _shell ?? _createPlaceholderShell(),
+      application: _application ?? _createPlaceholderApp(),
+      navigatorKey: _navigatorKey,
+      onWorkspaceSelected: _initializeWithWorkspace,
+    );
+  }
+
+  DefaultShellApi _createPlaceholderShell() {
+    return DefaultShellApi.withDefaults(
+      fileSystemSeed: {},
+      appName: 'Tom Forge',
+      navigatorKey: _navigatorKey,
+    );
+  }
+
+  ForgeApplication _createPlaceholderApp() {
+    return ForgeApplication(
+      title: 'Tom Forge',
+      layout: const ApplicationLayout(
+        leftPanel: PanelConfig(initialSize: 250, tabs: []),
+        rightPanel: PanelConfig(initialSize: 220, tabs: []),
+        bottomPanel: PanelConfig(initialSize: 180, tabs: []),
+        middlePanels: [MiddlePanelConfig()],
       ),
     );
   }
