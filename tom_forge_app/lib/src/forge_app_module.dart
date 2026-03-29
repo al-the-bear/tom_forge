@@ -7,6 +7,10 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 ///
 /// Promoted from TestAppModule in tom_forge_ui_test with identical behavior.
 class ForgeAppModule extends ForgeModule {
+  ForgeAppModule({required Uri workspaceRootUri})
+      : _workspaceRootUri = workspaceRootUri;
+
+  final Uri _workspaceRootUri;
   late ForgeShellApi _shell;
   final List<ForgeView> _views = [];
   final List<ForgeAction> _actions = [];
@@ -61,7 +65,7 @@ class ForgeAppModule extends ForgeModule {
       ForgeFileExplorerView(
         fileSystem: _shell.fileSystem,
         layoutController: _shell.layout,
-        rootUri: Uri.parse('file:///'),
+        rootUri: _workspaceRootUri,
       ),
       ForgeOutlineView(
         outlineManager: _shell.outline as DefaultOutlineManager,

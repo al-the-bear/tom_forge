@@ -19,7 +19,7 @@ void main() {
     final shellModule = TomForgeShellModule();
     shellModule.activate(shell);
     registry.register(shellModule);
-    final appModule = TestAppModule();
+    final appModule = TestAppModule(workspaceRootUri: Uri.parse('file:///'));
     appModule.activate(shell);
     registry.register(appModule);
 
@@ -47,7 +47,7 @@ void main() {
     final shellModule = TomForgeShellModule();
     shellModule.activate(shell);
     registry.register(shellModule);
-    final appModule = TestAppModule();
+    final appModule = TestAppModule(workspaceRootUri: Uri.parse('file:///'));
     appModule.activate(shell);
     registry.register(appModule);
 

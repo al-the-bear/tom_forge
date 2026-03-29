@@ -24,7 +24,7 @@ void main() {
       final shellModule = TomForgeShellModule();
       shellModule.activate(shell);
       registry.register(shellModule);
-      final appModule = ForgeAppModule();
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
       registry.register(appModule);
 
@@ -52,7 +52,7 @@ void main() {
       final shellModule = TomForgeShellModule();
       shellModule.activate(shell);
       registry.register(shellModule);
-      final appModule = ForgeAppModule();
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
       registry.register(appModule);
 
@@ -73,7 +73,7 @@ void main() {
         navigatorKey: navigatorKey,
       );
 
-      final appModule = ForgeAppModule();
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
 
       final actionIds = appModule.actions.map((a) => a.id).toSet();
@@ -108,7 +108,7 @@ void main() {
         navigatorKey: navigatorKey,
       );
 
-      final appModule = ForgeAppModule();
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
 
       final boundActionIds = appModule.shortcuts.map((s) => s.action.id).toSet();
@@ -132,7 +132,7 @@ void main() {
         navigatorKey: navigatorKey,
       );
 
-      final appModule = ForgeAppModule();
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
 
       final viewTitles = appModule.views.map((v) => v.title.value).toSet();
@@ -152,7 +152,7 @@ void main() {
         navigatorKey: navigatorKey,
       );
 
-      final appModule = ForgeAppModule();
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
 
       final tooltips = appModule.statusBarItems.map((i) => i.tooltip).toSet();

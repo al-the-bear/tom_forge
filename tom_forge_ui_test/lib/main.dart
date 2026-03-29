@@ -38,7 +38,9 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     shellModule.activate(shell);
     registry.register(shellModule);
 
-    final appModule = TestAppModule();
+    final appModule = TestAppModule(
+      workspaceRootUri: workspaceDir.uri,
+    );
     appModule.activate(shell);
     registry.register(appModule);
 
