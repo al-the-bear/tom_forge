@@ -6,7 +6,16 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 import 'src/app.dart';
 import 'src/forge_app_module.dart';
 
-void main() => runApp(const ForgeLauncher());
+void main() {
+  if (Platform.isLinux) {
+    // Linux WebView defaults to software rendering in the local plugin fork.
+    debugPrint(
+      '[tom_forge_app] Linux WebView defaults to software rendering. '
+      'Set FLUTTER_INAPPWEBVIEW_LINUX_FORCE_GL=1 to force hardware mode for diagnostics.',
+    );
+  }
+  runApp(const ForgeLauncher());
+}
 
 /// Launcher widget that manages workspace selection and app creation.
 class ForgeLauncher extends StatefulWidget {

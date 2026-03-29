@@ -1,16 +1,28 @@
 # tom_forge_app
 
-A new Flutter project.
+Main Tom Forge shell application.
 
-## Getting Started
+## Run
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run --debug
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Linux WebView Rendering Notes
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- The local Linux `flutter_inappwebview` fork now defaults to software rendering.
+- The shell should render Mermaid/WebView content without manually setting `FLUTTER_INAPPWEBVIEW_LINUX_DISABLE_GL`.
+- To intentionally force hardware mode for diagnostics:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+FLUTTER_INAPPWEBVIEW_LINUX_FORCE_GL=1 flutter run --debug
+```
+
+## Diagnostics
+
+To verify selected rendering path:
+
+```bash
+flutter run --debug 2>&1 | grep -E "software rendering|hardware rendering|CustomPlatformView: using (pixel buffer|GL texture)"
+```
