@@ -118,7 +118,13 @@ class TestAppModule extends ForgeModule {
       execute: (_) async {
         final editor = _shell.systemState.activeEditor;
         if (editor != null) {
+          // Get content from editor, write to file, emit events, mark clean.
+          final content = editor.getContent();
+          if (content != null) {
+            await _shell.fileSystem.write(editor.uri, content);
+          }
           await _shell.fileSystem.save(editor.uri);
+          editor.markClean();
         }
         return null;
       },
@@ -133,7 +139,13 @@ class TestAppModule extends ForgeModule {
       menu: ForgeMenuLocation.file,
       execute: (_) async {
         for (final editor in _shell.systemState.dirtyEditors) {
+          // Get content from editor, write to file, emit events, mark clean.
+          final content = editor.getContent();
+          if (content != null) {
+            await _shell.fileSystem.write(editor.uri, content);
+          }
           await _shell.fileSystem.save(editor.uri);
+          editor.markClean();
         }
         return null;
       },

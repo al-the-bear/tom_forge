@@ -603,5 +603,145 @@ void main() {
         editor.dispose();
       });
     });
+
+    // ─── Section 21: Save Lifecycle Integration ──────────────────
+
+    group('Save lifecycle and dirty state clearing', () {
+      test('21A: markClean resets isDirty to false (ForgeMdEditor)', () {
+        final module = _TestModule();
+        final controller = MdEditorController(initialMarkdown: 'initial');
+        final editor = ForgeMdEditor(controller: controller, module: module);
+
+        controller.markdown = 'modified';
+        expect(editor.isDirty.value, isTrue);
+
+        editor.markClean();
+        expect(editor.isDirty.value, isFalse);
+      });
+
+      test('21B: markClean resets isDirty to false (ForgeDartEditor)', () {
+        final module = _TestModule();
+        final controller = DartCodeController(initialCode: 'void main() {}');
+        final editor = ForgeDartEditor(controller: controller, module: module);
+
+        controller.userCode = 'void main() { print("modified"); }';
+        expect(editor.isDirty.value, isTrue);
+
+        editor.markClean();
+        expect(editor.isDirty.value, isFalse);
+      });
+
+      test('21C: markClean resets isDirty to false (ForgeYamlEditor)', () {
+        final module = _TestModule();
+        final controller = YamlEditorController(initialYaml: 'key: value');
+        final editor = ForgeYamlEditor(controller: controller, module: module);
+
+        controller.setYaml('key: modified');
+        expect(editor.isDirty.value, isTrue);
+
+        editor.markClean();
+        expect(editor.isDirty.value, isFalse);
+      });
+
+      test('21D: getContent returns current markdown content (ForgeMdEditor)', () {
+        final module = _TestModule();
+        final controller = MdEditorController(initialMarkdown: '# Hello');
+        final editor = ForgeMdEditor(controller: controller, module: module);
+
+        expect(editor.getContent(), '# Hello');
+
+        controller.markdown = '# Modified';
+        expect(editor.getContent(), '# Modified');
+      });
+
+      test('21E: getContent returns current code content (ForgeDartEditor)', () {
+        final module = _TestModule();
+        final controller = DartCodeController(initialCode: 'int x = 1;');
+        final editor = ForgeDartEditor(controller: controller, module: module);
+
+        expect(editor.getContent(), 'int x = 1;');
+
+        controller.userCode = 'int x = 2;';
+        expect(editor.getContent(), 'int x = 2;');
+      });
+
+      test('21F: getContent returns current YAML content (ForgeYamlEditor)', () {
+        final module = _TestModule();
+        final controller = YamlEditorController(initialYaml: 'name: test');
+        final editor = ForgeYamlEditor(controller: controller, module: module);
+
+        expect(editor.getContent(), 'name: test');
+
+        controller.setYaml('name: modified');
+        expect(editor.getContent(), 'name: modified');
+      });
+
+      test('21G: onDirtyStateChanged emits when markClean clears dirty', () async {
+        final state = DefaultSystemState();
+        final module = _TestModule();
+        final controller = MdEditorController(initialMarkdown: 'test');
+        final editor = ForgeMdEditor(controller: controller, module: module);
+
+        final dirtyEvents = <DirtyStateEvent>[];
+        final sub = state.onDirtyStateChanged.listen(dirtyEvents.add);
+
+        state.addOpenEditor(editor);
+
+        // Make dirty
+        controller.markdown = 'modified';
+        await Future<void>.delayed(Duration.zero);
+        final dirtyEventCount = dirtyEvents.length;
+        expect(dirtyEvents.last.isDirty, isTrue);
+
+        // Clear dirty via markClean
+        editor.markClean();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(dirtyEvents.length, greaterThan(dirtyEventCount));
+        expect(dirtyEvents.last.isDirty, isFalse);
+
+        await sub.cancel();
+        state.dispose();
+      });
+
+      test('21H: dirtyEditors list updates when markClean is called', () {
+        final state = DefaultSystemState();
+        final module = _TestModule();
+        final controller = MdEditorController(initialMarkdown: 'test');
+        final editor = ForgeMdEditor(controller: controller, module: module);
+
+        state.addOpenEditor(editor);
+
+        // Make dirty
+        controller.markdown = 'modified';
+        expect(state.dirtyEditors, contains(editor));
+
+        // Clear dirty
+        editor.markClean();
+        expect(state.dirtyEditors, isNot(contains(editor)));
+
+        state.dispose();
+      });
+
+      test('21I: hasUnsavedChanges reflects dirty editor state', () {
+        final state = DefaultSystemState();
+        final module = _TestModule();
+        final controller = MdEditorController(initialMarkdown: 'test');
+        final editor = ForgeMdEditor(controller: controller, module: module);
+
+        state.addOpenEditor(editor);
+        expect(state.hasUnsavedChanges, isFalse);
+
+        // Make dirty
+        controller.markdown = 'modified';
+        expect(state.hasUnsavedChanges, isTrue);
+
+        // Clear dirty
+        editor.markClean();
+        expect(state.hasUnsavedChanges, isFalse);
+
+        state.dispose();
+      });
+    });
   });
 }
