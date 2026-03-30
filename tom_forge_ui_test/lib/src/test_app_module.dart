@@ -26,6 +26,10 @@ class TestAppModule extends ForgeModule {
 
   ForgeDiagnosticCollection? _diagnosticCollection;
   ForgeOutputChannel? _buildChannel;
+  DartOutlineProvider? _outlineProvider;
+  ModifiedFileDecorationProvider? _decorationProvider;
+  ForgeDisposable? _outlineRegistration;
+  ForgeDisposable? _decorationRegistration;
 
   @override
   String get displayName => 'Test IDE';
@@ -40,10 +44,22 @@ class TestAppModule extends ForgeModule {
     _listenToStateChanges();
     _setupDiagnosticsAndOutput();
     _createDefaultTerminal();
+    _registerProviders();
+    _restoreModuleState();
+    _logShellModuleCapabilities();
   }
 
   @override
   void deactivate() {
+    _saveModuleState();
+    _outlineRegistration?.dispose();
+    _outlineRegistration = null;
+    _outlineProvider?.dispose();
+    _outlineProvider = null;
+    _decorationRegistration?.dispose();
+    _decorationRegistration = null;
+    _decorationProvider?.dispose();
+    _decorationProvider = null;
     if (_cursorPositionListener != null) {
       _cursorPositionListener!();
       _cursorPositionListener = null;
@@ -639,5 +655,66 @@ class TestAppModule extends ForgeModule {
       ),
     ]);
     _buildChannel?.appendLine('[Error] $code: $message');
+  }
+
+  // ── Provider registration (Row 8) ──
+
+  void _registerProviders() {
+    // Outline provider for Dart files.
+    _outlineProvider = DartOutlineProvider();
+    final outlineMgr = _shell.outline;
+    if (outlineMgr is DefaultOutlineManager) {
+      _outlineRegistration = outlineMgr.registerProvider(_outlineProvider!);
+    }
+
+    // File decoration provider for modified (dirty) files.
+    _decorationProvider = ModifiedFileDecorationProvider(
+      systemState: _shell.systemState,
+    );
+    final decoMgr = _shell.fileDecorations;
+    if (decoMgr is DefaultFileDecorationManager) {
+      _decorationRegistration = decoMgr.registerProvider(_decorationProvider!);
+    }
+
+    _buildChannel?.appendLine('[Test IDE] Providers registered: outline, file-decorations');
+  }
+
+  // ── Module-scoped persistence (Row 10) ──
+
+  void _restoreModuleState() {
+    final store = _shell.storage.forModule(this);
+    final lastPanel = store.get('lastActivePanel');
+    if (lastPanel != null) {
+      _buildChannel?.appendLine('[Test IDE] Restored last active panel: $lastPanel');
+    }
+    final activationCount = (store.get('activationCount') as int?) ?? 0;
+    store.set('activationCount', activationCount + 1);
+    _buildChannel?.appendLine('[Test IDE] Activation #${activationCount + 1}');
+  }
+
+  void _saveModuleState() {
+    try {
+      final store = _shell.storage.forModule(this);
+      final active = _shell.systemState.activeEditor;
+      if (active != null) {
+        store.set('lastActivePanel', active.uri.toString());
+      }
+    } catch (_) {
+      // Storage may be unavailable during teardown — ignore.
+    }
+  }
+
+  // ── Cross-module registry (Row 11) ──
+
+  void _logShellModuleCapabilities() {
+    try {
+      final shellModule = _shell.modules.get<TomForgeShellModule>();
+      _buildChannel?.appendLine(
+        '[Test IDE] Shell module "${shellModule.displayName}" supports '
+        'extensions: ${TomForgeShellModule.supportedExtensions.join(", ")}',
+      );
+    } catch (_) {
+      // Shell module not registered — skip.
+    }
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tom_forge_core/tom_forge_core.dart' show ForgePanelLocation, ForgeSeverity;
@@ -21,6 +23,11 @@ class ForgeAppModule extends ForgeModule {
   final _encodingText = ValueNotifier<String>('UTF-8');
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+  DartOutlineProvider? _outlineProvider;
+  ModifiedFileDecorationProvider? _decorationProvider;
+  ForgeDisposable? _outlineRegistration;
+  ForgeDisposable? _decorationRegistration;
 
   @override
   String get displayName => 'Tom Forge';
@@ -33,10 +40,25 @@ class ForgeAppModule extends ForgeModule {
     _buildShortcuts();
     _buildStatusBarItems();
     _listenToStateChanges();
+    _registerProviders();
+    _restoreModuleState();
   }
 
   @override
   void deactivate() {
+    _saveModuleState();
+    _outlineRegistration?.dispose();
+    _outlineRegistration = null;
+    _outlineProvider?.dispose();
+    _outlineProvider = null;
+    _decorationRegistration?.dispose();
+    _decorationRegistration = null;
+    _decorationProvider?.dispose();
+    _decorationProvider = null;
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
     _views.clear();
     _actions.clear();
     _shortcuts.clear();
@@ -352,13 +374,17 @@ class ForgeAppModule extends ForgeModule {
   // ── State listeners ──
 
   void _listenToStateChanges() {
-    _shell.systemState.onEditorsChanged.listen((event) {
-      _updateLanguageText();
-    });
+    _subscriptions.add(
+      _shell.systemState.onEditorsChanged.listen((event) {
+        _updateLanguageText();
+      }),
+    );
 
-    _shell.systemState.onDiagnosticsChanged.listen((_) {
-      _updateDiagnosticText();
-    });
+    _subscriptions.add(
+      _shell.systemState.onDiagnosticsChanged.listen((_) {
+        _updateDiagnosticText();
+      }),
+    );
   }
 
   void _updateLanguageText() {
@@ -385,5 +411,45 @@ class ForgeAppModule extends ForgeModule {
     final errors = all.where((d) => d.severity == ForgeSeverity.error).length;
     final warnings = all.where((d) => d.severity == ForgeSeverity.warning).length;
     _diagnosticText.value = '$errors errors, $warnings warnings';
+  }
+
+  // ── Provider registration (Row 8) ──
+
+  void _registerProviders() {
+    // Outline provider for Dart files.
+    _outlineProvider = DartOutlineProvider();
+    final outlineMgr = _shell.outline;
+    if (outlineMgr is DefaultOutlineManager) {
+      _outlineRegistration = outlineMgr.registerProvider(_outlineProvider!);
+    }
+
+    // File decoration provider for modified (dirty) files.
+    _decorationProvider = ModifiedFileDecorationProvider(
+      systemState: _shell.systemState,
+    );
+    final decoMgr = _shell.fileDecorations;
+    if (decoMgr is DefaultFileDecorationManager) {
+      _decorationRegistration = decoMgr.registerProvider(_decorationProvider!);
+    }
+  }
+
+  // ── Module-scoped persistence (Row 10) ──
+
+  void _restoreModuleState() {
+    final store = _shell.storage.forModule(this);
+    final activationCount = (store.get('activationCount') as int?) ?? 0;
+    store.set('activationCount', activationCount + 1);
+  }
+
+  void _saveModuleState() {
+    try {
+      final store = _shell.storage.forModule(this);
+      final active = _shell.systemState.activeEditor;
+      if (active != null) {
+        store.set('lastActivePanel', active.uri.toString());
+      }
+    } catch (_) {
+      // Storage may be unavailable during teardown — ignore.
+    }
   }
 }
