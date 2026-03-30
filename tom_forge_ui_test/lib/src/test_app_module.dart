@@ -22,6 +22,7 @@ class TestAppModule extends ForgeModule {
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
   final List<StreamSubscription<dynamic>> _subscriptions = [];
+  VoidCallback? _cursorPositionListener;
 
   ForgeDiagnosticCollection? _diagnosticCollection;
   ForgeOutputChannel? _buildChannel;
@@ -42,6 +43,10 @@ class TestAppModule extends ForgeModule {
 
   @override
   void deactivate() {
+    if (_cursorPositionListener != null) {
+      _cursorPositionListener!();
+      _cursorPositionListener = null;
+    }
     for (final sub in _subscriptions) {
       sub.cancel();
     }
@@ -340,6 +345,9 @@ class TestAppModule extends ForgeModule {
         priority: 100,
         tooltip: 'Cursor Position',
         isActive: (_) => _shell.systemState.activeEditor != null,
+        onTap: () {
+          _shell.notifications.showInformation('Go to Line not yet implemented');
+        },
       ),
       StatusBarItem(
         text: _encodingText,
@@ -347,6 +355,9 @@ class TestAppModule extends ForgeModule {
         priority: 50,
         tooltip: 'File Encoding',
         isActive: (_) => true,
+        onTap: () {
+          _shell.notifications.showInformation('Encoding: ${_encodingText.value}');
+        },
       ),
       StatusBarItem(
         text: _languageText,
@@ -354,6 +365,9 @@ class TestAppModule extends ForgeModule {
         priority: 100,
         tooltip: 'Language Mode',
         isActive: (_) => _shell.systemState.activeEditor != null,
+        onTap: () {
+          _shell.notifications.showInformation('Language: ${_languageText.value}');
+        },
       ),
       StatusBarItem(
         text: _diagnosticText,
@@ -362,6 +376,10 @@ class TestAppModule extends ForgeModule {
         priority: 100,
         tooltip: 'Problems',
         isActive: (_) => true,
+        onTap: () {
+          // Toggle the Problems panel (bottom panel).
+          _shell.layout.togglePanel(ForgePanelLocation.bottom);
+        },
       ),
     ]);
   }
@@ -372,6 +390,14 @@ class TestAppModule extends ForgeModule {
     _subscriptions.add(
       _shell.systemState.onEditorsChanged.listen((event) {
         _updateLanguageText();
+        _updateCursorListener();
+      }),
+    );
+
+    _subscriptions.add(
+      _shell.systemState.onFocusChanged.listen((_) {
+        _updateLanguageText();
+        _updateCursorListener();
       }),
     );
 
@@ -380,6 +406,31 @@ class TestAppModule extends ForgeModule {
         _updateDiagnosticText();
       }),
     );
+  }
+
+  void _updateCursorListener() {
+    // Remove previous listener.
+    if (_cursorPositionListener != null) {
+      _cursorPositionListener!();
+      _cursorPositionListener = null;
+    }
+
+    final editor = _shell.systemState.activeEditor;
+    if (editor is ForgeTextEditor) {
+      void listener() {
+        final pos = editor.cursorPosition.value;
+        _cursorText.value = 'Ln ${pos.line + 1}, Col ${pos.column + 1}';
+      }
+
+      editor.cursorPosition.addListener(listener);
+      _cursorPositionListener = () {
+        editor.cursorPosition.removeListener(listener);
+      };
+      // Immediately sync current position.
+      listener();
+    } else {
+      _cursorText.value = 'Ln 1, Col 1';
+    }
   }
 
   void _updateLanguageText() {
