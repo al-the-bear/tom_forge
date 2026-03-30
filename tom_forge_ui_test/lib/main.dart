@@ -30,6 +30,22 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     final effectiveDir =
         detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
 
+    // Initialize workspace state (.forge/ directory) before creating shell
+    // so persistent storage can use the .forge/ path.
+    await wsManager.initialize(effectiveDir.path);
+    await wsManager.suggestGitignore(effectiveDir.path);
+
+    // Save the workspace path to preferences for next-launch recovery.
+    final prefs = ForgePreferencesService.instance;
+    if (!prefs.isLoaded) await prefs.load();
+    prefs.startupPreferences.lastWorkspacePath = effectiveDir.path;
+    await prefs.save();
+
+    // Create persistent module storage backed by .forge/state/modules/
+    final persistentStorage = PersistentModuleStorage(
+      forgeDir: wsManager.forgeDirectoryPath,
+    );
+
     // Create real file system backed by the selected directory
     final realFs = RealFileSystem(rootDirectory: effectiveDir);
 
@@ -38,11 +54,8 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       appName: 'Forge Test IDE',
       navigatorKey: _navigatorKey,
       workspaceState: wsManager,
+      storage: persistentStorage,
     );
-
-    // Initialize workspace state (.forge/ directory)
-    await wsManager.initialize(effectiveDir.path);
-    await wsManager.suggestGitignore(effectiveDir.path);
 
     // Register modules
     final registry = shell.modules as DefaultModuleRegistry;
@@ -144,9 +157,19 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     // Register applications in system state
     (shell.systemState as DefaultSystemState).setApplications(apps);
 
+    // Restore last active application from .forge/state/active-app.txt
+    ForgeApplication activeApp = fullApp;
+    final lastActiveTitle = await wsManager.loadActiveApplicationTitle();
+    if (lastActiveTitle != null) {
+      final restored = apps.where((a) => a.title == lastActiveTitle).firstOrNull;
+      if (restored != null) {
+        activeApp = restored;
+      }
+    }
+
     setState(() {
       _shell = shell;
-      _application = fullApp;
+      _application = activeApp;
       _applications = apps;
     });
   }
