@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tom_forge_core/tom_forge_core.dart' show ForgePanelLocation, ForgeSeverity;
@@ -19,6 +21,7 @@ class TestAppModule extends ForgeModule {
   final _encodingText = ValueNotifier<String>('UTF-8');
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
 
   @override
   String get displayName => 'Test IDE';
@@ -35,6 +38,14 @@ class TestAppModule extends ForgeModule {
 
   @override
   void deactivate() {
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
+    _cursorText.dispose();
+    _encodingText.dispose();
+    _languageText.dispose();
+    _diagnosticText.dispose();
     _views.clear();
     _actions.clear();
     _shortcuts.clear();
@@ -350,13 +361,17 @@ class TestAppModule extends ForgeModule {
   // ── State listeners ──
 
   void _listenToStateChanges() {
-    _shell.systemState.onEditorsChanged.listen((event) {
-      _updateLanguageText();
-    });
+    _subscriptions.add(
+      _shell.systemState.onEditorsChanged.listen((event) {
+        _updateLanguageText();
+      }),
+    );
 
-    _shell.systemState.onDiagnosticsChanged.listen((_) {
-      _updateDiagnosticText();
-    });
+    _subscriptions.add(
+      _shell.systemState.onDiagnosticsChanged.listen((_) {
+        _updateDiagnosticText();
+      }),
+    );
   }
 
   void _updateLanguageText() {
