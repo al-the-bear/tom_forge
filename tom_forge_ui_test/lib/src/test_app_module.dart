@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tom_forge_core/tom_forge_core.dart' show ForgePanelLocation, ForgeSeverity;
+import 'package:tom_forge_core/tom_forge_core.dart' show ForgeDiagnostic, ForgeDiagnosticCollection, ForgeOutputChannel, ForgePanelLocation, ForgeSeverity, ForgeTextPosition, ForgeTextRange;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
@@ -23,6 +23,9 @@ class TestAppModule extends ForgeModule {
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
   final List<StreamSubscription<dynamic>> _subscriptions = [];
 
+  ForgeDiagnosticCollection? _diagnosticCollection;
+  ForgeOutputChannel? _buildChannel;
+
   @override
   String get displayName => 'Test IDE';
 
@@ -34,6 +37,7 @@ class TestAppModule extends ForgeModule {
     _buildShortcuts();
     _buildStatusBarItems();
     _listenToStateChanges();
+    _setupDiagnosticsAndOutput();
   }
 
   @override
@@ -400,5 +404,96 @@ class TestAppModule extends ForgeModule {
     final warnings =
         all.where((d) => d.severity == ForgeSeverity.warning).length;
     _diagnosticText.value = '$errors errors, $warnings warnings';
+  }
+
+  // ── Diagnostics & Output demo ──
+
+  void _setupDiagnosticsAndOutput() {
+    // Create a named diagnostic collection for the test module.
+    _diagnosticCollection = _shell.diagnostics.createCollection('test-ide');
+
+    // Create a build output channel for logging.
+    _buildChannel = _shell.output.create('Build');
+    _buildChannel!.appendLine('[Test IDE] Module activated');
+
+    // Produce sample diagnostics so the Problems panel has demo data.
+    _produceSampleDiagnostics();
+  }
+
+  void _produceSampleDiagnostics() {
+    final collection = _diagnosticCollection;
+    if (collection == null) return;
+
+    final sampleUri = Uri.parse('file:///workspace/src/main.dart');
+    final readmeUri = Uri.parse('file:///workspace/README.md');
+
+    collection.set(sampleUri, [
+      ForgeDiagnostic(
+        uri: sampleUri,
+        range: ForgeTextRange(
+          start: const ForgeTextPosition(line: 4, column: 8),
+          end: const ForgeTextPosition(line: 4, column: 20),
+        ),
+        message: "Undefined name 'undeclaredVar'",
+        severity: ForgeSeverity.error,
+        source: 'dart-analyzer',
+        code: 'undefined_identifier',
+      ),
+      ForgeDiagnostic(
+        uri: sampleUri,
+        range: ForgeTextRange(
+          start: const ForgeTextPosition(line: 12, column: 3),
+          end: const ForgeTextPosition(line: 12, column: 10),
+        ),
+        message: "Unused import 'dart:io'",
+        severity: ForgeSeverity.warning,
+        source: 'dart-analyzer',
+        code: 'unused_import',
+      ),
+      ForgeDiagnostic(
+        uri: sampleUri,
+        range: ForgeTextRange(
+          start: const ForgeTextPosition(line: 25, column: 0),
+          end: const ForgeTextPosition(line: 25, column: 40),
+        ),
+        message: 'Consider using a const constructor',
+        severity: ForgeSeverity.hint,
+        source: 'dart-analyzer',
+        code: 'prefer_const_constructors',
+      ),
+    ]);
+
+    collection.set(readmeUri, [
+      ForgeDiagnostic(
+        uri: readmeUri,
+        range: ForgeTextRange(
+          start: const ForgeTextPosition(line: 7, column: 0),
+          end: const ForgeTextPosition(line: 7, column: 50),
+        ),
+        message: 'Broken link: ./docs/api.md not found',
+        severity: ForgeSeverity.warning,
+        source: 'markdown-lint',
+      ),
+      ForgeDiagnostic(
+        uri: readmeUri,
+        range: ForgeTextRange(
+          start: const ForgeTextPosition(line: 15, column: 0),
+          end: const ForgeTextPosition(line: 15, column: 30),
+        ),
+        message: 'Missing alt text for image',
+        severity: ForgeSeverity.info,
+        source: 'markdown-lint',
+      ),
+    ]);
+
+    // Log the same issues to the build output channel.
+    _buildChannel?.appendLine(
+        '[Build] 1 error, 2 warnings, 1 info, 1 hint across 2 files');
+    _buildChannel?.appendLine(
+        '[Build] src/main.dart:5:9: error: Undefined name \'undeclaredVar\'');
+    _buildChannel?.appendLine(
+        '[Build] src/main.dart:13:4: warning: Unused import \'dart:io\'');
+    _buildChannel?.appendLine(
+        '[Build] README.md:8:1: warning: Broken link: ./docs/api.md');
   }
 }
