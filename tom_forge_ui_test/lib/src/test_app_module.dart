@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tom_forge_core/tom_forge_core.dart' show ForgeDiagnostic, ForgeDiagnosticCollection, ForgeOutputChannel, ForgePanelLocation, ForgeSeverity, ForgeTextPosition, ForgeTextRange;
+import 'package:tom_forge_core/tom_forge_core.dart' show ForgeDiagnostic, ForgeDiagnosticCollection, ForgeErrorCodes, ForgeOutputChannel, ForgePanelLocation, ForgeRetryPolicy, ForgeSeverity, ForgeTextPosition, ForgeTextRange;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
@@ -118,13 +118,24 @@ class TestAppModule extends ForgeModule {
       execute: (_) async {
         final editor = _shell.systemState.activeEditor;
         if (editor != null) {
-          // Get content from editor, write to file, emit events, mark clean.
-          final content = editor.getContent();
-          if (content != null) {
-            await _shell.fileSystem.write(editor.uri, content);
+          try {
+            final content = editor.getContent();
+            if (content != null) {
+              await ForgeRetryPolicy.withImmediateRetry(
+                operation: () => _shell.fileSystem.write(editor.uri, content),
+                maxAttempts: 2,
+              );
+            }
+            await _shell.fileSystem.save(editor.uri);
+            editor.markClean();
+          } catch (e) {
+            _shell.notifications.showError('Save failed: $e');
+            _emitFileErrorDiagnostic(
+              editor.uri,
+              ForgeErrorCodes.fsFileNotFound,
+              'File write error: $e',
+            );
           }
-          await _shell.fileSystem.save(editor.uri);
-          editor.markClean();
         }
         return null;
       },
@@ -139,13 +150,18 @@ class TestAppModule extends ForgeModule {
       menu: ForgeMenuLocation.file,
       execute: (_) async {
         for (final editor in _shell.systemState.dirtyEditors) {
-          // Get content from editor, write to file, emit events, mark clean.
-          final content = editor.getContent();
-          if (content != null) {
-            await _shell.fileSystem.write(editor.uri, content);
+          try {
+            final content = editor.getContent();
+            if (content != null) {
+              await _shell.fileSystem.write(editor.uri, content);
+            }
+            await _shell.fileSystem.save(editor.uri);
+            editor.markClean();
+          } catch (e) {
+            _shell.notifications.showError(
+              'Save failed for ${editor.uri.pathSegments.last}: $e',
+            );
           }
-          await _shell.fileSystem.save(editor.uri);
-          editor.markClean();
         }
         return null;
       },
@@ -605,5 +621,23 @@ class TestAppModule extends ForgeModule {
       shellPath: '/bin/bash',
       outputChannel: terminalLog,
     );
+  }
+
+  // ── File error helpers ──
+
+  void _emitFileErrorDiagnostic(Uri uri, String code, String message) {
+    final collection = _diagnosticCollection;
+    if (collection == null) return;
+    collection.set(uri, [
+      ForgeDiagnostic(
+        uri: uri,
+        range: const ForgeTextRange.empty(),
+        message: message,
+        severity: ForgeSeverity.error,
+        source: 'file-system',
+        code: code,
+      ),
+    ]);
+    _buildChannel?.appendLine('[Error] $code: $message');
   }
 }
