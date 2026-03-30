@@ -21,15 +21,27 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
   DefaultShellApi? _shell;
   ForgeApplication? _application;
 
-  void _initializeWithWorkspace(Directory workspaceDir) {
+  void _initializeWithWorkspace(Directory workspaceDir) async {
+    // Walk-up detection: check if a parent directory has `.forge/`
+    final wsManager = DefaultWorkspaceStateManager();
+    final detectedRoot =
+        await wsManager.detectWorkspaceRoot(workspaceDir.path);
+    final effectiveDir =
+        detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
+
     // Create real file system backed by the selected directory
-    final realFs = RealFileSystem(rootDirectory: workspaceDir);
+    final realFs = RealFileSystem(rootDirectory: effectiveDir);
 
     final shell = DefaultShellApi.withDefaultsAndFileSystem(
       fileSystem: realFs,
       appName: 'Forge Test IDE',
       navigatorKey: _navigatorKey,
+      workspaceState: wsManager,
     );
+
+    // Initialize workspace state (.forge/ directory)
+    await wsManager.initialize(effectiveDir.path);
+    await wsManager.suggestGitignore(effectiveDir.path);
 
     // Register modules
     final registry = shell.modules as DefaultModuleRegistry;
@@ -39,7 +51,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     registry.register(shellModule);
 
     final appModule = TestAppModule(
-      workspaceRootUri: workspaceDir.uri,
+      workspaceRootUri: effectiveDir.uri,
     );
     appModule.activate(shell);
     registry.register(appModule);
@@ -49,7 +61,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
         appModule.views.firstWhere((v) => v.title.value == title);
 
     final app = ForgeApplication(
-      title: 'Forge Test IDE - ${workspaceDir.path.split('/').last}',
+      title: 'Forge Test IDE - ${effectiveDir.path.split('/').last}',
       layout: ApplicationLayout(
         leftPanel: PanelConfig(
           initialSize: 250,
