@@ -75,6 +75,9 @@ class TestAppModule extends ForgeModule {
         fileSystem: _shell.fileSystem,
         layoutController: _shell.layout,
         rootUri: _workspaceRootUri,
+        systemState: _shell.systemState as DefaultSystemState,
+        fileDecorationManager:
+            _shell.fileDecorations as DefaultFileDecorationManager,
       ),
       ForgeOutlineView(
         outlineManager: _shell.outline as DefaultOutlineManager,
@@ -88,6 +91,7 @@ class TestAppModule extends ForgeModule {
       ForgeSearchView(
         searchManager: _shell.search,
         layoutController: _shell.layout,
+        systemState: _shell.systemState as DefaultSystemState,
       ),
     ]);
   }
