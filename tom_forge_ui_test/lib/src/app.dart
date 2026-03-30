@@ -24,20 +24,46 @@ class ForgeTestApp extends StatefulWidget {
 
 class _ForgeTestAppState extends State<ForgeTestApp> {
   bool _workspaceSelected = false;
+  final ForgePreferencesService _preferences = ForgePreferencesService.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _preferences.addListener(_onPreferencesChanged);
+  }
+
+  @override
+  void dispose() {
+    _preferences.removeListener(_onPreferencesChanged);
+    super.dispose();
+  }
+
+  void _onPreferencesChanged() {
+    if (mounted) setState(() {});
+  }
+
+  ThemeData _buildThemeData(ThemeMode mode) {
+    final brightness =
+        mode == ThemeMode.light ? Brightness.light : Brightness.dark;
+    final shellTheme = ForgeShellTheme.forMode(mode);
+    return ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue,
+        brightness: brightness,
+      ),
+      useMaterial3: true,
+      extensions: <ThemeExtension>[shellTheme],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = _preferences.themeMode;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: widget.application.title,
       navigatorKey: widget.navigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: _buildThemeData(themeMode),
       home: _workspaceSelected
           ? ForgeShellScaffold(
               shell: widget.shell,
