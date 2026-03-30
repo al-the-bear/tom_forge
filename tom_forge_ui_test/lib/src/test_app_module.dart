@@ -39,6 +39,7 @@ class TestAppModule extends ForgeModule {
     _buildStatusBarItems();
     _listenToStateChanges();
     _setupDiagnosticsAndOutput();
+    _createDefaultTerminal();
   }
 
   @override
@@ -97,6 +98,7 @@ class TestAppModule extends ForgeModule {
         layoutController: _shell.layout,
       ),
       ForgeOutputView(channelManager: _shell.output),
+      ForgeTerminalView(terminalManager: _shell.terminals),
       ForgeSearchView(
         searchManager: _shell.search,
         layoutController: _shell.layout,
@@ -264,6 +266,32 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    final viewToggleTerminal = ForgeAction(
+      id: 'view.toggleTerminal',
+      label: 'Toggle Terminal',
+      icon: Icons.code,
+      menu: ForgeMenuLocation.view,
+      execute: (_) async {
+        _shell.layout.togglePanel(ForgePanelLocation.bottom);
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final viewNewTerminal = ForgeAction(
+      id: 'view.newTerminal',
+      label: 'New Terminal',
+      icon: Icons.add,
+      menu: ForgeMenuLocation.view,
+      execute: (_) async {
+        _shell.terminals.create();
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
     final viewSplitEditor = ForgeAction(
       id: 'view.splitEditor',
       label: 'Split Editor',
@@ -294,7 +322,8 @@ class TestAppModule extends ForgeModule {
       fileSave, fileSaveAll, fileClose, fileCloseAll,
       editUndo, editRedo, editFindInFiles,
       viewToggleExplorer, viewToggleOutline,
-      viewToggleProblems, viewToggleOutput, viewSplitEditor,
+      viewToggleProblems, viewToggleOutput, viewToggleTerminal,
+      viewNewTerminal, viewSplitEditor,
       helpAbout,
     ]);
   }
@@ -332,6 +361,10 @@ class TestAppModule extends ForgeModule {
           key: LogicalKeyboardKey.keyU, primaryModifier: true, shift: true)),
       bind(byId['view.splitEditor']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.backslash, primaryModifier: true)),
+      bind(byId['view.toggleTerminal']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.backquote, primaryModifier: true)),
+      bind(byId['view.newTerminal']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.backquote, primaryModifier: true, shift: true)),
     ]);
   }
 
@@ -546,5 +579,19 @@ class TestAppModule extends ForgeModule {
         '[Build] src/main.dart:13:4: warning: Unused import \'dart:io\'');
     _buildChannel?.appendLine(
         '[Build] README.md:8:1: warning: Broken link: ./docs/api.md');
+  }
+
+  // ── Default terminal ──
+
+  void _createDefaultTerminal() {
+    // Create a Terminal Log output channel so terminal output is mirrored
+    // to the Output panel, demonstrating process+output integration.
+    final terminalLog = _shell.output.create('Terminal Log');
+    terminalLog.appendLine('[Terminal] Session started');
+    _shell.terminals.create(
+      name: 'bash',
+      shellPath: '/bin/bash',
+      outputChannel: terminalLog,
+    );
   }
 }
