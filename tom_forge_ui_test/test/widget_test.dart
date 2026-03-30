@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tom_forge_core/tom_forge_core.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 import 'package:tom_forge_ui_test/src/app.dart';
 import 'package:tom_forge_ui_test/src/test_app_module.dart';
 import 'package:tom_forge_ui_test/src/workspace_seed.dart';
+
+/// Config with zero-duration debounces for synchronous test behavior.
+const _testConfig = ForgeConfig(
+  performance: ForgePerformanceConfig(
+    diagnosticDebounceWindow: Duration.zero,
+  ),
+);
 
 void main() {
   testWidgets('Shell scaffold renders title bar', (WidgetTester tester) async {
@@ -13,6 +21,7 @@ void main() {
       fileSystemSeed: workspaceSeed,
       appName: 'Test',
       navigatorKey: navigatorKey,
+      initialConfig: _testConfig,
     );
 
     final registry = shell.modules as DefaultModuleRegistry;
@@ -41,6 +50,7 @@ void main() {
       fileSystemSeed: workspaceSeed,
       appName: 'Test',
       navigatorKey: navigatorKey,
+      initialConfig: _testConfig,
     );
 
     final registry = shell.modules as DefaultModuleRegistry;
