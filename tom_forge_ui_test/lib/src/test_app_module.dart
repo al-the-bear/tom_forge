@@ -362,9 +362,50 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    // Chord-target actions (Ctrl+K → second key).
+    final editToggleComment = ForgeAction(
+      id: 'edit.toggleComment',
+      label: 'Toggle Line Comment',
+      icon: Icons.comment,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        _shell.notifications.showInformation('Toggle comment triggered');
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final editToggleBlockComment = ForgeAction(
+      id: 'edit.toggleBlockComment',
+      label: 'Toggle Block Comment',
+      icon: Icons.code,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        _shell.notifications.showInformation('Toggle block comment triggered');
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final editFormatDocument = ForgeAction(
+      id: 'edit.formatDocument',
+      label: 'Format Document',
+      icon: Icons.format_align_left,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        _shell.notifications.showInformation('Format document triggered');
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
     _actions.addAll([
       fileSave, fileSaveAll, fileClose, fileCloseAll,
       editUndo, editRedo, editFindInFiles,
+      editToggleComment, editToggleBlockComment, editFormatDocument,
       viewToggleExplorer, viewToggleOutline,
       viewToggleProblems, viewToggleOutput, viewToggleTerminal,
       viewNewTerminal, viewSplitEditor,
@@ -380,6 +421,7 @@ class TestAppModule extends ForgeModule {
 
     final byId = {for (final a in _actions) a.id: a};
 
+    // Standard single-key bindings.
     _shortcuts.addAll([
       bind(byId['file.save']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.keyS, primaryModifier: true)),
@@ -409,6 +451,47 @@ class TestAppModule extends ForgeModule {
           key: LogicalKeyboardKey.backquote, primaryModifier: true)),
       bind(byId['view.newTerminal']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.backquote, primaryModifier: true, shift: true)),
+    ]);
+
+    // Two-key chord bindings (Ctrl/Cmd+K → second key).
+    final chordFirst = ForgeShortcutKey(
+      key: LogicalKeyboardKey.keyK,
+      primaryModifier: true,
+    );
+    _shortcuts.addAll([
+      ForgeShortcutBinding(
+        action: byId['edit.toggleComment']!,
+        key: chordFirst,
+        chord: ForgeChordKey(
+          firstKey: chordFirst,
+          secondKey: ForgeShortcutKey(
+            key: LogicalKeyboardKey.keyC,
+            primaryModifier: true,
+          ),
+        ),
+      ),
+      ForgeShortcutBinding(
+        action: byId['edit.toggleBlockComment']!,
+        key: chordFirst,
+        chord: ForgeChordKey(
+          firstKey: chordFirst,
+          secondKey: ForgeShortcutKey(
+            key: LogicalKeyboardKey.keyA,
+            primaryModifier: true,
+          ),
+        ),
+      ),
+      ForgeShortcutBinding(
+        action: byId['edit.formatDocument']!,
+        key: chordFirst,
+        chord: ForgeChordKey(
+          firstKey: chordFirst,
+          secondKey: ForgeShortcutKey(
+            key: LogicalKeyboardKey.keyF,
+            primaryModifier: true,
+          ),
+        ),
+      ),
     ]);
   }
 

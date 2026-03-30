@@ -290,9 +290,49 @@ class ForgeAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    final editToggleComment = ForgeAction(
+      id: 'edit.toggleComment',
+      label: 'Toggle Line Comment',
+      icon: Icons.comment,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        _shell.notifications.showInformation('Toggle Line Comment executed');
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final editToggleBlockComment = ForgeAction(
+      id: 'edit.toggleBlockComment',
+      label: 'Toggle Block Comment',
+      icon: Icons.code,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        _shell.notifications.showInformation('Toggle Block Comment executed');
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final editFormatDocument = ForgeAction(
+      id: 'edit.formatDocument',
+      label: 'Format Document',
+      icon: Icons.format_align_left,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        _shell.notifications.showInformation('Format Document executed');
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
     _actions.addAll([
       fileSave, fileSaveAll, fileClose, fileCloseAll,
       editUndo, editRedo, editFindInFiles,
+      editToggleComment, editToggleBlockComment, editFormatDocument,
       viewToggleExplorer, viewToggleOutline,
       viewToggleProblems, viewToggleOutput, viewSplitEditor,
       helpAbout,
@@ -307,6 +347,7 @@ class ForgeAppModule extends ForgeModule {
 
     final byId = {for (final a in _actions) a.id: a};
 
+    // Standard single-key bindings.
     _shortcuts.addAll([
       bind(byId['file.save']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.keyS, primaryModifier: true)),
@@ -332,6 +373,47 @@ class ForgeAppModule extends ForgeModule {
           key: LogicalKeyboardKey.keyU, primaryModifier: true, shift: true)),
       bind(byId['view.splitEditor']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.backslash, primaryModifier: true)),
+    ]);
+
+    // Two-key chord bindings (Ctrl/Cmd+K → second key).
+    final chordFirst = ForgeShortcutKey(
+      key: LogicalKeyboardKey.keyK,
+      primaryModifier: true,
+    );
+    _shortcuts.addAll([
+      ForgeShortcutBinding(
+        action: byId['edit.toggleComment']!,
+        key: chordFirst,
+        chord: ForgeChordKey(
+          firstKey: chordFirst,
+          secondKey: ForgeShortcutKey(
+            key: LogicalKeyboardKey.keyC,
+            primaryModifier: true,
+          ),
+        ),
+      ),
+      ForgeShortcutBinding(
+        action: byId['edit.toggleBlockComment']!,
+        key: chordFirst,
+        chord: ForgeChordKey(
+          firstKey: chordFirst,
+          secondKey: ForgeShortcutKey(
+            key: LogicalKeyboardKey.keyA,
+            primaryModifier: true,
+          ),
+        ),
+      ),
+      ForgeShortcutBinding(
+        action: byId['edit.formatDocument']!,
+        key: chordFirst,
+        chord: ForgeChordKey(
+          firstKey: chordFirst,
+          secondKey: ForgeShortcutKey(
+            key: LogicalKeyboardKey.keyF,
+            primaryModifier: true,
+          ),
+        ),
+      ),
     ]);
   }
 
