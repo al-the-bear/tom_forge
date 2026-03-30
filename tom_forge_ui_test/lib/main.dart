@@ -20,6 +20,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
   final _navigatorKey = GlobalKey<NavigatorState>();
   DefaultShellApi? _shell;
   ForgeApplication? _application;
+  List<ForgeApplication> _applications = [];
 
   void _initializeWithWorkspace(Directory workspaceDir) async {
     // Walk-up detection: check if a parent directory has `.forge/`
@@ -60,8 +61,12 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     ForgeView viewById(String title) =>
         appModule.views.firstWhere((v) => v.title.value == title);
 
-    final app = ForgeApplication(
-      title: 'Forge Test IDE - ${effectiveDir.path.split('/').last}',
+    final workspaceName = effectiveDir.path.split('/').last;
+
+    // Full IDE application with all panels
+    final fullApp = ForgeApplication(
+      title: 'Full IDE - $workspaceName',
+      icon: Icons.code,
       layout: ApplicationLayout(
         leftPanel: PanelConfig(
           initialSize: 250,
@@ -110,11 +115,45 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
         ),
         middlePanels: [const MiddlePanelConfig()],
       ),
+      isActive: true,
     );
+
+    // Minimal application with just explorer
+    final minimalApp = ForgeApplication(
+      title: 'Minimal - $workspaceName',
+      icon: Icons.article_outlined,
+      layout: ApplicationLayout(
+        leftPanel: PanelConfig(
+          initialSize: 200,
+          tabs: [
+            PanelTabConfig(
+              title: 'Explorer',
+              icon: Icons.folder_outlined,
+              sections: [viewById('Explorer')],
+            ),
+          ],
+        ),
+        rightPanel: const PanelConfig(initialSize: 0, tabs: []),
+        bottomPanel: const PanelConfig(initialSize: 0, tabs: []),
+        middlePanels: [const MiddlePanelConfig()],
+      ),
+    );
+
+    final apps = [fullApp, minimalApp];
+
+    // Register applications in system state
+    (shell.systemState as DefaultSystemState).setApplications(apps);
 
     setState(() {
       _shell = shell;
-      _application = app;
+      _application = fullApp;
+      _applications = apps;
+    });
+  }
+
+  void _onApplicationSwitch(ForgeApplication newApp) {
+    setState(() {
+      _application = newApp;
     });
   }
 
@@ -123,8 +162,10 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     return ForgeTestApp(
       shell: _shell ?? _createPlaceholderShell(),
       application: _application ?? _createPlaceholderApp(),
+      applications: _applications,
       navigatorKey: _navigatorKey,
       onWorkspaceSelected: _initializeWithWorkspace,
+      onApplicationSwitch: _onApplicationSwitch,
     );
   }
 

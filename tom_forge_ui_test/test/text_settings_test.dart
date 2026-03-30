@@ -415,19 +415,13 @@ void main() {
 /// Minimal test module for adapter tests.
 class _TestModule implements ForgeModule {
   @override
-  String get id => 'test-module';
-
-  @override
-  String get name => 'Test Module';
-
-  @override
   String get displayName => 'Test Module';
 
   @override
-  Future<void> activate(ForgeShellApi api) async {}
+  void activate(ForgeShellApi api) {}
 
   @override
-  Future<void> deactivate() async {}
+  void deactivate() {}
 
   @override
   List<ForgeAction> get actions => const [];
@@ -446,4 +440,7 @@ class _TestModule implements ForgeModule {
 
   @override
   List<ForgeView> get views => const [];
+
+  @override
+  List<ForgeApplication> get applications => const [];
 }
