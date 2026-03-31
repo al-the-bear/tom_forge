@@ -93,6 +93,36 @@ class TestAppModule extends ForgeModule {
   @override
   List<StatusBarItem> get statusBarItems => List.unmodifiable(_statusBarItems);
 
+  @override
+  List<ForgeShortcutMenu> get shortcutMenus {
+    final byId = {for (final a in _actions) a.id: a};
+    return [
+      // Explorer shortcut menu (concept §11.4).
+      ForgeShortcutMenu(
+        triggerKey: LogicalKeyboardKey.keyE,
+        label: 'Explorer',
+        entries: [
+          ForgeShortcutMenuEntry(
+            key: LogicalKeyboardKey.keyR,
+            action: byId['view.toggleExplorer']!,
+          ),
+          ForgeShortcutMenuEntry(
+            key: LogicalKeyboardKey.keyN,
+            action: byId['file.save']!,
+          ),
+          ForgeShortcutMenuEntry(
+            key: LogicalKeyboardKey.keyD,
+            action: byId['file.saveAll']!,
+          ),
+          ForgeShortcutMenuEntry(
+            key: LogicalKeyboardKey.keyC,
+            action: byId['file.closeAll']!,
+          ),
+        ],
+      ),
+    ];
+  }
+
   // ── Views ──
 
   void _buildViews() {

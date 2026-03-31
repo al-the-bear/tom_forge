@@ -443,4 +443,7 @@ class _TestModule implements ForgeModule {
 
   @override
   List<ForgeApplication> get applications => const [];
+
+  @override
+  List<ForgeShortcutMenu> get shortcutMenus => const [];
 }
