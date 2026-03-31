@@ -6,11 +6,18 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 import 'src/app.dart';
 import 'src/test_app_module.dart';
 
-void main() => runApp(const ForgeTestLauncher());
+void main(List<String> args) {
+  // CLI bypass: pass workspace path as first argument to skip welcome dialog.
+  final initialWorkspacePath =
+      args.isNotEmpty && Directory(args.first).existsSync() ? args.first : null;
+  runApp(ForgeTestLauncher(initialWorkspacePath: initialWorkspacePath));
+}
 
 /// Initial launcher widget that manages workspace selection and app creation.
 class ForgeTestLauncher extends StatefulWidget {
-  const ForgeTestLauncher({super.key});
+  final String? initialWorkspacePath;
+
+  const ForgeTestLauncher({super.key, this.initialWorkspacePath});
 
   @override
   State<ForgeTestLauncher> createState() => _ForgeTestLauncherState();
@@ -21,6 +28,15 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
   DefaultShellApi? _shell;
   ForgeApplication? _application;
   List<ForgeApplication> _applications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // CLI bypass: if a workspace path was passed via args, skip welcome page.
+    if (widget.initialWorkspacePath != null) {
+      _initializeWithWorkspace(Directory(widget.initialWorkspacePath!));
+    }
+  }
 
   void _initializeWithWorkspace(Directory workspaceDir) async {
     // Walk-up detection: check if a parent directory has `.forge/`

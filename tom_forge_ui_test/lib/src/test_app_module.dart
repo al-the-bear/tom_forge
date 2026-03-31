@@ -145,7 +145,15 @@ class TestAppModule extends ForgeModule {
             await _shell.fileSystem.save(editor.uri);
             editor.markClean();
           } catch (e) {
-            _shell.notifications.showError('Save failed: $e');
+            final action = await _shell.notifications.showError(
+              'Save failed: $e',
+              actions: ['Retry', 'Save As...'],
+            );
+            if (action == 'Retry') {
+              _shell.executeAction('file.save');
+            } else if (action == 'Save As...') {
+              _shell.executeAction('file.saveAs');
+            }
             _emitFileErrorDiagnostic(
               editor.uri,
               ForgeErrorCodes.fsFileNotFound,
@@ -362,6 +370,27 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    final helpReportIssue = ForgeAction(
+      id: 'help.reportIssue',
+      label: 'Report Issue...',
+      icon: Icons.bug_report,
+      menu: ForgeMenuLocation.help,
+      execute: (_) async {
+        final action = await _shell.notifications.showWarning(
+          'Would you like to include workspace info in the report?',
+          actions: ['Include Info', 'Skip', 'Cancel'],
+        );
+        if (action != null && action != 'Cancel') {
+          _shell.notifications.showInformation(
+            'Issue report submitted (info: ${action == 'Include Info'})',
+          );
+        }
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
     // Chord-target actions (Ctrl+K → second key).
     final editToggleComment = ForgeAction(
       id: 'edit.toggleComment',
@@ -402,14 +431,177 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    // ── Dialog-using actions ──
+
+    final goToLine = ForgeAction(
+      id: 'go.line',
+      label: 'Go to Line...',
+      icon: Icons.format_list_numbered,
+      menu: ForgeMenuLocation.go,
+      execute: (_) async {
+        final result = await _shell.dialogs.showInputBox(
+          prompt: 'Go to Line',
+          placeholder: 'Type a line number',
+          validateInput: (text) {
+            if (text.isEmpty) return 'Enter a line number';
+            final n = int.tryParse(text);
+            if (n == null || n < 1) return 'Enter a valid positive number';
+            return null;
+          },
+        );
+        if (result != null) {
+          final line = int.tryParse(result);
+          if (line != null) {
+            _shell.notifications.showInformation('Navigate to line $line');
+          }
+        }
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final fileNew = ForgeAction(
+      id: 'file.new',
+      label: 'New File...',
+      icon: Icons.note_add,
+      menu: ForgeMenuLocation.file,
+      execute: (_) async {
+        final name = await _shell.dialogs.showInputBox(
+          prompt: 'New File',
+          placeholder: 'Enter file name',
+          validateInput: (text) {
+            if (text.trim().isEmpty) return 'File name cannot be empty';
+            if (text.contains(RegExp(r'[/\\]'))) return 'Invalid characters';
+            return null;
+          },
+        );
+        if (name != null && name.trim().isNotEmpty) {
+          final dir = _shell.systemState.workspaceRootPath;
+          final uri = Uri.file('$dir/$name');
+          try {
+            await _shell.fileSystem.write(uri, '');
+            _shell.layout.openFile(uri);
+            _shell.notifications.showInformation('Created $name');
+          } catch (e) {
+            _shell.notifications.showError('Failed to create file: $e');
+          }
+        }
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final fileOpen = ForgeAction(
+      id: 'file.open',
+      label: 'Open File...',
+      icon: Icons.folder_open,
+      menu: ForgeMenuLocation.file,
+      execute: (_) async {
+        final uris = await _shell.dialogs.showOpenDialog(
+          title: 'Open File',
+        );
+        if (uris != null) {
+          for (final uri in uris) {
+            _shell.layout.openFile(uri);
+          }
+        }
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final fileOpenWith = ForgeAction(
+      id: 'file.openWith',
+      label: 'Open With...',
+      icon: Icons.open_in_new,
+      menu: ForgeMenuLocation.file,
+      execute: (_) async {
+        final editor = _shell.systemState.activeEditor;
+        if (editor == null) return null;
+        await _shell.layout.openFileWith(editor.uri);
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final changeLanguageMode = ForgeAction(
+      id: 'editor.changeLanguageMode',
+      label: 'Change Language Mode',
+      icon: Icons.translate,
+      execute: (_) async {
+        final modes = [
+          ForgeQuickPickItem(label: 'Plain Text', value: 'plaintext'),
+          ForgeQuickPickItem(label: 'Dart', value: 'dart'),
+          ForgeQuickPickItem(label: 'Markdown', value: 'markdown'),
+          ForgeQuickPickItem(label: 'YAML', value: 'yaml'),
+          ForgeQuickPickItem(label: 'JSON', value: 'json'),
+          ForgeQuickPickItem(label: 'HTML', value: 'html'),
+          ForgeQuickPickItem(label: 'CSS', value: 'css'),
+          ForgeQuickPickItem(label: 'JavaScript', value: 'javascript'),
+          ForgeQuickPickItem(label: 'TypeScript', value: 'typescript'),
+          ForgeQuickPickItem(label: 'Python', value: 'python'),
+          ForgeQuickPickItem(label: 'Shell', value: 'shell'),
+        ];
+        final mode = await _shell.dialogs.showQuickPick(
+          modes,
+          placeholder: 'Select Language Mode',
+        );
+        if (mode != null) {
+          _languageText.value = modes.firstWhere((m) => m.value == mode).label;
+          _shell.notifications.showInformation('Language mode: $mode');
+        }
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final fileSaveAs = ForgeAction(
+      id: 'file.saveAs',
+      label: 'Save As...',
+      icon: Icons.save_as,
+      menu: ForgeMenuLocation.file,
+      execute: (_) async {
+        final editor = _shell.systemState.activeEditor;
+        if (editor == null) return null;
+        final uri = await _shell.dialogs.showSaveDialog(
+          title: 'Save As',
+          defaultUri: editor.uri,
+        );
+        if (uri != null) {
+          try {
+            final content = editor.getContent();
+            if (content != null) {
+              await _shell.fileSystem.write(uri, content);
+              editor.markClean();
+              _shell.notifications.showInformation(
+                'Saved as ${uri.pathSegments.last}',
+              );
+            }
+          } catch (e) {
+            _shell.notifications.showError('Save As failed: $e');
+          }
+        }
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
     _actions.addAll([
-      fileSave, fileSaveAll, fileClose, fileCloseAll,
+      fileSave, fileSaveAll, fileNew, fileOpen, fileOpenWith, fileSaveAs,
+      fileClose, fileCloseAll,
       editUndo, editRedo, editFindInFiles,
       editToggleComment, editToggleBlockComment, editFormatDocument,
+      goToLine, changeLanguageMode,
       viewToggleExplorer, viewToggleOutline,
       viewToggleProblems, viewToggleOutput, viewToggleTerminal,
       viewNewTerminal, viewSplitEditor,
-      helpAbout,
+      helpAbout, helpReportIssue,
     ]);
   }
 
@@ -451,6 +643,12 @@ class TestAppModule extends ForgeModule {
           key: LogicalKeyboardKey.backquote, primaryModifier: true)),
       bind(byId['view.newTerminal']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.backquote, primaryModifier: true, shift: true)),
+      bind(byId['go.line']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.keyG, primaryModifier: true)),
+      bind(byId['file.new']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.keyN, primaryModifier: true)),
+      bind(byId['file.open']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.keyO, primaryModifier: true)),
     ]);
 
     // Two-key chord bindings (Ctrl/Cmd+K → second key).
@@ -506,7 +704,7 @@ class TestAppModule extends ForgeModule {
         tooltip: 'Cursor Position',
         isActive: (_) => _shell.systemState.activeEditor != null,
         onTap: () {
-          _shell.notifications.showInformation('Go to Line not yet implemented');
+          _shell.executeAction('go.line');
         },
       ),
       StatusBarItem(
@@ -526,7 +724,7 @@ class TestAppModule extends ForgeModule {
         tooltip: 'Language Mode',
         isActive: (_) => _shell.systemState.activeEditor != null,
         onTap: () {
-          _shell.notifications.showInformation('Language: ${_languageText.value}');
+          _shell.executeAction('editor.changeLanguageMode');
         },
       ),
       StatusBarItem(
