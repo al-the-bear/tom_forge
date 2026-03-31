@@ -266,6 +266,38 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    final editorFind = ForgeAction(
+      id: 'editor.find',
+      label: 'Find',
+      icon: Icons.find_in_page,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        final editor = _shell.systemState.activeEditor;
+        if (editor != null) {
+          _shell.notifications.showInformation('Find in ${editor.title}');
+        }
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final editorDeleteLine = ForgeAction(
+      id: 'editor.deleteLine',
+      label: 'Delete Line',
+      icon: Icons.remove_circle_outline,
+      menu: ForgeMenuLocation.edit,
+      execute: (_) async {
+        final editor = _shell.systemState.activeEditor;
+        if (editor != null) {
+          _shell.notifications.showInformation('Delete line in ${editor.title}');
+        }
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
     final viewToggleExplorer = ForgeAction(
       id: 'view.toggleExplorer',
       label: 'Toggle Explorer',
@@ -754,7 +786,7 @@ class TestAppModule extends ForgeModule {
     _actions.addAll([
       fileSave, fileSaveAll, fileNew, fileOpen, fileOpenWith, fileSaveAs,
       fileClose, fileCloseAll,
-      editUndo, editRedo, editFindInFiles,
+      editUndo, editRedo, editFindInFiles, editorFind, editorDeleteLine,
       editToggleComment, editToggleBlockComment, editFormatDocument,
       goToLine, changeLanguageMode,
       viewToggleExplorer, viewToggleOutline,
@@ -775,90 +807,46 @@ class TestAppModule extends ForgeModule {
 
     final byId = {for (final a in _actions) a.id: a};
 
-    // Standard single-key bindings.
+    // ── Concept §11.3 standard shortcuts ──
+    // Only single-modifier (Cmd/Ctrl+key) bindings are pre-assigned.
+    // All other actions are accessible via command palette or custom
+    // shortcut menus (concept §11.4, implemented in a later step).
     _shortcuts.addAll([
-      bind(byId['file.save']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyS, primaryModifier: true)),
+      // Cmd+S → Save all dirty editors (concept §11.3).
       bind(byId['file.saveAll']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyS, primaryModifier: true, shift: true)),
-      bind(byId['file.close']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyW, primaryModifier: true)),
-      bind(byId['file.closeAll']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyW, primaryModifier: true, shift: true)),
+          key: LogicalKeyboardKey.keyS, primaryModifier: true)),
+      // Cmd+F → Find in focused component (concept §11.3).
+      bind(byId['editor.find']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.keyF, primaryModifier: true)),
+      // Cmd+Y → Delete line in text editor (concept §11.3).
+      bind(byId['editor.deleteLine']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.keyY, primaryModifier: true)),
+      // Cmd+U → Undo (concept §11.3).
       bind(byId['edit.undo']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyZ, primaryModifier: true)),
+          key: LogicalKeyboardKey.keyU, primaryModifier: true)),
+      // Cmd+Z → Redo (concept §11.3).
       bind(byId['edit.redo']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyZ, primaryModifier: true, shift: true)),
-      bind(byId['edit.findInFiles']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyF, primaryModifier: true, shift: true)),
-      bind(byId['view.toggleExplorer']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyB, primaryModifier: true)),
-      bind(byId['view.toggleOutline']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyO, primaryModifier: true, shift: true)),
-      bind(byId['view.toggleProblems']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyM, primaryModifier: true, shift: true)),
-      bind(byId['view.toggleOutput']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyU, primaryModifier: true, shift: true)),
-      bind(byId['view.splitEditor']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.backslash, primaryModifier: true)),
-      bind(byId['view.toggleTerminal']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.backquote, primaryModifier: true)),
-      bind(byId['view.newTerminal']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.backquote, primaryModifier: true, shift: true)),
-      bind(byId['go.line']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyG, primaryModifier: true)),
-      bind(byId['file.new']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyN, primaryModifier: true)),
-      bind(byId['file.open']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyO, primaryModifier: true)),
+          key: LogicalKeyboardKey.keyZ, primaryModifier: true)),
+      // F5 → Run active file (kept as function key, no modifier).
       bind(byId['terminal.runActiveFile']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.f5)),
-      bind(byId['build.run']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.f5, shift: true)),
-      bind(byId['build.stop']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.f5, primaryModifier: true, shift: true)),
     ]);
 
-    // Two-key chord bindings (Ctrl/Cmd+K → second key).
-    final chordFirst = ForgeShortcutKey(
-      key: LogicalKeyboardKey.keyK,
-      primaryModifier: true,
-    );
-    _shortcuts.addAll([
-      ForgeShortcutBinding(
-        action: byId['edit.toggleComment']!,
-        key: chordFirst,
-        chord: ForgeChordKey(
-          firstKey: chordFirst,
-          secondKey: ForgeShortcutKey(
-            key: LogicalKeyboardKey.keyC,
-            primaryModifier: true,
-          ),
-        ),
-      ),
-      ForgeShortcutBinding(
-        action: byId['edit.toggleBlockComment']!,
-        key: chordFirst,
-        chord: ForgeChordKey(
-          firstKey: chordFirst,
-          secondKey: ForgeShortcutKey(
-            key: LogicalKeyboardKey.keyA,
-            primaryModifier: true,
-          ),
-        ),
-      ),
-      ForgeShortcutBinding(
-        action: byId['edit.formatDocument']!,
-        key: chordFirst,
-        chord: ForgeChordKey(
-          firstKey: chordFirst,
-          secondKey: ForgeShortcutKey(
-            key: LogicalKeyboardKey.keyF,
-            primaryModifier: true,
-          ),
-        ),
-      ),
-    ]);
+    // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+1-4, Cmd+]/[ are registered in
+    // ForgeShellScaffold as shell-level shortcuts (concept §11.3).
+    // Cmd+X/C/V are handled by Flutter's built-in text editing.
+
+    // Note: The following actions have NO pre-assigned shortcut per concept
+    // §11.2-11.3 and are accessible via command palette or future custom
+    // shortcut menus (concept §11.4):
+    //   file.save, file.close, file.closeAll, file.new, file.open,
+    //   file.openWith, file.saveAs, edit.findInFiles, edit.toggleComment,
+    //   edit.toggleBlockComment, edit.formatDocument, go.line,
+    //   editor.changeLanguageMode, view.toggleExplorer, view.toggleOutline,
+    //   view.toggleProblems, view.toggleOutput, view.toggleTerminal,
+    //   view.newTerminal, view.splitEditor, terminal.sendCommand,
+    //   terminal.closeActive, terminal.show, build.run, build.stop,
+    //   help.about, help.reportIssue, help.openUrl
   }
 
   // ── Status bar items ──
