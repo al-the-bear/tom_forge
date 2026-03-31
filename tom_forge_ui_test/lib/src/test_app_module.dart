@@ -391,6 +391,165 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    // ── Terminal wiring actions ──
+
+    final terminalRunActiveFile = ForgeAction(
+      id: 'terminal.runActiveFile',
+      label: 'Run Active File in Terminal',
+      icon: Icons.play_arrow,
+      menu: ForgeMenuLocation.run,
+      execute: (_) async {
+        final editor = _shell.systemState.activeEditor;
+        if (editor == null) return null;
+        final fileName = editor.uri.pathSegments.last;
+        // Create or reuse the active terminal.
+        final terminal = _shell.terminals.activeTerminal ??
+            _shell.terminals.create(
+              name: 'Run: $fileName',
+              shellPath: '/bin/bash',
+              cwd: _shell.systemState.workspaceRootPath,
+            );
+        // Track execution via execution monitor.
+        final execId = 'run_${DateTime.now().millisecondsSinceEpoch}';
+        _shell.executions.start(id: execId, label: 'Run $fileName');
+        terminal.sendText('echo "Running $fileName..."');
+        terminal.show();
+        _shell.layout.openPanel(ForgePanelLocation.bottom);
+        // Mark execution as completed after dispatch.
+        _shell.executions.complete(execId);
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
+    final terminalSendCommand = ForgeAction(
+      id: 'terminal.sendCommand',
+      label: 'Send Command to Terminal',
+      icon: Icons.send,
+      execute: (_) async {
+        final command = await _shell.dialogs.showInputBox(
+          prompt: 'Send to Terminal',
+          placeholder: 'Enter command',
+        );
+        if (command != null && command.isNotEmpty) {
+          final terminal = _shell.terminals.activeTerminal ??
+              _shell.terminals.create(
+                name: 'bash',
+                shellPath: '/bin/bash',
+              );
+          terminal.sendText(command);
+          terminal.show();
+        }
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final terminalCloseActive = ForgeAction(
+      id: 'terminal.closeActive',
+      label: 'Close Active Terminal',
+      icon: Icons.close,
+      execute: (_) async {
+        final terminal = _shell.terminals.activeTerminal;
+        terminal?.close();
+        return null;
+      },
+      isEnabled: () => _shell.terminals.activeTerminal != null,
+      isVisible: () => true,
+    );
+
+    final terminalShowActive = ForgeAction(
+      id: 'terminal.show',
+      label: 'Show Terminal',
+      icon: Icons.terminal,
+      execute: (_) async {
+        final terminal = _shell.terminals.activeTerminal;
+        if (terminal != null) {
+          terminal.show();
+          _shell.layout.openPanel(ForgePanelLocation.bottom);
+        }
+        return null;
+      },
+      isEnabled: () => _shell.terminals.activeTerminal != null,
+      isVisible: () => true,
+    );
+
+    final helpOpenUrl = ForgeAction(
+      id: 'help.openUrl',
+      label: 'Open URL...',
+      icon: Icons.open_in_browser,
+      menu: ForgeMenuLocation.help,
+      execute: (_) async {
+        final url = await _shell.dialogs.showInputBox(
+          prompt: 'Open External URL',
+          placeholder: 'https://',
+          validateInput: (text) {
+            if (text.isEmpty) return 'Enter a URL';
+            final uri = Uri.tryParse(text);
+            if (uri == null || !uri.hasScheme) return 'Enter a valid URL';
+            return null;
+          },
+        );
+        if (url != null) {
+          await _shell.environment.openExternal(Uri.parse(url));
+          _shell.notifications.showInformation('Opened $url');
+        }
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final buildRun = ForgeAction(
+      id: 'build.run',
+      label: 'Run Build',
+      icon: Icons.build,
+      menu: ForgeMenuLocation.run,
+      execute: (_) async {
+        // Create a build terminal with output channel.
+        final buildChannel =
+            _buildChannel ?? _shell.output.create('Build');
+        final terminal = _shell.terminals.create(
+          name: 'Build',
+          shellPath: '/bin/bash',
+          cwd: _shell.systemState.workspaceRootPath,
+          outputChannel: buildChannel,
+        );
+        // Track via execution monitor.
+        final execId = 'build_${DateTime.now().millisecondsSinceEpoch}';
+        _shell.executions.start(id: execId, label: 'Build');
+        buildChannel.appendLine('[Build] Started...');
+        terminal.sendText('echo "Building..."');
+        terminal.show();
+        _shell.layout.openPanel(ForgePanelLocation.bottom);
+        // Mark completed.
+        _shell.executions.complete(execId);
+        buildChannel.appendLine('[Build] Completed.');
+        return null;
+      },
+      isEnabled: () => true,
+      isVisible: () => true,
+    );
+
+    final buildStop = ForgeAction(
+      id: 'build.stop',
+      label: 'Stop Build',
+      icon: Icons.stop,
+      menu: ForgeMenuLocation.run,
+      execute: (_) async {
+        // Cancel all running executions.
+        for (final execution in _shell.executions.running) {
+          _shell.executions.cancel(execution.id);
+        }
+        _shell.notifications.showInformation('All running tasks cancelled');
+        return null;
+      },
+      isEnabled: () => _shell.executions.running.isNotEmpty,
+      isVisible: () => true,
+    );
+
     // Chord-target actions (Ctrl+K → second key).
     final editToggleComment = ForgeAction(
       id: 'edit.toggleComment',
@@ -601,7 +760,10 @@ class TestAppModule extends ForgeModule {
       viewToggleExplorer, viewToggleOutline,
       viewToggleProblems, viewToggleOutput, viewToggleTerminal,
       viewNewTerminal, viewSplitEditor,
-      helpAbout, helpReportIssue,
+      terminalRunActiveFile, terminalSendCommand, terminalCloseActive,
+      terminalShowActive,
+      buildRun, buildStop,
+      helpAbout, helpReportIssue, helpOpenUrl,
     ]);
   }
 
@@ -649,6 +811,12 @@ class TestAppModule extends ForgeModule {
           key: LogicalKeyboardKey.keyN, primaryModifier: true)),
       bind(byId['file.open']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.keyO, primaryModifier: true)),
+      bind(byId['terminal.runActiveFile']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.f5)),
+      bind(byId['build.run']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.f5, shift: true)),
+      bind(byId['build.stop']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.f5, primaryModifier: true, shift: true)),
     ]);
 
     // Two-key chord bindings (Ctrl/Cmd+K → second key).
