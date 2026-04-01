@@ -368,6 +368,19 @@ class ForgeAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    final toolsFormatDocument = ForgeAction(
+      id: 'tools.formatDocument',
+      label: 'Format Active Document',
+      icon: Icons.auto_fix_high,
+      menu: ForgeMenuLocation.tools,
+      execute: (_) async {
+        await _formatActiveDocument();
+        return null;
+      },
+      isEnabled: () => _shell.systemState.activeEditor != null,
+      isVisible: () => true,
+    );
+
     final editorFind = ForgeAction(
       id: 'editor.find',
       label: 'Find',
@@ -415,6 +428,7 @@ class ForgeAppModule extends ForgeModule {
       editToggleComment,
       editToggleBlockComment,
       editFormatDocument,
+      toolsFormatDocument,
       viewToggleExplorer,
       viewToggleOutline,
       viewToggleProblems,
