@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tom_forge_core/tom_forge_core.dart' show ForgePanelLocation, ForgeSeverity;
+import 'package:dart_style/dart_style.dart';
+import 'package:tom_forge_core/tom_forge_core.dart'
+    show ForgePanelLocation, ForgeSeverity;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Production IDE module providing views, actions, shortcuts, and status bar items.
@@ -10,7 +13,7 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 /// Promoted from TestAppModule in tom_forge_ui_test with identical behavior.
 class ForgeAppModule extends ForgeModule {
   ForgeAppModule({required Uri workspaceRootUri})
-      : _workspaceRootUri = workspaceRootUri;
+    : _workspaceRootUri = workspaceRootUri;
 
   final Uri _workspaceRootUri;
   late ForgeShellApi _shell;
@@ -358,7 +361,7 @@ class ForgeAppModule extends ForgeModule {
       icon: Icons.format_align_left,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _shell.notifications.showInformation('Format Document executed');
+        await _formatActiveDocument();
         return null;
       },
       isEnabled: () => _shell.systemState.activeEditor != null,
@@ -389,7 +392,9 @@ class ForgeAppModule extends ForgeModule {
       execute: (_) async {
         final editor = _shell.systemState.activeEditor;
         if (editor != null) {
-          _shell.notifications.showInformation('Delete line in ${editor.title}');
+          _shell.notifications.showInformation(
+            'Delete line in ${editor.title}',
+          );
         }
         return null;
       },
@@ -398,11 +403,23 @@ class ForgeAppModule extends ForgeModule {
     );
 
     _actions.addAll([
-      fileSave, fileSaveAll, fileClose, fileCloseAll,
-      editUndo, editRedo, editFindInFiles, editorFind, editorDeleteLine,
-      editToggleComment, editToggleBlockComment, editFormatDocument,
-      viewToggleExplorer, viewToggleOutline,
-      viewToggleProblems, viewToggleOutput, viewSplitEditor,
+      fileSave,
+      fileSaveAll,
+      fileClose,
+      fileCloseAll,
+      editUndo,
+      editRedo,
+      editFindInFiles,
+      editorFind,
+      editorDeleteLine,
+      editToggleComment,
+      editToggleBlockComment,
+      editFormatDocument,
+      viewToggleExplorer,
+      viewToggleOutline,
+      viewToggleProblems,
+      viewToggleOutput,
+      viewSplitEditor,
       helpAbout,
     ]);
   }
@@ -421,20 +438,30 @@ class ForgeAppModule extends ForgeModule {
     // shortcut menus (concept §11.4, implemented in a later step).
     _shortcuts.addAll([
       // Cmd+S → Save all dirty editors (concept §11.3).
-      bind(byId['file.saveAll']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyS, primaryModifier: true)),
+      bind(
+        byId['file.saveAll']!,
+        ForgeShortcutKey(key: LogicalKeyboardKey.keyS, primaryModifier: true),
+      ),
       // Cmd+F → Find in focused component (concept §11.3).
-      bind(byId['editor.find']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyF, primaryModifier: true)),
+      bind(
+        byId['editor.find']!,
+        ForgeShortcutKey(key: LogicalKeyboardKey.keyF, primaryModifier: true),
+      ),
       // Cmd+Y → Delete line in text editor (concept §11.3).
-      bind(byId['editor.deleteLine']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyY, primaryModifier: true)),
+      bind(
+        byId['editor.deleteLine']!,
+        ForgeShortcutKey(key: LogicalKeyboardKey.keyY, primaryModifier: true),
+      ),
       // Cmd+U → Undo (concept §11.3).
-      bind(byId['edit.undo']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyU, primaryModifier: true)),
+      bind(
+        byId['edit.undo']!,
+        ForgeShortcutKey(key: LogicalKeyboardKey.keyU, primaryModifier: true),
+      ),
       // Cmd+Z → Redo (concept §11.3).
-      bind(byId['edit.redo']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyZ, primaryModifier: true)),
+      bind(
+        byId['edit.redo']!,
+        ForgeShortcutKey(key: LogicalKeyboardKey.keyZ, primaryModifier: true),
+      ),
     ]);
 
     // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+1-4, Cmd+]/[ are registered in
@@ -471,7 +498,9 @@ class ForgeAppModule extends ForgeModule {
         tooltip: 'File Encoding',
         isActive: (_) => true,
         onTap: () {
-          _shell.notifications.showInformation('Encoding: ${_encodingText.value}');
+          _shell.notifications.showInformation(
+            'Encoding: ${_encodingText.value}',
+          );
         },
       ),
       StatusBarItem(
@@ -481,7 +510,9 @@ class ForgeAppModule extends ForgeModule {
         tooltip: 'Language Mode',
         isActive: (_) => _shell.systemState.activeEditor != null,
         onTap: () {
-          _shell.notifications.showInformation('Language: ${_languageText.value}');
+          _shell.notifications.showInformation(
+            'Language: ${_languageText.value}',
+          );
         },
       ),
       StatusBarItem(
@@ -546,7 +577,9 @@ class ForgeAppModule extends ForgeModule {
   void _updateDiagnosticText() {
     final all = _shell.diagnostics.all;
     final errors = all.where((d) => d.severity == ForgeSeverity.error).length;
-    final warnings = all.where((d) => d.severity == ForgeSeverity.warning).length;
+    final warnings = all
+        .where((d) => d.severity == ForgeSeverity.warning)
+        .length;
     _diagnosticText.value = '$errors errors, $warnings warnings';
   }
 
@@ -650,5 +683,83 @@ class ForgeAppModule extends ForgeModule {
     } catch (_) {
       // Storage may be unavailable during teardown — ignore.
     }
+  }
+
+  Future<void> _formatActiveDocument() async {
+    final editor = _shell.systemState.activeEditor;
+    if (editor is! ForgeTextEditor) {
+      _shell.notifications.showWarning(
+        'Formatting is only available for text editors.',
+      );
+      return;
+    }
+
+    final current = editor.getContent();
+    if (current == null) {
+      _shell.notifications.showWarning('No editable text content available.');
+      return;
+    }
+
+    final formatted = _formatEditorContent(editor, current);
+    if (formatted == current) {
+      _shell.notifications.showInformation('Document is already formatted.');
+      return;
+    }
+
+    final applied = _applyFormattedContent(editor, formatted);
+    if (!applied) {
+      _shell.notifications.showWarning(
+        'Formatting is not supported for this editor type.',
+      );
+      return;
+    }
+
+    _shell.notifications.showInformation('Formatted ${editor.title.value}.');
+  }
+
+  String _formatEditorContent(ForgeEditor editor, String content) {
+    if (editor is ForgeDartEditor) {
+      try {
+        return DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+        ).format(content);
+      } catch (_) {
+        // Fall through to whitespace formatting if Dart parsing fails.
+      }
+    }
+    return _normalizeWhitespace(content);
+  }
+
+  bool _applyFormattedContent(ForgeEditor editor, String content) {
+    if (editor is ForgeDartEditor) {
+      editor.controller.userCode = content;
+      return true;
+    }
+    if (editor is ForgeMdEditor) {
+      editor.controller.markdown = content;
+      return true;
+    }
+    if (editor is ForgePlainTextEditor) {
+      editor.controller.markdown = content;
+      return true;
+    }
+    if (editor is ForgeYamlEditor) {
+      editor.controller.setYaml(content);
+      return true;
+    }
+    return false;
+  }
+
+  String _normalizeWhitespace(String content) {
+    final normalized = content.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    final lines = const LineSplitter()
+        .convert(normalized)
+        .map((line) => line.replaceFirst(RegExp(r'\s+\n?$'), ''))
+        .toList(growable: false);
+    var result = lines.join('\n');
+    if (normalized.endsWith('\n') && !result.endsWith('\n')) {
+      result = '$result\n';
+    }
+    return result;
   }
 }

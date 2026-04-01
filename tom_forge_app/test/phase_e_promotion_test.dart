@@ -30,40 +30,47 @@ void main() {
 
       final app = ForgeApplication(title: 'Tom Forge');
 
-      await tester.pumpWidget(ForgeApp(
-        shell: shell,
-        application: app,
-        navigatorKey: navigatorKey,
-        onWorkspaceSelected: (_) {},
-      ));
+      await tester.pumpWidget(
+        ForgeApp(
+          shell: shell,
+          application: app,
+          navigatorKey: navigatorKey,
+          onWorkspaceSelected: (_) {},
+        ),
+      );
 
       expect(find.text('Tom Forge'), findsOneWidget);
     });
 
-    test('layout opens seeded .txt file with markdown editor adapter', () async {
-      final navigatorKey = GlobalKey<NavigatorState>();
-      final shell = DefaultShellApi.withDefaults(
-        fileSystemSeed: workspaceSeed,
-        appName: 'Tom Forge',
-        navigatorKey: navigatorKey,
-      );
+    test(
+      'layout opens seeded .txt file with markdown editor adapter',
+      () async {
+        final navigatorKey = GlobalKey<NavigatorState>();
+        final shell = DefaultShellApi.withDefaults(
+          fileSystemSeed: workspaceSeed,
+          appName: 'Tom Forge',
+          navigatorKey: navigatorKey,
+        );
 
-      final registry = shell.modules as DefaultModuleRegistry;
-      final shellModule = TomForgeShellModule();
-      shellModule.activate(shell);
-      registry.register(shellModule);
-      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
-      appModule.activate(shell);
-      registry.register(appModule);
+        final registry = shell.modules as DefaultModuleRegistry;
+        final shellModule = TomForgeShellModule();
+        shellModule.activate(shell);
+        registry.register(shellModule);
+        final appModule = ForgeAppModule(
+          workspaceRootUri: Uri.parse('file:///'),
+        );
+        appModule.activate(shell);
+        registry.register(appModule);
 
-      shell.layout.openFile(Uri.parse('file:///doc/notes.txt'));
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+        shell.layout.openFile(Uri.parse('file:///doc/notes.txt'));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      final active = shell.systemState.activeEditor;
-      expect(active, isNotNull);
-      expect(active, isA<ForgeMdEditor>());
-      expect(active!.uri.path, endsWith('/doc/notes.txt'));
-    });
+        final active = shell.systemState.activeEditor;
+        expect(active, isNotNull);
+        expect(active, isA<ForgeMdEditor>());
+        expect(active!.uri.path, endsWith('/doc/notes.txt'));
+      },
+    );
 
     test('module actions include all required file/edit/view commands', () {
       final navigatorKey = GlobalKey<NavigatorState>();
@@ -111,17 +118,17 @@ void main() {
       final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
 
-      final boundActionIds = appModule.shortcuts.map((s) => s.action.id).toSet();
+      final boundActionIds = appModule.shortcuts
+          .map((s) => s.action.id)
+          .toSet();
 
-      // Core shortcuts that must be bound
-      expect(boundActionIds, contains('file.save'));
+      // Concept-defined standard shortcuts bound by the app module.
       expect(boundActionIds, contains('file.saveAll'));
-      expect(boundActionIds, contains('file.close'));
-      expect(boundActionIds, contains('file.closeAll'));
+      expect(boundActionIds, contains('editor.find'));
+      expect(boundActionIds, contains('editor.deleteLine'));
       expect(boundActionIds, contains('edit.undo'));
       expect(boundActionIds, contains('edit.redo'));
-      expect(boundActionIds, contains('edit.findInFiles'));
-      expect(boundActionIds, contains('view.toggleExplorer'));
+      expect(boundActionIds.length, greaterThanOrEqualTo(5));
     });
 
     test('module views include all required panels', () {
@@ -161,6 +168,38 @@ void main() {
       expect(tooltips, contains('File Encoding'));
       expect(tooltips, contains('Language Mode'));
       expect(tooltips, contains('Problems'));
+    });
+
+    test('format document action rewrites active text content', () async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final shell = DefaultShellApi.withDefaults(
+        fileSystemSeed: {'/workspace/notes.md': 'alpha  \nbeta\t  '},
+        appName: 'Tom Forge',
+        navigatorKey: navigatorKey,
+      );
+
+      final registry = shell.modules as DefaultModuleRegistry;
+      final shellModule = TomForgeShellModule();
+      shellModule.activate(shell);
+      registry.register(shellModule);
+
+      final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
+      appModule.activate(shell);
+      registry.register(appModule);
+
+      shell.layout.openFile(Uri.parse('file:///workspace/notes.md'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final formatAction = appModule.actions.firstWhere(
+        (action) => action.id == 'edit.formatDocument',
+      );
+      await formatAction.execute(const {});
+
+      final active = shell.systemState.activeEditor;
+      expect(active, isNotNull);
+      expect(active!.getContent(), 'alpha\nbeta');
+
+      shell.dispose();
     });
   });
 }
