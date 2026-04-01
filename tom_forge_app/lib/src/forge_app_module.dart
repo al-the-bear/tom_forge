@@ -24,6 +24,7 @@ class ForgeAppModule extends ForgeModule {
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
   final List<StreamSubscription<dynamic>> _subscriptions = [];
+  VoidCallback? _cursorPositionListener;
   DartOutlineProvider? _outlineProvider;
   ModifiedFileDecorationProvider? _decorationProvider;
   ForgeDisposable? _outlineRegistration;
@@ -47,6 +48,10 @@ class ForgeAppModule extends ForgeModule {
   @override
   void deactivate() {
     _saveModuleState();
+    if (_cursorPositionListener != null) {
+      _cursorPositionListener!();
+      _cursorPositionListener = null;
+    }
     _outlineRegistration?.dispose();
     _outlineRegistration = null;
     _outlineProvider?.dispose();
@@ -455,6 +460,9 @@ class ForgeAppModule extends ForgeModule {
         priority: 100,
         tooltip: 'Cursor Position',
         isActive: (_) => _shell.systemState.activeEditor != null,
+        onTap: () {
+          _shell.executeAction('go.line');
+        },
       ),
       StatusBarItem(
         text: _encodingText,
@@ -462,6 +470,9 @@ class ForgeAppModule extends ForgeModule {
         priority: 50,
         tooltip: 'File Encoding',
         isActive: (_) => true,
+        onTap: () {
+          _shell.notifications.showInformation('Encoding: ${_encodingText.value}');
+        },
       ),
       StatusBarItem(
         text: _languageText,
@@ -469,6 +480,9 @@ class ForgeAppModule extends ForgeModule {
         priority: 100,
         tooltip: 'Language Mode',
         isActive: (_) => _shell.systemState.activeEditor != null,
+        onTap: () {
+          _shell.notifications.showInformation('Language: ${_languageText.value}');
+        },
       ),
       StatusBarItem(
         text: _diagnosticText,
@@ -477,6 +491,9 @@ class ForgeAppModule extends ForgeModule {
         priority: 100,
         tooltip: 'Problems',
         isActive: (_) => true,
+        onTap: () {
+          _shell.layout.togglePanel(ForgePanelLocation.bottom);
+        },
       ),
     ]);
   }
@@ -487,6 +504,16 @@ class ForgeAppModule extends ForgeModule {
     _subscriptions.add(
       _shell.systemState.onEditorsChanged.listen((event) {
         _updateLanguageText();
+        _updateCursorListener();
+        _persistEditorContext();
+      }),
+    );
+
+    _subscriptions.add(
+      _shell.systemState.onFocusChanged.listen((_) {
+        _updateLanguageText();
+        _updateCursorListener();
+        _persistEditorContext();
       }),
     );
 
@@ -523,6 +550,49 @@ class ForgeAppModule extends ForgeModule {
     _diagnosticText.value = '$errors errors, $warnings warnings';
   }
 
+  void _updateCursorListener() {
+    if (_cursorPositionListener != null) {
+      _cursorPositionListener!();
+      _cursorPositionListener = null;
+    }
+
+    final editor = _shell.systemState.activeEditor;
+    if (editor is ForgeTextEditor) {
+      void listener() {
+        final pos = editor.cursorPosition.value;
+        _cursorText.value = 'Ln ${pos.line + 1}, Col ${pos.column + 1}';
+      }
+
+      editor.cursorPosition.addListener(listener);
+      _cursorPositionListener = () {
+        editor.cursorPosition.removeListener(listener);
+      };
+      listener();
+    } else {
+      _cursorText.value = 'Ln 1, Col 1';
+    }
+  }
+
+  void _persistEditorContext() {
+    try {
+      final store = _shell.storage.forModule(this);
+      final active = _shell.systemState.activeEditor;
+      if (active != null) {
+        unawaited(store.set('lastActiveEditorUri', active.uri.toString()));
+        unawaited(store.set('lastActivePanel', active.uri.toString()));
+      }
+      unawaited(
+        store.set(
+          'lastActiveMiddlePanel',
+          _shell.systemState.activeMiddlePanelIndex,
+        ),
+      );
+      unawaited(store.set('lastKnownLanguage', _languageText.value));
+    } catch (_) {
+      // Storage may be unavailable during teardown — ignore.
+    }
+  }
+
   // ── Provider registration (Row 8) ──
 
   void _registerProviders() {
@@ -548,7 +618,17 @@ class ForgeAppModule extends ForgeModule {
   void _restoreModuleState() {
     final store = _shell.storage.forModule(this);
     final activationCount = (store.get('activationCount') as int?) ?? 0;
-    store.set('activationCount', activationCount + 1);
+    unawaited(store.set('activationCount', activationCount + 1));
+
+    final lastLanguage = store.get<String>('lastKnownLanguage');
+    if (lastLanguage != null && lastLanguage.isNotEmpty) {
+      _languageText.value = lastLanguage;
+    }
+
+    final lastCursor = store.get<String>('lastCursorText');
+    if (lastCursor != null && lastCursor.isNotEmpty) {
+      _cursorText.value = lastCursor;
+    }
   }
 
   void _saveModuleState() {
@@ -556,8 +636,17 @@ class ForgeAppModule extends ForgeModule {
       final store = _shell.storage.forModule(this);
       final active = _shell.systemState.activeEditor;
       if (active != null) {
-        store.set('lastActivePanel', active.uri.toString());
+        unawaited(store.set('lastActiveEditorUri', active.uri.toString()));
+        unawaited(store.set('lastActivePanel', active.uri.toString()));
       }
+      unawaited(store.set('lastCursorText', _cursorText.value));
+      unawaited(store.set('lastKnownLanguage', _languageText.value));
+      unawaited(
+        store.set(
+          'lastActiveMiddlePanel',
+          _shell.systemState.activeMiddlePanelIndex,
+        ),
+      );
     } catch (_) {
       // Storage may be unavailable during teardown — ignore.
     }

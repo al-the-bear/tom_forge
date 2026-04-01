@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -31,13 +32,38 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
   ForgeApplication? _application;
 
   void _initializeWithWorkspace(Directory workspaceDir) {
+    unawaited(_initializeWithWorkspaceAsync(workspaceDir));
+  }
+
+  Future<void> _initializeWithWorkspaceAsync(Directory workspaceDir) async {
+    final wsManager = DefaultWorkspaceStateManager();
+    final detectedRoot = await wsManager.detectWorkspaceRoot(workspaceDir.path);
+    final effectiveDir =
+        detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
+
+    await wsManager.initialize(effectiveDir.path);
+    await wsManager.suggestGitignore(effectiveDir.path);
+
+    final prefs = ForgePreferencesService.instance;
+    if (!prefs.isLoaded) {
+      await prefs.load();
+    }
+    prefs.startupPreferences.lastWorkspacePath = effectiveDir.path;
+    await prefs.save();
+
+    final persistentStorage = PersistentModuleStorage(
+      forgeDir: wsManager.forgeDirectoryPath,
+    );
+
     // Create real file system backed by the selected directory
-    final realFs = RealFileSystem(rootDirectory: workspaceDir);
+    final realFs = RealFileSystem(rootDirectory: effectiveDir);
 
     final shell = DefaultShellApi.withDefaultsAndFileSystem(
       fileSystem: realFs,
       appName: 'Tom Forge',
       navigatorKey: _navigatorKey,
+      workspaceState: wsManager,
+      storage: persistentStorage,
     );
 
     // Register modules
@@ -48,7 +74,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
     registry.register(shellModule);
 
     final appModule = ForgeAppModule(
-      workspaceRootUri: workspaceDir.uri,
+      workspaceRootUri: effectiveDir.uri,
     );
     appModule.activate(shell);
     registry.register(appModule);
@@ -58,7 +84,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
         appModule.views.firstWhere((v) => v.title.value == title);
 
     final app = ForgeApplication(
-      title: 'Tom Forge - ${workspaceDir.path.split('/').last}',
+      title: 'Tom Forge - ${effectiveDir.path.split('/').last}',
       layout: ApplicationLayout(
         leftPanel: PanelConfig(
           initialSize: 250,
@@ -103,6 +129,11 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
         middlePanels: [const MiddlePanelConfig()],
       ),
     );
+
+    if (!mounted) {
+      shell.dispose();
+      return;
+    }
 
     setState(() {
       _shell = shell;
