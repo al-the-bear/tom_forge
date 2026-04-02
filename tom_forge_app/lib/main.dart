@@ -124,6 +124,11 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
               icon: Icons.terminal,
               sections: [viewById('Output')],
             ),
+            PanelTabConfig(
+              title: 'Terminal',
+              icon: Icons.code,
+              sections: [viewById('Terminal')],
+            ),
           ],
         ),
         middlePanels: [const MiddlePanelConfig()],

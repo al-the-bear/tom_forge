@@ -32,6 +32,10 @@ class ForgeAppModule extends ForgeModule {
   ModifiedFileDecorationProvider? _decorationProvider;
   ForgeDisposable? _outlineRegistration;
   ForgeDisposable? _decorationRegistration;
+  ForgeOutputChannel? _shellOutputChannel;
+  ForgeOutputChannel? _moduleOutputChannel;
+  final Map<String, ForgeOutputChannel> _editorChannels =
+      <String, ForgeOutputChannel>{};
 
   @override
   String get displayName => 'Tom Forge';
@@ -39,12 +43,14 @@ class ForgeAppModule extends ForgeModule {
   @override
   void activate(ForgeShellApi shell) {
     _shell = shell;
+    _setupOutputChannels();
     _buildViews();
     _buildActions();
     _buildShortcuts();
     _buildStatusBarItems();
     _listenToStateChanges();
     _registerProviders();
+    _createDefaultTerminal();
     _restoreModuleState();
   }
 
@@ -63,6 +69,7 @@ class ForgeAppModule extends ForgeModule {
     _decorationRegistration = null;
     _decorationProvider?.dispose();
     _decorationProvider = null;
+    _moduleOutputChannel?.appendLine('[Tom Forge] Module deactivated');
     for (final sub in _subscriptions) {
       sub.cancel();
     }
@@ -137,9 +144,11 @@ class ForgeAppModule extends ForgeModule {
         layoutController: _shell.layout,
       ),
       ForgeOutputView(channelManager: _shell.output),
+      ForgeTerminalView(terminalManager: _shell.terminals),
       ForgeSearchView(
         searchManager: _shell.search,
         layoutController: _shell.layout,
+        systemState: _shell.systemState as DefaultSystemState,
       ),
     ]);
   }
@@ -551,6 +560,7 @@ class ForgeAppModule extends ForgeModule {
         _updateLanguageText();
         _updateCursorListener();
         _persistEditorContext();
+        _logActiveEditor('Editors changed');
       }),
     );
 
@@ -559,12 +569,16 @@ class ForgeAppModule extends ForgeModule {
         _updateLanguageText();
         _updateCursorListener();
         _persistEditorContext();
+        _logActiveEditor('Focus changed');
       }),
     );
 
     _subscriptions.add(
       _shell.systemState.onDiagnosticsChanged.listen((_) {
         _updateDiagnosticText();
+        _shellOutputChannel?.appendLine(
+          '[Diagnostics] $_diagnosticText',
+        );
       }),
     );
   }
@@ -658,6 +672,50 @@ class ForgeAppModule extends ForgeModule {
     if (decoMgr is DefaultFileDecorationManager) {
       _decorationRegistration = decoMgr.registerProvider(_decorationProvider!);
     }
+    _moduleOutputChannel?.appendLine(
+      '[Tom Forge] Providers registered: outline + file decorations',
+    );
+  }
+
+  void _setupOutputChannels() {
+    _shellOutputChannel = _shell.output.create('Forge Shell');
+    _moduleOutputChannel = _shell.output.create('Tom Forge Module');
+    _editorChannels
+      ..clear()
+      ..addAll({
+        'dart': _shell.output.create('Dart Editor'),
+        'md': _shell.output.create('Markdown Editor'),
+        'yaml': _shell.output.create('YAML Editor'),
+        'txt': _shell.output.create('Text Editor'),
+      });
+
+    _shellOutputChannel?.appendLine('[Forge Shell] Runtime initialized');
+    _moduleOutputChannel?.appendLine('[Tom Forge] Module activated');
+  }
+
+  void _createDefaultTerminal() {
+    final terminalChannel = _shell.output.create('Terminal Log');
+    terminalChannel.appendLine('[Terminal] Session started');
+    _shell.terminals.create(
+      name: 'bash',
+      shellPath: '/bin/bash',
+      cwd: _shell.systemState.workspaceRootPath,
+      outputChannel: terminalChannel,
+    );
+  }
+
+  void _logActiveEditor(String reason) {
+    final active = _shell.systemState.activeEditor;
+    if (active == null) {
+      _shellOutputChannel?.appendLine('[Forge Shell] $reason: no active editor');
+      return;
+    }
+
+    final ext = active.uri.path.split('.').last.toLowerCase();
+    _shellOutputChannel?.appendLine(
+      '[Forge Shell] $reason: ${active.uri.path}',
+    );
+    _editorChannels[ext]?.appendLine('[Editor] Active file: ${active.uri.path}');
   }
 
   // ── Module-scoped persistence (Row 10) ──

@@ -7,10 +7,13 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
 class TestAppModule extends ForgeModule {
-  TestAppModule({required Uri workspaceRootUri})
-      : _workspaceRootUri = workspaceRootUri;
+  TestAppModule({
+    required Uri workspaceRootUri,
+    this.enableSampleDiagnostics = false,
+  }) : _workspaceRootUri = workspaceRootUri;
 
   final Uri _workspaceRootUri;
+  final bool enableSampleDiagnostics;
   late ForgeShellApi _shell;
   final List<ForgeView> _views = [];
   final List<ForgeAction> _actions = [];
@@ -860,6 +863,11 @@ class TestAppModule extends ForgeModule {
       // F5 → Run active file (kept as function key, no modifier).
       bind(byId['terminal.runActiveFile']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.f5)),
+        // F6/F7 → Build run/stop (test harness convenience bindings).
+        bind(byId['build.run']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.f6)),
+        bind(byId['build.stop']!, ForgeShortcutKey(
+          key: LogicalKeyboardKey.f7)),
     ]);
 
     // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+1-4, Cmd+]/[ are registered in
@@ -1011,8 +1019,12 @@ class TestAppModule extends ForgeModule {
     _buildChannel = _shell.output.create('Build');
     _buildChannel!.appendLine('[Test IDE] Module activated');
 
-    // Produce sample diagnostics so the Problems panel has demo data.
-    _produceSampleDiagnostics();
+    if (enableSampleDiagnostics) {
+      // Optional demo diagnostics for showcase runs.
+      _produceSampleDiagnostics();
+    } else {
+      _buildChannel?.appendLine('[Test IDE] Sample diagnostics disabled');
+    }
   }
 
   void _produceSampleDiagnostics() {
