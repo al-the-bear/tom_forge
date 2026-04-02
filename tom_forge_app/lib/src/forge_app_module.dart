@@ -149,6 +149,7 @@ class ForgeAppModule extends ForgeModule {
         searchManager: _shell.search,
         layoutController: _shell.layout,
         systemState: _shell.systemState as DefaultSystemState,
+        workspaceRoot: _workspaceRootUri.toFilePath(),
       ),
     ]);
   }
