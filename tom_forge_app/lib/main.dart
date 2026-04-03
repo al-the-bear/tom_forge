@@ -84,7 +84,8 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
         appModule.views.firstWhere((v) => v.title.value == title);
 
     final app = ForgeApplication(
-      title: 'Tom Forge - ${effectiveDir.path.split('/').last}',
+      title: 'Tom Forge',
+      workspaceFolder: effectiveDir.path.split('/').last,
       layout: ApplicationLayout(
         leftPanel: PanelConfig(
           initialSize: 250,
