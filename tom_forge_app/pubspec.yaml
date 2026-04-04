@@ -23,6 +23,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sdk_summary.sum
+    - assets/packages.sum
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
