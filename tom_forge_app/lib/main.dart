@@ -15,7 +15,7 @@ void main() {
       'Set FLUTTER_INAPPWEBVIEW_LINUX_FORCE_GL=1 to force hardware mode for diagnostics.',
     );
   }
-  runApp(const ForgeLauncher());
+  runApp(const ForgeLauncher()); // comment 
 }
 
 /// Launcher widget that manages workspace selection and app creation.
@@ -28,7 +28,8 @@ class ForgeLauncher extends StatefulWidget {
 
 class _ForgeLauncherState extends State<ForgeLauncher> {
   final _navigatorKey = GlobalKey<NavigatorState>();
-  DefaultShellApi? _shell;
+  DefaultShellApi? _shell; // save this?
+  
   ForgeApplication? _application;
 
   void _initializeWithWorkspace(Directory workspaceDir) {
