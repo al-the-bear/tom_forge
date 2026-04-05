@@ -938,8 +938,8 @@ class TestAppModule extends ForgeModule {
         tooltip: 'Problems',
         isActive: (_) => true,
         onTap: () {
-          // Toggle the Problems panel (bottom panel).
-          _shell.layout.togglePanel(ForgePanelLocation.bottom);
+          // Open the bottom panel to show the problems view.
+          _shell.layout.openPanel(ForgePanelLocation.bottom);
         },
       ),
       StatusBarItem(

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:tom_forge_core/tom_forge_core.dart'
-    show ForgePanelLocation, ForgeSeverity;
+    show DefaultNotificationManager, ForgePanelLocation, ForgeSeverity;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Production IDE module providing views, actions, shortcuts, and status bar items.
@@ -26,8 +26,10 @@ class ForgeAppModule extends ForgeModule {
   final _encodingText = ValueNotifier<String>('UTF-8');
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
+  final _notificationText = ValueNotifier<String>('0 messages');
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   VoidCallback? _cursorPositionListener;
+  VoidCallback? _notificationHistoryListener;
   DartOutlineProvider? _outlineProvider;
   ModifiedFileDecorationProvider? _decorationProvider;
   ForgeDisposable? _outlineRegistration;
@@ -69,6 +71,14 @@ class ForgeAppModule extends ForgeModule {
     _decorationRegistration = null;
     _decorationProvider?.dispose();
     _decorationProvider = null;
+    if (_notificationHistoryListener != null) {
+      final nm = _shell.notifications;
+      if (nm is DefaultNotificationManager) {
+        nm.history.removeListener(_notificationHistoryListener!);
+      }
+      _notificationHistoryListener = null;
+    }
+    _notificationText.dispose();
     _moduleOutputChannel?.appendLine('[Tom Forge] Module deactivated');
     for (final sub in _subscriptions) {
       sub.cancel();
@@ -556,7 +566,21 @@ class ForgeAppModule extends ForgeModule {
         tooltip: 'Problems',
         isActive: (_) => true,
         onTap: () {
-          _shell.layout.togglePanel(ForgePanelLocation.bottom);
+          _shell.layout.openPanel(ForgePanelLocation.bottom);
+        },
+      ),
+      StatusBarItem(
+        text: _notificationText,
+        icon: Icons.notifications_none,
+        alignment: StatusBarAlignment.right,
+        priority: 90,
+        tooltip: 'Notifications',
+        isActive: (_) => true,
+        onTap: () {
+          final nm = _shell.notifications;
+          if (nm is DefaultNotificationManager) {
+            nm.popupVisible.value = !nm.popupVisible.value;
+          }
         },
       ),
     ]);
@@ -591,6 +615,21 @@ class ForgeAppModule extends ForgeModule {
         );
       }),
     );
+
+    // Listen for notification history changes.
+    final nm = _shell.notifications;
+    if (nm is DefaultNotificationManager) {
+      void onHistoryChanged() {
+        _updateNotificationText(nm);
+      }
+      nm.history.addListener(onHistoryChanged);
+      _notificationHistoryListener = onHistoryChanged;
+    }
+  }
+
+  void _updateNotificationText(DefaultNotificationManager nm) {
+    final count = nm.history.value.length;
+    _notificationText.value = '$count message${count == 1 ? '' : 's'}';
   }
 
   void _updateLanguageText() {
