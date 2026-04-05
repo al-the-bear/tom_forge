@@ -44,7 +44,7 @@ void main() {
     expect(find.text('Tom Forge'), findsOneWidget);
   });
 
-  test('layout opens seeded .txt file with markdown editor adapter', () async {
+  test('layout opens seeded .txt file with plain text editor', () async {
     final navigatorKey = GlobalKey<NavigatorState>();
     final shell = DefaultShellApi.withDefaults(
       fileSystemSeed: workspaceSeed,
@@ -66,7 +66,7 @@ void main() {
 
     final active = shell.systemState.activeEditor;
     expect(active, isNotNull);
-    expect(active, isA<ForgeMdEditor>());
+    expect(active, isA<ForgePlainTextEditor>());
     expect(active!.uri.path, endsWith('/doc/notes.txt'));
   });
 }
