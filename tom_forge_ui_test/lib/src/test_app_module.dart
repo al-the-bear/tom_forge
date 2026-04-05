@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tom_forge_core/tom_forge_core.dart' show ForgeDiagnostic, ForgeDiagnosticCollection, ForgeErrorCodes, ForgeOutputChannel, ForgePanelLocation, ForgeRetryPolicy, ForgeSeverity, ForgeTextPosition, ForgeTextRange;
+import 'package:tom_forge_core/tom_forge_core.dart' show DefaultNotificationManager, ForgeDiagnostic, ForgeDiagnosticCollection, ForgeErrorCodes, ForgeOutputChannel, ForgePanelLocation, ForgeRetryPolicy, ForgeSeverity, ForgeTextPosition, ForgeTextRange;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
@@ -24,8 +24,10 @@ class TestAppModule extends ForgeModule {
   final _encodingText = ValueNotifier<String>('UTF-8');
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
+  final _notificationText = ValueNotifier<String>('0 messages');
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   VoidCallback? _cursorPositionListener;
+  VoidCallback? _notificationHistoryListener;
 
   ForgeDiagnosticCollection? _diagnosticCollection;
   ForgeOutputChannel? _buildChannel;
@@ -67,6 +69,13 @@ class TestAppModule extends ForgeModule {
       _cursorPositionListener!();
       _cursorPositionListener = null;
     }
+    if (_notificationHistoryListener != null) {
+      final nm = _shell.notifications;
+      if (nm is DefaultNotificationManager) {
+        nm.history.removeListener(_notificationHistoryListener!);
+      }
+      _notificationHistoryListener = null;
+    }
     for (final sub in _subscriptions) {
       sub.cancel();
     }
@@ -75,6 +84,7 @@ class TestAppModule extends ForgeModule {
     _encodingText.dispose();
     _languageText.dispose();
     _diagnosticText.dispose();
+    _notificationText.dispose();
     _views.clear();
     _actions.clear();
     _shortcuts.clear();
@@ -932,6 +942,21 @@ class TestAppModule extends ForgeModule {
           _shell.layout.togglePanel(ForgePanelLocation.bottom);
         },
       ),
+      StatusBarItem(
+        text: _notificationText,
+        icon: Icons.notifications_none,
+        alignment: StatusBarAlignment.right,
+        priority: 90,
+        tooltip: 'Notifications',
+        isActive: (_) => true,
+        onTap: () {
+          // Toggle notification popup.
+          final nm = _shell.notifications;
+          if (nm is DefaultNotificationManager) {
+            nm.popupVisible.value = !nm.popupVisible.value;
+          }
+        },
+      ),
     ]);
   }
 
@@ -957,6 +982,15 @@ class TestAppModule extends ForgeModule {
         _updateDiagnosticText();
       }),
     );
+
+    // Listen to notification history for message count.
+    final nm = _shell.notifications;
+    if (nm is DefaultNotificationManager) {
+      void onHistoryChanged() => _updateNotificationText();
+      nm.history.addListener(onHistoryChanged);
+      _notificationHistoryListener = onHistoryChanged;
+      _updateNotificationText();
+    }
   }
 
   void _updateCursorListener() {
@@ -1006,6 +1040,15 @@ class TestAppModule extends ForgeModule {
     final warnings =
         all.where((d) => d.severity == ForgeSeverity.warning).length;
     _diagnosticText.value = '$errors errors, $warnings warnings';
+  }
+
+  void _updateNotificationText() {
+    final nm = _shell.notifications;
+    if (nm is DefaultNotificationManager) {
+      final count = nm.history.value.length;
+      _notificationText.value =
+          count == 1 ? '1 message' : '$count messages';
+    }
   }
 
   // ── Diagnostics & Output demo ──
