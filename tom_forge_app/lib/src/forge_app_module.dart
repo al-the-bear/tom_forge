@@ -439,11 +439,16 @@ class ForgeAppModule extends ForgeModule {
       icon: Icons.remove_circle_outline,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        final editor = _shell.systemState.activeEditor;
-        if (editor != null) {
-          _shell.notifications.showInformation(
-            'Delete line in ${editor.title}',
-          );
+        // Delegate to the active editor's delete-line implementation.
+        // Editor-level actions (e.g. dart.deleteLine) register themselves
+        // in the shell action registry when the editor opens.
+        if (!_shell.executeAction('dart.deleteLine')) {
+          final editor = _shell.systemState.activeEditor;
+          if (editor != null) {
+            _shell.notifications.showInformation(
+              'Delete line not available for ${editor.title}',
+            );
+          }
         }
         return null;
       },
@@ -497,11 +502,8 @@ class ForgeAppModule extends ForgeModule {
         byId['editor.find']!,
         ForgeShortcutKey(key: LogicalKeyboardKey.keyF, primaryModifier: true),
       ),
-      // Cmd+Y → Delete line in text editor (concept §11.3).
-      bind(
-        byId['editor.deleteLine']!,
-        ForgeShortcutKey(key: LogicalKeyboardKey.keyY, primaryModifier: true),
-      ),
+      // Note: Cmd+Y → Delete line is provided by the editor-level
+      // dart.deleteLine action, registered when an editor opens.
       // Cmd+U → Undo (concept §11.3).
       bind(
         byId['edit.undo']!,
