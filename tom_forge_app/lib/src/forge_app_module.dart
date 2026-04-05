@@ -160,6 +160,11 @@ class ForgeAppModule extends ForgeModule {
         systemState: _shell.systemState as DefaultSystemState,
         workspaceRoot: _workspaceRootUri.toFilePath(),
       ),
+      ForgeRevisionView(
+        workspaceState: _shell.workspaceState,
+        systemState: _shell.systemState as DefaultSystemState,
+        layoutController: _shell.layout,
+      ),
     ]);
   }
 

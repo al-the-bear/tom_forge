@@ -93,7 +93,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
             PanelTabConfig(
               title: 'Explorer',
               icon: Icons.folder_outlined,
-              sections: [viewById('Explorer')],
+              sections: [viewById('Explorer'), viewById('Revisions')],
             ),
             PanelTabConfig(
               title: 'Search',
