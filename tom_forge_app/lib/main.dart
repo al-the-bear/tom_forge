@@ -21,7 +21,6 @@ void main() {
 /// Launcher widget that manages workspace selection and app creation.
 class ForgeLauncher extends StatefulWidget {
   const ForgeLauncher({super.key});
-
   @override
   State<ForgeLauncher> createState() => _ForgeLauncherState(); // comment added
 }
