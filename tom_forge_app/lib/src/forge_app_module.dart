@@ -164,6 +164,7 @@ class ForgeAppModule extends ForgeModule {
         workspaceState: _shell.workspaceState,
         systemState: _shell.systemState as DefaultSystemState,
         layoutController: _shell.layout,
+        shellApi: _shell is DefaultShellApi ? _shell as DefaultShellApi : null,
         onDidSave: _shell.fileSystem.onDidSave,
       ),
     ]);
