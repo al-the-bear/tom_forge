@@ -144,7 +144,6 @@ class ForgeAppModule extends ForgeModule {
         layoutController: _shell.layout,
       ),
       ForgeOutputView(channelManager: _shell.output),
-      ForgeTerminalView(terminalManager: _shell.terminals),
       ForgeSearchView(
         searchManager: _shell.search,
         layoutController: _shell.layout,

@@ -138,7 +138,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
             PanelTabConfig(
               title: 'Terminal',
               icon: Icons.code,
-              sections: [viewById('Terminal')],
+              sections: [],
             ),
           ],
         ),
