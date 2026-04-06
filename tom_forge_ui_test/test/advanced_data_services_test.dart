@@ -535,6 +535,9 @@ class _MockEditor implements ForgeEditor {
   bool get supportsMultiRender => true;
 
   @override
+  bool get isDraggable => true;
+
+  @override
   Widget buildMain(BuildContext context) => const SizedBox();
 
   @override
