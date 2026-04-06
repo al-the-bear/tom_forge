@@ -544,5 +544,8 @@ class _MockEditor implements ForgeEditor {
   List<ForgeAction> get actions => [];
 
   @override
+  List<ForgeAction> get headerActions => [];
+
+  @override
   List<ForgeShortcutBinding> get shortcuts => [];
 }
