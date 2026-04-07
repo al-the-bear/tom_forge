@@ -849,51 +849,23 @@ class TestAppModule extends ForgeModule {
 
     final byId = {for (final a in _actions) a.id: a};
 
-    // ── Concept §11.3 standard shortcuts ──
-    // Only single-modifier (Cmd/Ctrl+key) bindings are pre-assigned.
-    // All other actions are accessible via command palette or custom
-    // shortcut menus (concept §11.4, implemented in a later step).
+    // Shell-level shortcuts (forge.commandPalette, forge.toggleLeftPanel, etc.)
+    // and standard editing shortcuts (forge.edit.undo, forge.edit.redo, etc.)
+    // are provided by TomForgeShellModule.  This module only adds bindings
+    // for test-harness–specific actions.
     _shortcuts.addAll([
-      // Cmd+S → Save all dirty editors (concept §11.3).
-      bind(byId['file.saveAll']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyS, primaryModifier: true)),
-      // Cmd+F → Find in focused component (concept §11.3).
-      bind(byId['editor.find']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyF, primaryModifier: true)),
       // Cmd+Y → Delete line in text editor (concept §11.3).
       bind(byId['editor.deleteLine']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.keyY, primaryModifier: true)),
-      // Cmd+U → Undo (concept §11.3).
-      bind(byId['edit.undo']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyU, primaryModifier: true)),
-      // Cmd+Z → Redo (concept §11.3).
-      bind(byId['edit.redo']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyZ, primaryModifier: true)),
       // F5 → Run active file (kept as function key, no modifier).
       bind(byId['terminal.runActiveFile']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.f5)),
-        // F6/F7 → Build run/stop (test harness convenience bindings).
-        bind(byId['build.run']!, ForgeShortcutKey(
+      // F6/F7 → Build run/stop (test harness convenience bindings).
+      bind(byId['build.run']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.f6)),
-        bind(byId['build.stop']!, ForgeShortcutKey(
+      bind(byId['build.stop']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.f7)),
     ]);
-
-    // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+1-4, Cmd+]/[ are registered in
-    // ForgeShellScaffold as shell-level shortcuts (concept §11.3).
-    // Cmd+X/C/V are handled by Flutter's built-in text editing.
-
-    // Note: The following actions have NO pre-assigned shortcut per concept
-    // §11.2-11.3 and are accessible via command palette or future custom
-    // shortcut menus (concept §11.4):
-    //   file.save, file.close, file.closeAll, file.new, file.open,
-    //   file.openWith, file.saveAs, edit.findInFiles, edit.toggleComment,
-    //   edit.toggleBlockComment, edit.formatDocument, go.line,
-    //   editor.changeLanguageMode, view.toggleExplorer, view.toggleOutline,
-    //   view.toggleProblems, view.toggleOutput, view.toggleTerminal,
-    //   view.newTerminal, view.splitEditor, terminal.sendCommand,
-    //   terminal.closeActive, terminal.show, build.run, build.stop,
-    //   help.about, help.reportIssue, help.openUrl
   }
 
   // ── Status bar items ──

@@ -482,51 +482,16 @@ class ForgeAppModule extends ForgeModule {
   // ── Shortcuts ──
 
   void _buildShortcuts() {
-    ForgeShortcutBinding bind(ForgeAction action, ForgeShortcutKey key) =>
-        ForgeShortcutBinding(action: action, key: key);
-
-    final byId = {for (final a in _actions) a.id: a};
-
-    // ── Concept §11.3 standard shortcuts ──
-    // Only single-modifier (Cmd/Ctrl+key) bindings are pre-assigned.
-    // All other actions are accessible via command palette or custom
-    // shortcut menus (concept §11.4, implemented in a later step).
-    _shortcuts.addAll([
-      // Cmd+S → Save all dirty editors (concept §11.3).
-      bind(
-        byId['file.saveAll']!,
-        ForgeShortcutKey(key: LogicalKeyboardKey.keyS, primaryModifier: true),
-      ),
-      // Cmd+F → Find in focused component (concept §11.3).
-      bind(
-        byId['editor.find']!,
-        ForgeShortcutKey(key: LogicalKeyboardKey.keyF, primaryModifier: true),
-      ),
-      // Note: Cmd+Y → Delete line is provided by the editor-level
-      // dart.deleteLine action, registered when an editor opens.
-      // Cmd+U → Undo (concept §11.3).
-      bind(
-        byId['edit.undo']!,
-        ForgeShortcutKey(key: LogicalKeyboardKey.keyU, primaryModifier: true),
-      ),
-      // Cmd+Z → Redo (concept §11.3).
-      bind(
-        byId['edit.redo']!,
-        ForgeShortcutKey(key: LogicalKeyboardKey.keyZ, primaryModifier: true),
-      ),
-    ]);
-
-    // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+1-4, Cmd+]/[ are registered in
-    // ForgeShellScaffold as shell-level shortcuts (concept §11.3).
+    // Shell-level shortcuts (forge.commandPalette, forge.toggleLeftPanel, etc.)
+    // and standard editing shortcuts (forge.edit.undo, forge.edit.redo, etc.)
+    // are provided by TomForgeShellModule.  This module only adds bindings
+    // for app-level actions that are NOT already covered by the shell module.
+    //
+    // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+B, Cmd+S, Cmd+F, Cmd+1-4, Cmd+]/[
+    // are all provided by TomForgeShellModule.
+    // Cmd+U (Undo), Cmd+Z (Redo) are provided by StandardEditingActions
+    // descriptors via TomForgeShellModule.
     // Cmd+X/C/V are handled by Flutter's built-in text editing.
-
-    // Note: The following actions have NO pre-assigned shortcut per concept
-    // §11.2-11.3 and are accessible via command palette or future custom
-    // shortcut menus (concept §11.4):
-    //   file.save, file.close, file.closeAll, edit.findInFiles,
-    //   edit.toggleComment, edit.toggleBlockComment, edit.formatDocument,
-    //   view.toggleExplorer, view.toggleOutline, view.toggleProblems,
-    //   view.toggleOutput, view.splitEditor, help.about
   }
 
   // ── Status bar items ──
