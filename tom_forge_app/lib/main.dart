@@ -66,6 +66,10 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
       storage: persistentStorage,
     );
 
+    // Set the workspace root so file search and other features know where to look.
+    (shell.systemState as DefaultSystemState)
+        .setWorkspaceRootPath(effectiveDir.path);
+
     // Register modules
     final registry = shell.modules as DefaultModuleRegistry;
 
