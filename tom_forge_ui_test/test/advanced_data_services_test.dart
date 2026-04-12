@@ -5,6 +5,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tom_editors_shared/tom_editors_shared.dart'
+    show EditorCapabilities, EditorStateSnapshot;
 import 'package:tom_forge_core/tom_forge_core.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
@@ -551,4 +553,23 @@ class _MockEditor implements ForgeEditor {
 
   @override
   List<ForgeShortcutBinding> get shortcuts => [];
+
+  // EditorActionProvider
+  @override
+  Set<String> get supportedActionIds => const {};
+
+  @override
+  bool isActionEnabled(String actionId) => false;
+
+  @override
+  bool executeAction(String actionId) => false;
+
+  @override
+  EditorCapabilities get capabilities => const EditorCapabilities();
+
+  @override
+  EditorStateSnapshot get stateSnapshot => const EditorStateSnapshot();
+
+  @override
+  Stream<void> get onStateChanged => const Stream.empty();
 }

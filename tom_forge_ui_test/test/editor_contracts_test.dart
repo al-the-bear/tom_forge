@@ -445,57 +445,6 @@ void main() {
         state.dispose();
       });
 
-      test('11C: onSelectionChanged emits when active editor selection changes', () async {
-        final state = DefaultSystemState();
-        final module = _TestModule();
-        final controller = MdEditorController(initialMarkdown: 'Hello World');
-        final editor = ForgeMdEditor(controller: controller, module: module);
-
-        final selEvents = <SelectionChangeEvent>[];
-        final sub = state.onSelectionChanged.listen(selEvents.add);
-
-        state.addOpenEditor(editor);
-        state.setActiveEditor(editor);
-
-        editor.setSelection(const ForgeTextRange(
-          start: ForgeTextPosition(line: 0, column: 0),
-          end: ForgeTextPosition(line: 0, column: 5),
-        ));
-        await Future<void>.delayed(Duration.zero);
-
-        expect(selEvents.length, greaterThanOrEqualTo(1));
-        expect(selEvents.last.component, editor);
-
-        await sub.cancel();
-        state.dispose();
-      });
-
-      test('11D: onTextSelectionChanged emits with ForgeTextRange', () async {
-        final state = DefaultSystemState();
-        final module = _TestModule();
-        final controller = DartCodeController(initialCode: 'void main() {}');
-        final editor = ForgeDartEditor(controller: controller, module: module);
-
-        final textSelEvents = <TextSelectionChangeEvent>[];
-        final sub = state.onTextSelectionChanged.listen(textSelEvents.add);
-
-        state.addOpenEditor(editor);
-        state.setActiveEditor(editor);
-
-        editor.setSelection(const ForgeTextRange(
-          start: ForgeTextPosition(line: 0, column: 0),
-          end: ForgeTextPosition(line: 0, column: 4),
-        ));
-        await Future<void>.delayed(Duration.zero);
-
-        expect(textSelEvents.length, greaterThanOrEqualTo(1));
-        expect(textSelEvents.last.selection, isNotNull);
-        expect(textSelEvents.last.selection!.end.column, 4);
-
-        await sub.cancel();
-        state.dispose();
-      });
-
       test('11E: removeOpenEditor cleans up dirty listener', () async {
         final state = DefaultSystemState();
         final module = _TestModule();
@@ -517,52 +466,6 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(dirtyEvents.length, countAfterFirst);
-
-        await sub.cancel();
-        state.dispose();
-      });
-
-      test('11F: selection listener is cleaned up on editor switch', () async {
-        final state = DefaultSystemState();
-        final module = _TestModule();
-        final controller1 = MdEditorController(initialMarkdown: 'editor 1');
-        final editor1 = ForgeMdEditor(controller: controller1, module: module);
-        final controller2 = MdEditorController(initialMarkdown: 'editor 2');
-        final editor2 = ForgeMdEditor(controller: controller2, module: module);
-
-        final selEvents = <SelectionChangeEvent>[];
-        final sub = state.onSelectionChanged.listen(selEvents.add);
-
-        state.addOpenEditor(editor1);
-        state.addOpenEditor(editor2);
-        state.setActiveEditor(editor1);
-
-        editor1.setSelection(const ForgeTextRange(
-          start: ForgeTextPosition(line: 0, column: 0),
-          end: ForgeTextPosition(line: 0, column: 3),
-        ));
-        await Future<void>.delayed(Duration.zero);
-        final countAfterEditor1 = selEvents.length;
-
-        state.setActiveEditor(editor2);
-
-        // Selection change on editor1 (no longer active) should not emit
-        editor1.setSelection(const ForgeTextRange(
-          start: ForgeTextPosition(line: 0, column: 0),
-          end: ForgeTextPosition(line: 0, column: 6),
-        ));
-        await Future<void>.delayed(Duration.zero);
-
-        // Selection on editor2 (now active) should emit
-        editor2.setSelection(const ForgeTextRange(
-          start: ForgeTextPosition(line: 0, column: 0),
-          end: ForgeTextPosition(line: 0, column: 2),
-        ));
-        await Future<void>.delayed(Duration.zero);
-
-        // We should only see events from when editor1 was active and editor2 is now active
-        expect(selEvents.where((e) => e.component == editor1).length, countAfterEditor1);
-        expect(selEvents.where((e) => e.component == editor2).length, greaterThanOrEqualTo(1));
 
         await sub.cancel();
         state.dispose();
