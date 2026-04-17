@@ -47,6 +47,7 @@ class _ForgeAppState extends State<ForgeApp> {
               statusBarController: widget.shell.statusBar,
               notificationManager:
                   widget.shell.notifications as DefaultNotificationManager,
+              onOpenFolder: widget.onWorkspaceSelected,
             )
           : WorkspaceWelcomePage(
               onFolderSelected: (directory) {
