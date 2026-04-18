@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -719,12 +720,27 @@ class ForgeAppModule extends ForgeModule {
   void _createDefaultTerminal() {
     final terminalChannel = _shell.output.create('Terminal Log');
     terminalChannel.appendLine('[Terminal] Session started');
+    final shellPath = _defaultShellPath();
     _shell.terminals.create(
-      name: 'bash',
-      shellPath: '/bin/bash',
+      name: _defaultShellName(shellPath),
+      shellPath: shellPath,
       cwd: _shell.systemState.workspaceRootPath,
       outputChannel: terminalChannel,
     );
+  }
+
+  String _defaultShellPath() {
+    if (Platform.isWindows) {
+      return Platform.environment['COMSPEC'] ?? 'cmd.exe';
+    }
+    final envShell = Platform.environment['SHELL'];
+    if (envShell != null && envShell.isNotEmpty) return envShell;
+    return Platform.isMacOS ? '/bin/zsh' : '/bin/bash';
+  }
+
+  String _defaultShellName(String shellPath) {
+    final segment = shellPath.split(Platform.isWindows ? r'\' : '/').last;
+    return segment.isEmpty ? 'shell' : segment;
   }
 
   void _logActiveEditor(String reason) {
