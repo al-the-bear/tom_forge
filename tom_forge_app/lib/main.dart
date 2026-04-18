@@ -27,9 +27,9 @@ class ForgeLauncher extends StatefulWidget {
 
 class _ForgeLauncherState extends State<ForgeLauncher> {
   final _navigatorKey = GlobalKey<NavigatorState>();
-  DefaultShellApi? _shell; // save this?
-  
+  DefaultShellApi? _shell;
   ForgeApplication? _application;
+  bool _workspaceReady = false;
 
   void _initializeWithWorkspace(Directory workspaceDir) {
     unawaited(_initializeWithWorkspaceAsync(workspaceDir));
@@ -148,6 +148,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
     setState(() {
       _shell = shell;
       _application = app;
+      _workspaceReady = true;
     });
   }
 
@@ -158,6 +159,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
       application: _application ?? _createPlaceholderApp(),
       navigatorKey: _navigatorKey,
       onWorkspaceSelected: _initializeWithWorkspace,
+      workspaceReady: _workspaceReady,
     );
   }
 

@@ -36,6 +36,7 @@ void main() {
           application: app,
           navigatorKey: navigatorKey,
           onWorkspaceSelected: (_) {},
+          workspaceReady: true,
         ),
       );
 
