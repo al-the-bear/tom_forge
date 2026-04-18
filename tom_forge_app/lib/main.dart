@@ -37,12 +37,43 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
 
   Future<void> _initializeWithWorkspaceAsync(Directory workspaceDir) async {
     final wsManager = DefaultWorkspaceStateManager();
-    final detectedRoot = await wsManager.detectWorkspaceRoot(workspaceDir.path);
+
+    // detectWorkspaceRoot may walk up past the user-selected folder, which
+    // on the macOS sandbox leaves us without read access. Only accept a
+    // detected parent if we can actually read its contents; otherwise fall
+    // back to the folder the user explicitly granted access to.
+    String? detectedRoot;
+    try {
+      detectedRoot = await wsManager.detectWorkspaceRoot(workspaceDir.path);
+      if (detectedRoot != null && detectedRoot != workspaceDir.path) {
+        try {
+          await Directory(detectedRoot).list(followLinks: false).first;
+        } on StateError {
+          // Directory is empty but readable — accept it.
+        } catch (e) {
+          debugPrint(
+            '[tom_forge_app] cannot access detected root $detectedRoot: $e',
+          );
+          detectedRoot = null;
+        }
+      }
+    } catch (e) {
+      debugPrint('[tom_forge_app] detectWorkspaceRoot failed: $e');
+      detectedRoot = null;
+    }
     final effectiveDir =
         detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
 
-    await wsManager.initialize(effectiveDir.path);
-    await wsManager.suggestGitignore(effectiveDir.path);
+    try {
+      await wsManager.initialize(effectiveDir.path);
+    } catch (e) {
+      debugPrint('[tom_forge_app] workspace initialize failed: $e');
+    }
+    try {
+      await wsManager.suggestGitignore(effectiveDir.path);
+    } catch (e) {
+      debugPrint('[tom_forge_app] suggestGitignore failed: $e');
+    }
 
     final prefs = ForgePreferencesService.instance;
     if (!prefs.isLoaded) {
