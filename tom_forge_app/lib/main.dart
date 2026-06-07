@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_website_editor/tom_website_editor.dart';
 
 import 'src/app.dart';
 import 'src/forge_app_module.dart';
@@ -114,6 +115,15 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
     appModule.activate(shell);
     registry.register(appModule);
 
+    // Website editor module (§9): contributes the embedded site preview, the
+    // dev-server / generator control panel, and the content catalog browser.
+    // It resolves tom.website-editor.yaml at the workspace root and disables
+    // itself gracefully when that file is absent (load() surfaces the read
+    // failure as an issue rather than throwing).
+    final websiteModule = WebsiteEditorModule();
+    websiteModule.activate(shell);
+    registry.register(websiteModule);
+
     // Build application layout from module views
     ForgeView viewById(String title) =>
         appModule.views.firstWhere((v) => v.title.value == title);
@@ -134,6 +144,14 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
               title: 'Search',
               icon: Icons.search,
               sections: [viewById('Search')],
+            ),
+            PanelTabConfig(
+              title: 'Website',
+              icon: Icons.public,
+              sections: [
+                websiteModule.controlView!,
+                websiteModule.contentView!,
+              ],
             ),
           ],
         ),
@@ -159,6 +177,11 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
               title: 'Output',
               icon: Icons.terminal,
               sections: [viewById('Output')],
+            ),
+            PanelTabConfig(
+              title: 'Web Preview',
+              icon: Icons.web,
+              sections: [websiteModule.previewView!],
             ),
             PanelTabConfig(
               title: 'Terminal',
