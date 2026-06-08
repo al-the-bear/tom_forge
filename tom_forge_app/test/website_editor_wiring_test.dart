@@ -66,4 +66,73 @@ void main() {
       module.deactivate();
     });
   });
+
+  // §6 self-registration: the website module contributes its config editor
+  // through the standard `editors` getter, so opening files routes via
+  // `ForgeEditor.canHandle` — the config file to the WebsiteConfigEditor, every
+  // other YAML/Markdown file (incl. content files) to the standard editors. No
+  // filename hand-wiring lives in main.dart.
+  group('Website editor file-open routing', () {
+    const validConfig = '''
+version: 1
+websites:
+  - id: ef
+    paths:
+      websiteRoot: "/sites/ef"
+''';
+    final configUri = Uri.parse('file:///tom.website-editor.yaml');
+    final contentYamlUri =
+        Uri.parse('file:///content/components/button.yaml');
+
+    late DefaultShellApi shell;
+
+    setUp(() {
+      shell = DefaultShellApi.withDefaults(
+        fileSystemSeed: {
+          '/tom.website-editor.yaml': validConfig,
+          '/content/components/button.yaml': 'id: button\nname: Button\n',
+        },
+        appName: 'Test',
+        navigatorKey: GlobalKey<NavigatorState>(),
+      );
+      // Workspace root must be set BEFORE the module activates, so it resolves
+      // the config URI against `/` (mirrors main.dart's ordering).
+      (shell.systemState as DefaultSystemState).setWorkspaceRootPath('/');
+      final shellModule = TomForgeShellModule();
+      shellModule.activate(shell);
+      (shell.modules as DefaultModuleRegistry).register(shellModule);
+      final websiteModule = WebsiteEditorModule();
+      websiteModule.activate(shell);
+      (shell.modules as DefaultModuleRegistry).register(websiteModule);
+    });
+
+    tearDown(() => shell.dispose());
+
+    Future<ForgeEditor> openAndWait(Uri uri) async {
+      shell.layout.openFile(uri);
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        final match =
+            shell.systemState.openEditors.where((e) => e.uri == uri);
+        if (match.isNotEmpty) return match.first;
+      }
+      fail('editor for $uri never opened');
+    }
+
+    test('the config file routes to the WebsiteConfigEditor', () async {
+      final editor = await openAndWait(configUri);
+      expect(editor, isA<WebsiteConfigEditor>());
+    });
+
+    test('a content .yaml routes to the standard YAML editor, not the config',
+        () async {
+      final editor = await openAndWait(contentYamlUri);
+      expect(editor, isA<ForgeYamlEditor>(),
+          reason: 'content yaml opens in a real YAML editor');
+      expect(editor, isNot(isA<WebsiteConfigEditor>()),
+          reason: 'the config editor must not hijack content yaml');
+      expect(editor.uri, contentYamlUri,
+          reason: 'the editor is bound to the content file, not the config');
+    });
+  });
 }
