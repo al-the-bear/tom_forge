@@ -2,6 +2,22 @@
 
 Main Tom Forge shell application.
 
+## Website module layout
+
+`main.dart` registers `WebsiteEditorModule` on every launch and places its four
+views (the module exposes each individually for host placement, rather than the
+host parsing `module.views` by title):
+
+| View | Panel placement |
+| --- | --- |
+| `controlView` (Control) | left panel → **Website** tab |
+| `contentView` (Content) | left panel → **Website** tab |
+| `structureView` (Structure) | left panel → **Website** tab |
+| `previewView` (Preview) | bottom panel → **Web Preview** tab |
+
+The `website_editor_wiring_test.dart` guards this contract (all four views are
+exposed and activation is safe without a `tom.website-editor.yaml`).
+
 ## Run
 
 ```bash

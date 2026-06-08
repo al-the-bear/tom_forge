@@ -151,6 +151,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
               sections: [
                 websiteModule.controlView!,
                 websiteModule.contentView!,
+                websiteModule.structureView!,
               ],
             ),
           ],

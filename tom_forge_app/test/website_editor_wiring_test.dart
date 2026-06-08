@@ -1,9 +1,9 @@
 // Default-startup wiring for the website editor module.
 //
 // main.dart registers a [WebsiteEditorModule] on every Forge launch and places
-// its three views (Preview / Control / Content) into the default layout. This
-// guards two facts that make that safe:
-//   1. The module exposes its three views individually for host placement.
+// its four views (Preview / Control / Content / Structure) into the default
+// layout. This guards two facts that make that safe:
+//   1. The module exposes its four views individually for host placement.
 //   2. Activation in a workspace WITHOUT a tom.website-editor.yaml does not
 //      throw — activate() runs load() unawaited, so a missing/unreadable config
 //      must settle into an error issue, never an unhandled zone error.
@@ -29,7 +29,7 @@ void main() {
 
     tearDown(() => shell.dispose());
 
-    test('exposes its three views for host layout placement', () {
+    test('exposes its four views for host layout placement', () {
       final module = WebsiteEditorModule();
       module.activate(shell);
       (shell.modules as DefaultModuleRegistry).register(module);
@@ -37,10 +37,11 @@ void main() {
       expect(module.previewView, isNotNull);
       expect(module.controlView, isNotNull);
       expect(module.contentView, isNotNull);
-      expect(module.views, hasLength(3));
+      expect(module.structureView, isNotNull);
+      expect(module.views, hasLength(4));
       expect(
         module.views.map((v) => v.title.value),
-        containsAll(<String>['Preview', 'Control', 'Content']),
+        containsAll(<String>['Preview', 'Control', 'Content', 'Structure']),
       );
 
       module.deactivate();
