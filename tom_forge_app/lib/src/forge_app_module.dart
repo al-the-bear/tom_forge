@@ -28,6 +28,11 @@ class ForgeAppModule extends ForgeModule {
   final _languageText = ValueNotifier<String>('Plain Text');
   final _diagnosticText = ValueNotifier<String>('0 errors, 0 warnings');
   final _notificationText = ValueNotifier<String>('0 messages');
+
+  /// Guards [deactivate] against running twice — a module may be deactivated
+  /// explicitly and then again when the shell disposes its registry, and the
+  /// second run would dispose already-disposed notifiers.
+  bool _deactivated = false;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   VoidCallback? _cursorPositionListener;
   VoidCallback? _notificationHistoryListener;
@@ -59,6 +64,8 @@ class ForgeAppModule extends ForgeModule {
 
   @override
   void deactivate() {
+    if (_deactivated) return;
+    _deactivated = true;
     _saveModuleState();
     if (_cursorPositionListener != null) {
       _cursorPositionListener!();
