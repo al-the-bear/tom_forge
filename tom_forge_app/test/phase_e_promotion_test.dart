@@ -44,7 +44,7 @@ void main() {
     });
 
     test(
-      'layout opens seeded .txt file with markdown editor adapter',
+      'layout opens seeded .txt file with the plain-text fallback editor',
       () async {
         final navigatorKey = GlobalKey<NavigatorState>();
         final shell = DefaultShellApi.withDefaults(
@@ -66,9 +66,11 @@ void main() {
         shell.layout.openFile(Uri.parse('file:///doc/notes.txt'));
         await Future<void>.delayed(const Duration(milliseconds: 10));
 
+        // Markdown editor only claims .md/.markdown; a .txt file has no
+        // dedicated handler and therefore opens in the plain-text fallback.
         final active = shell.systemState.activeEditor;
         expect(active, isNotNull);
-        expect(active, isA<ForgeMdEditor>());
+        expect(active, isA<ForgePlainTextEditor>());
         expect(active!.uri.path, endsWith('/doc/notes.txt'));
       },
     );
@@ -108,7 +110,7 @@ void main() {
       expect(actionIds, contains('help.about'));
     });
 
-    test('module shortcuts bind all required key combinations', () {
+    test('shell module binds all required key combinations', () {
       final navigatorKey = GlobalKey<NavigatorState>();
       final shell = DefaultShellApi.withDefaults(
         fileSystemSeed: workspaceSeed,
@@ -116,19 +118,21 @@ void main() {
         navigatorKey: navigatorKey,
       );
 
+      final shellModule = TomForgeShellModule();
+      shellModule.activate(shell);
       final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
 
-      final boundActionIds = appModule.shortcuts
+      // Key bindings live on the shell module; the app module owns none.
+      expect(appModule.shortcuts, isEmpty);
+
+      final boundActionIds = shellModule.shortcuts
           .map((s) => s.action.id)
           .toSet();
 
-      // Concept-defined standard shortcuts bound by the app module.
-      expect(boundActionIds, contains('file.saveAll'));
-      expect(boundActionIds, contains('editor.find'));
-      expect(boundActionIds, contains('editor.deleteLine'));
-      expect(boundActionIds, contains('edit.undo'));
-      expect(boundActionIds, contains('edit.redo'));
+      // Shell-provided standard shortcuts.
+      expect(boundActionIds, contains('forge.saveAll'));
+      expect(boundActionIds, contains('forge.commandPalette'));
       expect(boundActionIds.length, greaterThanOrEqualTo(5));
     });
 

@@ -46,10 +46,15 @@ void main() {
           reason: 'Should have Explorer, Outline, Problems, Output, Search views');
       expect(module.actions.length, greaterThanOrEqualTo(12),
           reason: 'Should have file/edit/view/help actions');
-      expect(module.shortcuts.length, greaterThanOrEqualTo(5),
-          reason: 'Should have shortcut bindings for key actions');
-      expect(module.statusBarItems.length, equals(4),
-          reason: 'Should have cursor, encoding, language, diagnostics');
+      // Shortcut bindings are owned by TomForgeShellModule, not the app module
+      // (see "Move all shortcuts into module system"). The app module relies on
+      // the shell-provided bindings and contributes none of its own.
+      expect(module.shortcuts, isEmpty,
+          reason: 'App module delegates key bindings to TomForgeShellModule');
+      expect(shellModule.shortcuts.length, greaterThanOrEqualTo(5),
+          reason: 'Shell module provides the key-action shortcut bindings');
+      expect(module.statusBarItems.length, equals(5),
+          reason: 'cursor, encoding, language, diagnostics, notifications');
 
       module.deactivate();
     });
