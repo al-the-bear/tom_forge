@@ -188,7 +188,7 @@ class ForgeAppModule extends ForgeModule {
       menu: ForgeMenuLocation.file,
       execute: (_) async {
         final editor = _shell.systemState.activeEditor;
-        if (editor != null) {
+        if (editor != null && saveOwnedEditor(editor) == null) {
           final content = editor.getContent();
           if (content != null) {
             await _shell.fileSystem.write(editor.uri, content);
@@ -209,6 +209,7 @@ class ForgeAppModule extends ForgeModule {
       menu: ForgeMenuLocation.file,
       execute: (_) async {
         for (final editor in _shell.systemState.dirtyEditors.toList()) {
+          if (saveOwnedEditor(editor) != null) continue;
           final content = editor.getContent();
           if (content != null) {
             await _shell.fileSystem.write(editor.uri, content);
