@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:tom_forge_core/tom_forge_core.dart'
     show DefaultNotificationManager, ForgePanelLocation, ForgeSeverity;
+import 'package:tom_editors_shared/tom_editors_shared.dart'
+    show StandardEditingActions;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Production IDE module providing views, actions, shortcuts, and status bar items.
@@ -180,6 +182,36 @@ class ForgeAppModule extends ForgeModule {
 
   // ── Actions ──
 
+  /// The Edit menu's undo and redo, dispatched the way the keystroke is.
+  ///
+  /// With an editor active, the menu item runs that editor's own
+  /// `forge.edit.undo` / `forge.edit.redo` through the shell's standard-action
+  /// route — the one the keystroke and the action bar take. It used to call
+  /// the shell's undo manager directly, which only reached editors that push
+  /// shadow entries into it: with any other editor focused (a tree-mode YAML
+  /// editor, a model-owning editor such as Webwork's), Edit > Undo reversed
+  /// whatever another editor had last pushed, and the document on screen did
+  /// not change. An active editor that does not offer the action leaves the
+  /// menu item unavailable; only with no editor active does it fall back to
+  /// the shell manager.
+  void _historyAction(String actionId, Future<void> Function() shellFallback) {
+    final editor = _shell.systemState.activeEditor;
+    if (editor == null) {
+      unawaited(shellFallback());
+      return;
+    }
+    if (editor.supportedActionIds.contains(actionId)) {
+      _shell.executeAction(actionId);
+    }
+  }
+
+  bool _historyEnabled(String actionId, bool shellCan) {
+    final editor = _shell.systemState.activeEditor;
+    if (editor == null) return shellCan;
+    return editor.supportedActionIds.contains(actionId) &&
+        editor.isActionEnabled(actionId);
+  }
+
   void _buildActions() {
     final fileSave = ForgeAction(
       id: 'file.save',
@@ -263,10 +295,16 @@ class ForgeAppModule extends ForgeModule {
       icon: Icons.undo,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _shell.undoManager.undo();
+        _historyAction(
+          StandardEditingActions.undoActionId,
+          _shell.undoManager.undo,
+        );
         return null;
       },
-      isEnabled: () => _shell.undoManager.canUndo.value,
+      isEnabled: () => _historyEnabled(
+        StandardEditingActions.undoActionId,
+        _shell.undoManager.canUndo.value,
+      ),
       isVisible: () => true,
     );
 
@@ -276,10 +314,16 @@ class ForgeAppModule extends ForgeModule {
       icon: Icons.redo,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _shell.undoManager.redo();
+        _historyAction(
+          StandardEditingActions.redoActionId,
+          _shell.undoManager.redo,
+        );
         return null;
       },
-      isEnabled: () => _shell.undoManager.canRedo.value,
+      isEnabled: () => _historyEnabled(
+        StandardEditingActions.redoActionId,
+        _shell.undoManager.canRedo.value,
+      ),
       isVisible: () => true,
     );
 

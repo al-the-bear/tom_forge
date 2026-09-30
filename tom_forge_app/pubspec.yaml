@@ -11,6 +11,10 @@ dependencies:
     sdk: flutter
   tom_forge_ui:
     path: ../tom_forge_ui
+  # StandardEditingActions: the Edit menu dispatches undo/redo by the same
+  # action ids the keystroke uses.
+  tom_editors_shared:
+    path: ../tom_editors_shared
   tom_forge_core:
     path: ../tom_forge_core
   tom_website_editor:
