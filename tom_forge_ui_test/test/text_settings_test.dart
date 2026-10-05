@@ -433,6 +433,9 @@ class _TestModule implements ForgeModule {
   List<ForgeEditor> get editors => const [];
 
   @override
+  bool openUri(Uri uri, {int? middlePanelIndex}) => false;
+
+  @override
   List<ForgeShortcutBinding> get shortcuts => const [];
 
   @override

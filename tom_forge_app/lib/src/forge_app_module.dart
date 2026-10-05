@@ -154,6 +154,7 @@ class ForgeAppModule extends ForgeModule {
         fileSystem: _shell.fileSystem,
         layoutController: _shell.layout,
         rootUri: _workspaceRootUri,
+        contextMenus: _shell.contextMenus,
       ),
       ForgeOutlineView(
         outlineManager: _shell.outline as DefaultOutlineManager,

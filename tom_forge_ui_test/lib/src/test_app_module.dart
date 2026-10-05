@@ -144,6 +144,7 @@ class TestAppModule extends ForgeModule {
         fileSystem: _shell.fileSystem,
         layoutController: _shell.layout,
         rootUri: _workspaceRootUri,
+        contextMenus: _shell.contextMenus,
         systemState: _shell.systemState as DefaultSystemState,
         fileDecorationManager:
             _shell.fileDecorations as DefaultFileDecorationManager,
