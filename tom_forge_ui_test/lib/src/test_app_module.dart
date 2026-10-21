@@ -181,7 +181,7 @@ class TestAppModule extends ForgeModule {
             final content = editor.getContent();
             if (content != null) {
               await ForgeRetryPolicy.withImmediateRetry(
-                operation: () => _shell.fileSystem.write(editor.uri, content),
+                operation: () => _shell.fileSystem.writeText(editor.uri, content),
                 maxAttempts: 2,
               );
             }
@@ -220,7 +220,7 @@ class TestAppModule extends ForgeModule {
           try {
             final content = editor.getContent();
             if (content != null) {
-              await _shell.fileSystem.write(editor.uri, content);
+              await _shell.fileSystem.writeText(editor.uri, content);
             }
             await _shell.fileSystem.save(editor.uri);
             editor.markClean();
@@ -714,7 +714,7 @@ class TestAppModule extends ForgeModule {
           final dir = _shell.systemState.workspaceRootPath;
           final uri = Uri.file('$dir/$name');
           try {
-            await _shell.fileSystem.write(uri, '');
+            await _shell.fileSystem.writeText(uri, '');
             _shell.layout.openFile(uri);
             _shell.notifications.showInformation('Created $name');
           } catch (e) {
@@ -810,7 +810,7 @@ class TestAppModule extends ForgeModule {
           try {
             final content = editor.getContent();
             if (content != null) {
-              await _shell.fileSystem.write(uri, content);
+              await _shell.fileSystem.writeText(uri, content);
               editor.markClean();
               _shell.notifications.showInformation(
                 'Saved as ${uri.pathSegments.last}',

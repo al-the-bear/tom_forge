@@ -249,7 +249,7 @@ void main() {
 
   group('ForgeWorkspaceEdit atomic semantics', () {
     test('apply text edits atomically', () async {
-      final fs = MemoryFileSystem(seed: {
+      final fs = ForgeMemoryFileSystem(seed: {
         '/test.txt': 'Hello, World!',
       });
 
@@ -270,12 +270,12 @@ void main() {
       final result = await fs.applyWorkspaceEdit(edit);
       expect(result, isTrue);
 
-      final content = await fs.read(Uri.parse('file:///test.txt'));
+      final content = await fs.readText(Uri.parse('file:///test.txt'));
       expect(content, 'Hello, Dart!');
     });
 
     test('apply file create operation', () async {
-      final fs = MemoryFileSystem(seed: {});
+      final fs = ForgeMemoryFileSystem(seed: {});
 
       final edit = ForgeWorkspaceEdit(
         fileOperations: [
@@ -291,12 +291,12 @@ void main() {
 
       final exists = await fs.exists(Uri.parse('file:///new.txt'));
       expect(exists, isTrue);
-      final content = await fs.read(Uri.parse('file:///new.txt'));
+      final content = await fs.readText(Uri.parse('file:///new.txt'));
       expect(content, 'New file content');
     });
 
     test('apply file delete operation', () async {
-      final fs = MemoryFileSystem(seed: {
+      final fs = ForgeMemoryFileSystem(seed: {
         '/to_delete.txt': 'Delete me',
       });
 
@@ -316,7 +316,7 @@ void main() {
     });
 
     test('apply file rename operation', () async {
-      final fs = MemoryFileSystem(seed: {
+      final fs = ForgeMemoryFileSystem(seed: {
         '/old.txt': 'Rename me',
       });
 
@@ -334,12 +334,12 @@ void main() {
 
       expect(await fs.exists(Uri.parse('file:///old.txt')), isFalse);
       expect(await fs.exists(Uri.parse('file:///new.txt')), isTrue);
-      final content = await fs.read(Uri.parse('file:///new.txt'));
+      final content = await fs.readText(Uri.parse('file:///new.txt'));
       expect(content, 'Rename me');
     });
 
     test('rollback on text edit failure', () async {
-      final fs = MemoryFileSystem(seed: {
+      final fs = ForgeMemoryFileSystem(seed: {
         '/exists.txt': 'Original content',
       });
 
@@ -362,12 +362,12 @@ void main() {
       final result = await fs.applyWorkspaceEdit(edit);
       expect(result, isTrue);
 
-      final content = await fs.read(Uri.parse('file:///exists.txt'));
+      final content = await fs.readText(Uri.parse('file:///exists.txt'));
       expect(content, 'Modified content');
     });
 
     test('rollback file operations on failure', () async {
-      final fs = MemoryFileSystem(seed: {
+      final fs = ForgeMemoryFileSystem(seed: {
         '/existing.txt': 'Existing',
       });
 
@@ -386,12 +386,12 @@ void main() {
       expect(result, isFalse);
 
       // Original content should be preserved.
-      final content = await fs.read(Uri.parse('file:///existing.txt'));
+      final content = await fs.readText(Uri.parse('file:///existing.txt'));
       expect(content, 'Existing');
     });
 
     test('combined operations with rollback', () async {
-      final fs = MemoryFileSystem(seed: {
+      final fs = ForgeMemoryFileSystem(seed: {
         '/file1.txt': 'File 1 original',
         '/file2.txt': 'File 2 original',
       });
@@ -418,8 +418,8 @@ void main() {
       // New file should be rolled back (removed).
       expect(await fs.exists(Uri.parse('file:///new_file.txt')), isFalse);
       // Original files should be preserved.
-      expect(await fs.read(Uri.parse('file:///file1.txt')), 'File 1 original');
-      expect(await fs.read(Uri.parse('file:///file2.txt')), 'File 2 original');
+      expect(await fs.readText(Uri.parse('file:///file1.txt')), 'File 1 original');
+      expect(await fs.readText(Uri.parse('file:///file2.txt')), 'File 2 original');
     });
   });
 }

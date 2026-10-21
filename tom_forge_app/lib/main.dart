@@ -87,8 +87,8 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
       forgeDir: wsManager.forgeDirectoryPath,
     );
 
-    // Create real file system backed by the selected directory
-    final realFs = RealFileSystem(rootDirectory: effectiveDir);
+    // The local file system over the selected directory
+    final realFs = ForgeLocalFileSystem(effectiveDir.path);
 
     final shell = DefaultShellApi.withDefaultsAndFileSystem(
       fileSystem: realFs,

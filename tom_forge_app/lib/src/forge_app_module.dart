@@ -224,7 +224,7 @@ class ForgeAppModule extends ForgeModule {
         if (editor != null && saveOwnedEditor(editor) == null) {
           final content = editor.getContent();
           if (content != null) {
-            await _shell.fileSystem.write(editor.uri, content);
+            await _shell.fileSystem.writeText(editor.uri, content);
           }
           await _shell.fileSystem.save(editor.uri);
           editor.markClean();
@@ -245,7 +245,7 @@ class ForgeAppModule extends ForgeModule {
           if (saveOwnedEditor(editor) != null) continue;
           final content = editor.getContent();
           if (content != null) {
-            await _shell.fileSystem.write(editor.uri, content);
+            await _shell.fileSystem.writeText(editor.uri, content);
           }
           await _shell.fileSystem.save(editor.uri);
           editor.markClean();
