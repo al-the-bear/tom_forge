@@ -9,6 +9,7 @@ import 'package:tom_editors_shared/tom_editors_shared.dart'
     show EditorCapabilities, EditorStateSnapshot;
 import 'package:tom_forge_core/tom_forge_core.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_file_system/tom_file_system.dart';
 
 void main() {
   group('DefaultFileDecorationManager', () {
@@ -249,7 +250,7 @@ void main() {
 
   group('ForgeWorkspaceEdit atomic semantics', () {
     test('apply text edits atomically', () async {
-      final fs = ForgeMemoryFileSystem(seed: {
+      final fs = TomMemoryFileSystem(seed: {
         '/test.txt': 'Hello, World!',
       });
 
@@ -267,7 +268,7 @@ void main() {
         },
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isTrue);
 
       final content = await fs.readText(Uri.parse('file:///test.txt'));
@@ -275,7 +276,7 @@ void main() {
     });
 
     test('apply file create operation', () async {
-      final fs = ForgeMemoryFileSystem(seed: {});
+      final fs = TomMemoryFileSystem(seed: {});
 
       final edit = ForgeWorkspaceEdit(
         fileOperations: [
@@ -286,7 +287,7 @@ void main() {
         ],
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isTrue);
 
       final exists = await fs.exists(Uri.parse('file:///new.txt'));
@@ -296,7 +297,7 @@ void main() {
     });
 
     test('apply file delete operation', () async {
-      final fs = ForgeMemoryFileSystem(seed: {
+      final fs = TomMemoryFileSystem(seed: {
         '/to_delete.txt': 'Delete me',
       });
 
@@ -308,7 +309,7 @@ void main() {
         ],
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isTrue);
 
       final exists = await fs.exists(Uri.parse('file:///to_delete.txt'));
@@ -316,7 +317,7 @@ void main() {
     });
 
     test('apply file rename operation', () async {
-      final fs = ForgeMemoryFileSystem(seed: {
+      final fs = TomMemoryFileSystem(seed: {
         '/old.txt': 'Rename me',
       });
 
@@ -329,7 +330,7 @@ void main() {
         ],
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isTrue);
 
       expect(await fs.exists(Uri.parse('file:///old.txt')), isFalse);
@@ -339,7 +340,7 @@ void main() {
     });
 
     test('rollback on text edit failure', () async {
-      final fs = ForgeMemoryFileSystem(seed: {
+      final fs = TomMemoryFileSystem(seed: {
         '/exists.txt': 'Original content',
       });
 
@@ -359,7 +360,7 @@ void main() {
         },
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isTrue);
 
       final content = await fs.readText(Uri.parse('file:///exists.txt'));
@@ -367,7 +368,7 @@ void main() {
     });
 
     test('rollback file operations on failure', () async {
-      final fs = ForgeMemoryFileSystem(seed: {
+      final fs = TomMemoryFileSystem(seed: {
         '/existing.txt': 'Existing',
       });
 
@@ -382,7 +383,7 @@ void main() {
         ],
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isFalse);
 
       // Original content should be preserved.
@@ -391,7 +392,7 @@ void main() {
     });
 
     test('combined operations with rollback', () async {
-      final fs = ForgeMemoryFileSystem(seed: {
+      final fs = TomMemoryFileSystem(seed: {
         '/file1.txt': 'File 1 original',
         '/file2.txt': 'File 2 original',
       });
@@ -412,7 +413,7 @@ void main() {
         ],
       );
 
-      final result = await fs.applyWorkspaceEdit(edit);
+      final result = await forgeApplyWorkspaceEdit(fs, edit);
       expect(result, isFalse);
 
       // New file should be rolled back (removed).

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_file_system/io.dart';
 
 import 'src/app.dart';
 import 'src/test_app_module.dart';
@@ -63,7 +64,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     );
 
     // The local file system over the selected directory
-    final realFs = ForgeLocalFileSystem(effectiveDir.path);
+    final realFs = TomLocalFileSystem(effectiveDir.path);
 
     final shell = DefaultShellApi.withDefaultsAndFileSystem(
       fileSystem: realFs,
