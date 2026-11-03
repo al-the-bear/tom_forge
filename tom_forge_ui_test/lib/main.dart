@@ -97,7 +97,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     final fullApp = ForgeApplication(
       title: 'Full IDE - $workspaceName',
       icon: Icons.code,
-      layout: ApplicationLayout(
+      layout: PanelLayout(
         leftPanel: PanelConfig(
           initialSize: 250,
           tabs: [
@@ -152,7 +152,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     final minimalApp = ForgeApplication(
       title: 'Minimal - $workspaceName',
       icon: Icons.article_outlined,
-      layout: ApplicationLayout(
+      layout: PanelLayout(
         leftPanel: PanelConfig(
           initialSize: 200,
           tabs: [
@@ -220,7 +220,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
   ForgeApplication _createPlaceholderApp() {
     return ForgeApplication(
       title: 'Forge Test IDE',
-      layout: const ApplicationLayout(
+      layout: const PanelLayout(
         leftPanel: PanelConfig(initialSize: 250, tabs: []),
         rightPanel: PanelConfig(initialSize: 220, tabs: []),
         bottomPanel: PanelConfig(initialSize: 180, tabs: []),

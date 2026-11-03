@@ -132,7 +132,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
     final app = ForgeApplication(
       title: 'Tom Forge',
       workspaceFolder: effectiveDir.path.split('/').last,
-      layout: ApplicationLayout(
+      layout: PanelLayout(
         leftPanel: PanelConfig(
           initialSize: 250,
           tabs: [
@@ -230,7 +230,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
   ForgeApplication _createPlaceholderApp() {
     return ForgeApplication(
       title: 'Tom Forge',
-      layout: const ApplicationLayout(
+      layout: const PanelLayout(
         leftPanel: PanelConfig(initialSize: 250, tabs: []),
         rightPanel: PanelConfig(initialSize: 220, tabs: []),
         bottomPanel: PanelConfig(initialSize: 180, tabs: []),
