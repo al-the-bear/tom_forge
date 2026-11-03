@@ -27,8 +27,6 @@ class ForgeTestLauncher extends StatefulWidget {
 class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
   final _navigatorKey = GlobalKey<NavigatorState>();
   DefaultShellApi? _shell;
-  ForgeApplication? _application;
-  List<ForgeApplication> _applications = [];
 
   @override
   void initState() {
@@ -95,6 +93,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
 
     // Full IDE application with all panels
     final fullApp = ForgeApplication(
+      id: 'full-ide-workspacename',
       title: 'Full IDE - $workspaceName',
       icon: Icons.code,
       layout: PanelLayout(
@@ -150,6 +149,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
 
     // Minimal application with just explorer
     final minimalApp = ForgeApplication(
+      id: 'minimal-workspacename',
       title: 'Minimal - $workspaceName',
       icon: Icons.article_outlined,
       layout: PanelLayout(
@@ -169,43 +169,22 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       ),
     );
 
-    final apps = [fullApp, minimalApp];
+    // The registry keeps both; the last active one and any application
+    // opened at run time come back from .forge/state/applications.json.
+    shell.applications
+      ..add(fullApp)
+      ..add(minimalApp);
+    await shell.restoreApplications();
 
-    // Register applications in system state
-    (shell.systemState as DefaultSystemState).setApplications(apps);
-
-    // Restore last active application from .forge/state/active-app.txt
-    ForgeApplication activeApp = fullApp;
-    final lastActiveTitle = await wsManager.loadActiveApplicationTitle();
-    if (lastActiveTitle != null) {
-      final restored = apps.where((a) => a.title == lastActiveTitle).firstOrNull;
-      if (restored != null) {
-        activeApp = restored;
-      }
-    }
-
-    setState(() {
-      _shell = shell;
-      _application = activeApp;
-      _applications = apps;
-    });
-  }
-
-  void _onApplicationSwitch(ForgeApplication newApp) {
-    setState(() {
-      _application = newApp;
-    });
+    setState(() => _shell = shell);
   }
 
   @override
   Widget build(BuildContext context) {
     return ForgeTestApp(
       shell: _shell ?? _createPlaceholderShell(),
-      application: _application ?? _createPlaceholderApp(),
-      applications: _applications,
       navigatorKey: _navigatorKey,
       onWorkspaceSelected: _initializeWithWorkspace,
-      onApplicationSwitch: _onApplicationSwitch,
     );
   }
 
@@ -214,18 +193,6 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       fileSystemSeed: {},
       appName: 'Forge Test IDE',
       navigatorKey: _navigatorKey,
-    );
-  }
-
-  ForgeApplication _createPlaceholderApp() {
-    return ForgeApplication(
-      title: 'Forge Test IDE',
-      layout: const PanelLayout(
-        leftPanel: PanelConfig(initialSize: 250, tabs: []),
-        rightPanel: PanelConfig(initialSize: 220, tabs: []),
-        bottomPanel: PanelConfig(initialSize: 180, tabs: []),
-        middlePanels: [MiddlePanelConfig()],
-      ),
     );
   }
 }

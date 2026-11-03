@@ -6,7 +6,6 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 /// Root widget for the Tom Forge IDE.
 class ForgeApp extends StatelessWidget {
   final DefaultShellApi shell;
-  final ForgeApplication application;
   final GlobalKey<NavigatorState> navigatorKey;
   final void Function(Directory) onWorkspaceSelected;
   final bool workspaceReady;
@@ -14,7 +13,6 @@ class ForgeApp extends StatelessWidget {
   const ForgeApp({
     super.key,
     required this.shell,
-    required this.application,
     required this.navigatorKey,
     required this.onWorkspaceSelected,
     required this.workspaceReady,
@@ -24,7 +22,7 @@ class ForgeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: application.title,
+      title: 'Tom Forge',
       navigatorKey: navigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -36,7 +34,6 @@ class ForgeApp extends StatelessWidget {
       home: workspaceReady
           ? ForgeShellScaffold(
               shell: shell,
-              application: application,
               layoutController: shell.layout as DefaultLayoutController,
               systemState: shell.systemState as DefaultSystemState,
               statusBarController: shell.statusBar,
@@ -44,9 +41,7 @@ class ForgeApp extends StatelessWidget {
                   shell.notifications as DefaultNotificationManager,
               onOpenFolder: onWorkspaceSelected,
             )
-          : WorkspaceWelcomePage(
-              onFolderSelected: onWorkspaceSelected,
-            ),
+          : WorkspaceWelcomePage(onFolderSelected: onWorkspaceSelected),
     );
   }
 }

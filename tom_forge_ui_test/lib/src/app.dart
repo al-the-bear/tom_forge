@@ -6,20 +6,14 @@ import 'package:tom_forge_ui/tom_forge_ui.dart';
 /// Root widget for the Forge Test IDE.
 class ForgeTestApp extends StatefulWidget {
   final DefaultShellApi shell;
-  final ForgeApplication application;
-  final List<ForgeApplication> applications;
   final GlobalKey<NavigatorState> navigatorKey;
   final void Function(Directory) onWorkspaceSelected;
-  final void Function(ForgeApplication)? onApplicationSwitch;
 
   const ForgeTestApp({
     super.key,
     required this.shell,
-    required this.application,
-    this.applications = const [],
     required this.navigatorKey,
     required this.onWorkspaceSelected,
-    this.onApplicationSwitch,
   });
 
   @override
@@ -65,19 +59,17 @@ class _ForgeTestAppState extends State<ForgeTestApp> {
     final themeMode = _preferences.themeMode;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: widget.application.title,
+      title: 'Forge Test IDE',
       navigatorKey: widget.navigatorKey,
       theme: _buildThemeData(themeMode),
       home: _workspaceSelected
           ? ForgeShellScaffold(
               shell: widget.shell,
-              application: widget.application,
               layoutController: widget.shell.layout as DefaultLayoutController,
               systemState: widget.shell.systemState as DefaultSystemState,
               statusBarController: widget.shell.statusBar,
               notificationManager:
                   widget.shell.notifications as DefaultNotificationManager,
-              onApplicationSwitch: widget.onApplicationSwitch,
             )
           : WorkspaceWelcomePage(
               onFolderSelected: (directory) {

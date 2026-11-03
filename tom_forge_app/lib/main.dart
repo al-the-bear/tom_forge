@@ -17,7 +17,7 @@ void main() {
       'Set FLUTTER_INAPPWEBVIEW_LINUX_FORCE_GL=1 to force hardware mode for diagnostics.',
     );
   }
-  runApp(const ForgeLauncher()); // comment 
+  runApp(const ForgeLauncher()); // comment
 }
 
 /// Launcher widget that manages workspace selection and app creation.
@@ -30,7 +30,6 @@ class ForgeLauncher extends StatefulWidget {
 class _ForgeLauncherState extends State<ForgeLauncher> {
   final _navigatorKey = GlobalKey<NavigatorState>();
   DefaultShellApi? _shell;
-  ForgeApplication? _application;
   bool _workspaceReady = false;
 
   void _initializeWithWorkspace(Directory workspaceDir) {
@@ -63,8 +62,9 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
       debugPrint('[tom_forge_app] detectWorkspaceRoot failed: $e');
       detectedRoot = null;
     }
-    final effectiveDir =
-        detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
+    final effectiveDir = detectedRoot != null
+        ? Directory(detectedRoot)
+        : workspaceDir;
 
     try {
       await wsManager.initialize(effectiveDir.path);
@@ -100,8 +100,9 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
     );
 
     // Set the workspace root so file search and other features know where to look.
-    (shell.systemState as DefaultSystemState)
-        .setWorkspaceRootPath(effectiveDir.path);
+    (shell.systemState as DefaultSystemState).setWorkspaceRootPath(
+      effectiveDir.path,
+    );
 
     // Register modules
     final registry = shell.modules as DefaultModuleRegistry;
@@ -110,9 +111,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
     shellModule.activate(shell);
     registry.register(shellModule);
 
-    final appModule = ForgeAppModule(
-      workspaceRootUri: effectiveDir.uri,
-    );
+    final appModule = ForgeAppModule(workspaceRootUri: effectiveDir.uri);
     appModule.activate(shell);
     registry.register(appModule);
 
@@ -130,6 +129,7 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
         appModule.views.firstWhere((v) => v.title.value == title);
 
     final app = ForgeApplication(
+      id: 'tom-forge',
       title: 'Tom Forge',
       workspaceFolder: effectiveDir.path.split('/').last,
       layout: PanelLayout(
@@ -185,16 +185,17 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
               icon: Icons.web,
               sections: [websiteModule.previewView!],
             ),
-            PanelTabConfig(
-              title: 'Terminal',
-              icon: Icons.code,
-              sections: [],
-            ),
+            PanelTabConfig(title: 'Terminal', icon: Icons.code, sections: []),
           ],
         ),
         middlePanels: [const MiddlePanelConfig()],
       ),
     );
+
+    shell.applications.add(app);
+    // Applications other modules opened at run time and that were open at
+    // the last exit come back through their factories.
+    await shell.restoreApplications();
 
     if (!mounted) {
       shell.dispose();
@@ -203,7 +204,6 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
 
     setState(() {
       _shell = shell;
-      _application = app;
       _workspaceReady = true;
     });
   }
@@ -212,7 +212,6 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
   Widget build(BuildContext context) {
     return ForgeApp(
       shell: _shell ?? _createPlaceholderShell(),
-      application: _application ?? _createPlaceholderApp(),
       navigatorKey: _navigatorKey,
       onWorkspaceSelected: _initializeWithWorkspace,
       workspaceReady: _workspaceReady,
@@ -224,18 +223,6 @@ class _ForgeLauncherState extends State<ForgeLauncher> {
       fileSystemSeed: {},
       appName: 'Tom Forge',
       navigatorKey: _navigatorKey,
-    );
-  }
-
-  ForgeApplication _createPlaceholderApp() {
-    return ForgeApplication(
-      title: 'Tom Forge',
-      layout: const PanelLayout(
-        leftPanel: PanelConfig(initialSize: 250, tabs: []),
-        rightPanel: PanelConfig(initialSize: 220, tabs: []),
-        bottomPanel: PanelConfig(initialSize: 180, tabs: []),
-        middlePanels: [MiddlePanelConfig()],
-      ),
     );
   }
 }

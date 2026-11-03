@@ -32,11 +32,12 @@ void main() {
     appModule.activate(shell);
     registry.register(appModule);
 
-    final app = ForgeApplication(title: 'Forge Test IDE');
+    shell.applications.add(
+      ForgeApplication(id: 'forge-test-ide', title: 'Forge Test IDE'),
+    );
 
     await tester.pumpWidget(ForgeTestApp(
       shell: shell,
-      application: app,
       navigatorKey: navigatorKey,
       onWorkspaceSelected: (_) {},
     ));

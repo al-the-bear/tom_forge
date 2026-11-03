@@ -28,12 +28,13 @@ void main() {
       appModule.activate(shell);
       registry.register(appModule);
 
-      final app = ForgeApplication(title: 'Tom Forge');
+      shell.applications.add(
+        ForgeApplication(id: 'tom-forge', title: 'Tom Forge'),
+      );
 
       await tester.pumpWidget(
         ForgeApp(
           shell: shell,
-          application: app,
           navigatorKey: navigatorKey,
           onWorkspaceSelected: (_) {},
           workspaceReady: true,

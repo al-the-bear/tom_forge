@@ -445,9 +445,6 @@ class _TestModule implements ForgeModule {
   List<ForgeView> get views => const [];
 
   @override
-  List<ForgeApplication> get applications => const [];
-
-  @override
   List<ForgeShortcutMenu> get shortcutMenus => const [];
 
   @override
