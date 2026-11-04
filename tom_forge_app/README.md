@@ -2,9 +2,30 @@
 
 Main Tom Forge shell application.
 
+## Tom Forge as a library
+
+`package:tom_forge_app/forge_suite.dart` composes Tom Forge with all of its
+functionality, so an app built on Forge starts from it instead of copying
+Forge's setup:
+
+- `composeForgeSuite(shell:, workspaceRoot:, extensions:)` registers Forge's
+  modules (the shell module, `ForgeAppModule`, `WebsiteEditorModule`), adds the
+  tom_forge application (`forgeApplicationId`), then each
+  `ForgeSuiteExtension`'s modules (activated and registered after Forge's) and
+  applications (added after the tom_forge one), and restores the applications
+  open at the last exit.
+- `resolveForgeWorkspace(folder)` resolves a picked folder to its workspace
+  root and state.
+- `ForgeSuiteLauncher(appName:, extensions:)` is the root widget: the welcome
+  page, then the shell over the picked folder.
+
+`main.dart` is `runApp(const ForgeSuiteLauncher())`. Webforge passes its
+extensions (the Webwork full-screen application, the quest extension). The
+library names no Webwork package: Forge's licence direction holds.
+
 ## Website module layout
 
-`main.dart` registers `WebsiteEditorModule` on every launch and places its four
+`composeForgeSuite` registers `WebsiteEditorModule` on every launch and places its four
 views (the module exposes each individually for host placement, rather than the
 host parsing `module.views` by title):
 

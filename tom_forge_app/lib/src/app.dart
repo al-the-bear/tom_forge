@@ -10,8 +10,12 @@ class ForgeApp extends StatelessWidget {
   final void Function(Directory) onWorkspaceSelected;
   final bool workspaceReady;
 
+  /// The window title.
+  final String title;
+
   const ForgeApp({
     super.key,
+    this.title = 'Tom Forge',
     required this.shell,
     required this.navigatorKey,
     required this.onWorkspaceSelected,
@@ -22,7 +26,7 @@ class ForgeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tom Forge',
+      title: title,
       navigatorKey: navigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

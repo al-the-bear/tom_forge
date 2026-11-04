@@ -1,6 +1,6 @@
 // Default-startup wiring for the website editor module.
 //
-// main.dart registers a [WebsiteEditorModule] on every Forge launch and places
+// composeForgeSuite registers a [WebsiteEditorModule] on every Forge launch and places
 // its four views (Preview / Control / Content / Structure) into the default
 // layout. This guards two facts that make that safe:
 //   1. The module exposes its four views individually for host placement.
@@ -71,7 +71,7 @@ void main() {
   // through the standard `editors` getter, so opening files routes via
   // `ForgeEditor.canHandle` — the config file to the WebsiteConfigEditor, every
   // other YAML/Markdown file (incl. content files) to the standard editors. No
-  // filename hand-wiring lives in main.dart.
+  // filename hand-wiring lives in forge_suite.dart.
   group('Website editor file-open routing', () {
     const validConfig = '''
 version: 1
@@ -96,7 +96,7 @@ websites:
         navigatorKey: GlobalKey<NavigatorState>(),
       );
       // Workspace root must be set BEFORE the module activates, so it resolves
-      // the config URI against `/` (mirrors main.dart's ordering).
+      // the config URI against `/` (mirrors composeForgeSuite's ordering).
       (shell.systemState as DefaultSystemState).setWorkspaceRootPath('/');
       final shellModule = TomForgeShellModule();
       shellModule.activate(shell);

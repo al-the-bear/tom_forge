@@ -1,0 +1,118 @@
+/// Tom Forge as a library (wonecmpc25): `composeForgeSuite` puts Forge's
+/// modules and the tom_forge application on a shell and adds what an
+/// extension brings — here a stand-in module and a full-screen application
+/// laid out from its view, as Webforge adds the Webwork application. Tom
+/// Forge's own app is the launcher with no extensions.
+library;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tom_forge_app/forge_suite.dart';
+import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_website_editor/tom_website_editor.dart';
+
+class _StandInView extends ForgeView {
+  @override
+  final ValueListenable<String> title = ValueNotifier('Stand-in');
+  @override
+  final ValueListenable<String?> titleExtension = ValueNotifier(null);
+  @override
+  IconData get icon => Icons.extension;
+  @override
+  ForgeComponentSizeHints get sizeHints => const ForgeComponentSizeHints();
+  @override
+  Widget buildMain(BuildContext context) => const Text('stand-in view');
+  @override
+  Widget buildCopy(BuildContext context) => buildMain(context);
+}
+
+class _StandInModule extends ForgeModule {
+  final view = _StandInView();
+  ForgeShellApi? shell;
+
+  @override
+  String get displayName => 'Stand-in';
+  @override
+  void activate(ForgeShellApi shell) => this.shell = shell;
+  @override
+  void deactivate() {}
+  @override
+  List<ForgeEditor> get editors => const [];
+  @override
+  List<ForgeView> get views => [view];
+  @override
+  List<ForgeAction> get actions => const [];
+  @override
+  List<ForgeShortcutBinding> get shortcuts => const [];
+}
+
+DefaultShellApi _shell() => DefaultShellApi.withDefaults(
+  fileSystemSeed: const {'/README.md': '# Workspace\n'},
+  appName: 'Suite',
+  navigatorKey: GlobalKey<NavigatorState>(),
+);
+
+void main() {
+  test('FS-1: Tom Forge alone — its three modules and its application',
+      () async {
+    final shell = _shell();
+    addTearDown(shell.dispose);
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/',
+      restoreApplications: false,
+    );
+    expect(shell.modules.allModules, containsAll(<ForgeModule>[
+      suite.shellModule,
+      suite.appModule,
+      suite.websiteModule,
+    ]));
+    expect(suite.websiteModule, isA<WebsiteEditorModule>());
+    expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
+    expect(suite.forgeApplication.layout, isA<PanelLayout>());
+    expect(suite.extensionModules, isEmpty);
+  });
+
+  test('FS-2: an extension\'s module is activated and registered after '
+      'Forge\'s, and its application is added after the tom_forge one',
+      () async {
+    final shell = _shell();
+    addTearDown(shell.dispose);
+    final module = _StandInModule();
+    late ForgeSuite seen;
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/',
+      restoreApplications: false,
+      extensions: [
+        ForgeSuiteExtension(
+          modules: (_) => [module],
+          applications: (s) {
+            seen = s;
+            return [
+              ForgeApplication(
+                id: 'stand-in',
+                title: 'Stand-in',
+                layout: FullScreenLayout(view: module.view),
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+    expect(module.shell, same(shell), reason: 'activated on the shell');
+    expect(shell.modules.allModules.last, same(module));
+    expect(suite.extensionModules, [module]);
+    expect(shell.applications.all.map((a) => a.id), [forgeApplicationId, 'stand-in']);
+    expect(suite.extensionApplications.single.id, 'stand-in');
+    expect(seen.appModule, same(suite.appModule), reason: 'Forge\'s modules are there');
+  });
+
+  testWidgets('FS-3: the launcher opens on the welcome page under the app\'s '
+      'name', (tester) async {
+    await tester.pumpWidget(const ForgeSuiteLauncher(appName: 'Webforge test'));
+    expect(find.byType(WorkspaceWelcomePage), findsOneWidget);
+    expect(tester.widget<MaterialApp>(find.byType(MaterialApp)).title, 'Webforge test');
+  });
+}
