@@ -880,7 +880,10 @@ class ForgeAppModule extends ForgeModule {
       return true;
     }
     if (editor is ForgePlainTextEditor) {
-      editor.controller.applyEdit(content);
+      editor.session
+        ..endGesture()
+        ..edit(content, 'Format')
+        ..endGesture();
       return true;
     }
     if (editor is ForgeYamlEditor) {
