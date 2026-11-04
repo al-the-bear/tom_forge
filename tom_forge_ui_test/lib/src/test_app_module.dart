@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tom_forge_core/tom_forge_core.dart' show DefaultNotificationManager, ForgeDiagnostic, ForgeDiagnosticCollection, ForgeErrorCodes, ForgeOutputChannel, ForgePanelLocation, ForgeRetryPolicy, ForgeSeverity, ForgeTextPosition, ForgeTextRange;
+import 'package:tom_editors_shared/tom_editors_shared.dart'
+    show StandardEditingActions;
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
@@ -270,29 +272,35 @@ class TestAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    // Edit > Undo is the active editor's undo: the shell's
+    // manager holds no text edits, and with no editor active it is disabled.
     final editUndo = ForgeAction(
       id: 'edit.undo',
       label: 'Undo',
       icon: Icons.undo,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _shell.undoManager.undo();
+        _shell.executeAction(StandardEditingActions.undoActionId);
         return null;
       },
-      isEnabled: () => _shell.undoManager.canUndo.value,
+      isEnabled: () =>
+          _shell.isActionEnabled(StandardEditingActions.undoActionId),
       isVisible: () => true,
     );
 
+    // Edit > Redo is the active editor's redo: the shell's
+    // manager holds no text edits, and with no editor active it is disabled.
     final editRedo = ForgeAction(
       id: 'edit.redo',
       label: 'Redo',
       icon: Icons.redo,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _shell.undoManager.redo();
+        _shell.executeAction(StandardEditingActions.redoActionId);
         return null;
       },
-      isEnabled: () => _shell.undoManager.canRedo.value,
+      isEnabled: () =>
+          _shell.isActionEnabled(StandardEditingActions.redoActionId),
       isVisible: () => true,
     );
 
@@ -855,9 +863,8 @@ class TestAppModule extends ForgeModule {
     // are provided by TomForgeShellModule.  This module only adds bindings
     // for test-harness–specific actions.
     _shortcuts.addAll([
-      // Cmd+Y → Delete line in text editor (concept §11.3).
-      bind(byId['editor.deleteLine']!, ForgeShortcutKey(
-          key: LogicalKeyboardKey.keyY, primaryModifier: true)),
+      // Delete Line is the shell's forge.edit.deleteLine (Shift+Primary+K);
+      // editor.deleteLine has no key of its own, so one key has one meaning.
       // F5 → Run active file (kept as function key, no modifier).
       bind(byId['terminal.runActiveFile']!, ForgeShortcutKey(
           key: LogicalKeyboardKey.f5)),

@@ -195,24 +195,6 @@ class ForgeAppModule extends ForgeModule {
   /// not change. An active editor that does not offer the action leaves the
   /// menu item unavailable; only with no editor active does it fall back to
   /// the shell manager.
-  void _historyAction(String actionId, Future<void> Function() shellFallback) {
-    final editor = _shell.systemState.activeEditor;
-    if (editor == null) {
-      unawaited(shellFallback());
-      return;
-    }
-    if (editor.supportedActionIds.contains(actionId)) {
-      _shell.executeAction(actionId);
-    }
-  }
-
-  bool _historyEnabled(String actionId, bool shellCan) {
-    final editor = _shell.systemState.activeEditor;
-    if (editor == null) return shellCan;
-    return editor.supportedActionIds.contains(actionId) &&
-        editor.isActionEnabled(actionId);
-  }
-
   void _buildActions() {
     final fileSave = ForgeAction(
       id: 'file.save',
@@ -290,41 +272,35 @@ class ForgeAppModule extends ForgeModule {
       isVisible: () => true,
     );
 
+    // Edit > Undo is the active editor's undo: the shell's
+    // manager holds no text edits, and with no editor active it is disabled.
     final editUndo = ForgeAction(
       id: 'edit.undo',
       label: 'Undo',
       icon: Icons.undo,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _historyAction(
-          StandardEditingActions.undoActionId,
-          _shell.undoManager.undo,
-        );
+        _shell.executeAction(StandardEditingActions.undoActionId);
         return null;
       },
-      isEnabled: () => _historyEnabled(
-        StandardEditingActions.undoActionId,
-        _shell.undoManager.canUndo.value,
-      ),
+      isEnabled: () =>
+          _shell.isActionEnabled(StandardEditingActions.undoActionId),
       isVisible: () => true,
     );
 
+    // Edit > Redo is the active editor's redo: the shell's
+    // manager holds no text edits, and with no editor active it is disabled.
     final editRedo = ForgeAction(
       id: 'edit.redo',
       label: 'Redo',
       icon: Icons.redo,
       menu: ForgeMenuLocation.edit,
       execute: (_) async {
-        _historyAction(
-          StandardEditingActions.redoActionId,
-          _shell.undoManager.redo,
-        );
+        _shell.executeAction(StandardEditingActions.redoActionId);
         return null;
       },
-      isEnabled: () => _historyEnabled(
-        StandardEditingActions.redoActionId,
-        _shell.undoManager.canRedo.value,
-      ),
+      isEnabled: () =>
+          _shell.isActionEnabled(StandardEditingActions.redoActionId),
       isVisible: () => true,
     );
 
@@ -543,8 +519,8 @@ class ForgeAppModule extends ForgeModule {
     //
     // Note: Cmd+P, Cmd+L, Cmd+R, Cmd+B, Cmd+S, Cmd+F, Cmd+1-4, Cmd+]/[
     // are all provided by TomForgeShellModule.
-    // Cmd+U (Undo), Cmd+Z (Redo) are provided by StandardEditingActions
-    // descriptors via TomForgeShellModule.
+    // Cmd+Z (Undo), Shift+Cmd+Z (Redo) and the other editing keys are bound
+    // by the shell itself (StandardEditingActions).
     // Cmd+X/C/V are handled by Flutter's built-in text editing.
   }
 

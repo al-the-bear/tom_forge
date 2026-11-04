@@ -1,10 +1,9 @@
 /// The Edit menu's undo and redo reach the editor the user is looking at.
 ///
-/// They used to call the shell's undo manager directly, which only reaches
-/// editors that push shadow entries into it. With any other editor focused,
-/// Edit > Undo reversed whatever another editor had last pushed. These tests
-/// drive the **menu action**, since the keystroke route was never the broken
-/// one.
+/// The menu items run the standard editing actions, which the shell routes to
+/// the active editor. The shell's own undo manager holds shell actions only and
+/// is never reached from here, so an entry in it is left alone in every case.
+/// These tests drive the **menu action**.
 library;
 
 import 'package:flutter/widgets.dart';
@@ -59,13 +58,13 @@ void main() {
     undo = registry.getAction('edit.undo')!;
     redo = registry.getAction('edit.redo')!;
 
-    // Another editor's shadow entry, sitting in the shell's manager.
+    // A shell action's entry, sitting in the shell's manager.
     foreign = [];
     (shell.undoManager as DefaultUndoManager).push(
       UndoEntry(
         undo: () async => foreign.add('undo'),
         redo: () async => foreign.add('redo'),
-        label: 'an edit in some other editor',
+        label: 'a shell action',
       ),
     );
   });
@@ -106,13 +105,13 @@ void main() {
     expect(foreign, isEmpty);
   });
 
-  test(
-    'with no editor active, the menu falls back to the shell manager',
-    () async {
-      expect(shell.systemState.activeEditor, isNull);
-      expect(undo.isEnabled(), isTrue);
-      await run(undo);
-      expect(foreign, ['undo']);
-    },
-  );
+  test('with no editor active, Edit > Undo and Redo are unavailable and leave '
+      'the shell manager alone', () async {
+    expect(shell.systemState.activeEditor, isNull);
+    expect(undo.isEnabled(), isFalse);
+    expect(redo.isEnabled(), isFalse);
+    await run(undo);
+    await run(redo);
+    expect(foreign, isEmpty);
+  });
 }
