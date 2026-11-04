@@ -876,11 +876,11 @@ class ForgeAppModule extends ForgeModule {
       return true;
     }
     if (editor is ForgeMdEditor) {
-      editor.controller.markdown = content;
+      editor.controller.applyEdit(content);
       return true;
     }
     if (editor is ForgePlainTextEditor) {
-      editor.controller.markdown = content;
+      editor.controller.applyEdit(content);
       return true;
     }
     if (editor is ForgeYamlEditor) {

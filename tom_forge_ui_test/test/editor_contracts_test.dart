@@ -311,7 +311,7 @@ void main() {
         final sub = editor.document.onDidChange.listen(changeEvents.add);
 
         // Mutate via controller to trigger _onContentChanged
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         await Future<void>.delayed(Duration.zero);
 
         expect(changeEvents.length, 1);
@@ -326,7 +326,7 @@ void main() {
         final editor = ForgeMdEditor(controller: controller, module: module);
 
         final v0 = editor.document.version;
-        controller.markdown = 'v1';
+        controller.applyEdit('v1');
         final v1 = editor.document.version;
 
         expect(v1, greaterThan(v0));
@@ -401,7 +401,7 @@ void main() {
         final doc = editor.document as ForgeDocumentAdapter;
         expect(doc.isDirty.value, isFalse);
 
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         expect(doc.isDirty.value, isTrue);
       });
     });
@@ -419,7 +419,7 @@ void main() {
         final sub = state.onDirtyStateChanged.listen(dirtyEvents.add);
 
         state.addOpenEditor(editor);
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         await Future<void>.delayed(Duration.zero);
 
         expect(dirtyEvents.length, greaterThanOrEqualTo(1));
@@ -439,7 +439,7 @@ void main() {
         state.addOpenEditor(editor);
         expect(state.dirtyEditors, isEmpty);
 
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         expect(state.dirtyEditors, contains(editor));
 
         state.dispose();
@@ -455,14 +455,14 @@ void main() {
         final sub = state.onDirtyStateChanged.listen(dirtyEvents.add);
 
         state.addOpenEditor(editor);
-        controller.markdown = 'first change';
+        controller.applyEdit('first change');
         await Future<void>.delayed(Duration.zero);
         final countAfterFirst = dirtyEvents.length;
 
         state.removeOpenEditor(editor);
 
         // Changes after removal should not emit
-        controller.markdown = 'second change';
+        controller.applyEdit('second change');
         await Future<void>.delayed(Duration.zero);
 
         expect(dirtyEvents.length, countAfterFirst);
@@ -515,7 +515,7 @@ void main() {
         final controller = MdEditorController(initialMarkdown: 'initial');
         final editor = ForgeMdEditor(controller: controller, module: module);
 
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         expect(editor.isDirty.value, isTrue);
 
         editor.markClean();
@@ -553,7 +553,7 @@ void main() {
 
         expect(editor.getContent(), '# Hello');
 
-        controller.markdown = '# Modified';
+        controller.applyEdit('# Modified');
         expect(editor.getContent(), '# Modified');
       });
 
@@ -591,7 +591,7 @@ void main() {
         state.addOpenEditor(editor);
 
         // Make dirty
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         await Future<void>.delayed(Duration.zero);
         final dirtyEventCount = dirtyEvents.length;
         expect(dirtyEvents.last.isDirty, isTrue);
@@ -616,7 +616,7 @@ void main() {
         state.addOpenEditor(editor);
 
         // Make dirty
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         expect(state.dirtyEditors, contains(editor));
 
         // Clear dirty
@@ -636,7 +636,7 @@ void main() {
         expect(state.hasUnsavedChanges, isFalse);
 
         // Make dirty
-        controller.markdown = 'modified';
+        controller.applyEdit('modified');
         expect(state.hasUnsavedChanges, isTrue);
 
         // Clear dirty
