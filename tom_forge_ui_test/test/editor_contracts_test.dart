@@ -340,7 +340,7 @@ void main() {
         final changeEvents = <DocumentChangeEvent>[];
         final sub = editor.document.onDidChange.listen(changeEvents.add);
 
-        controller.userCode = 'void main() { print(1); }';
+        controller.applyEdit('void main() { print(1); }');
         await Future<void>.delayed(Duration.zero);
 
         expect(changeEvents.length, 1);
@@ -527,7 +527,7 @@ void main() {
         final controller = DartCodeController(initialCode: 'void main() {}');
         final editor = ForgeDartEditor(controller: controller, module: module);
 
-        controller.userCode = 'void main() { print("modified"); }';
+        controller.applyEdit('void main() { print("modified"); }');
         expect(editor.isDirty.value, isTrue);
 
         editor.markClean();
@@ -564,7 +564,7 @@ void main() {
 
         expect(editor.getContent(), 'int x = 1;');
 
-        controller.userCode = 'int x = 2;';
+        controller.applyEdit('int x = 2;');
         expect(editor.getContent(), 'int x = 2;');
       });
 

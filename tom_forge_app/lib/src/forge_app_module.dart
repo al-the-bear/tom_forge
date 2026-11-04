@@ -872,7 +872,7 @@ class ForgeAppModule extends ForgeModule {
 
   bool _applyFormattedContent(ForgeEditor editor, String content) {
     if (editor is ForgeDartEditor) {
-      editor.controller.userCode = content;
+      editor.controller.applyEdit(content);
       return true;
     }
     if (editor is ForgeMdEditor) {
