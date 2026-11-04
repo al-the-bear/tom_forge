@@ -508,7 +508,7 @@ class _MockEditor implements ForgeEditor {
   void restoreState(Map<String, dynamic> state) {}
 
   @override
-  void setContent(String content) {}
+  bool replaceContent(String content) => false;
 
   @override
   List<Map<String, dynamic>>? getUndoHistoryMetadata() => null;
