@@ -2,7 +2,10 @@
 /// modules and the tom_forge application on a shell and adds what an
 /// extension brings — here a stand-in module and a full-screen application
 /// laid out from its view, as Webforge adds the Webwork application. Tom
-/// Forge's own app is the launcher with no extensions.
+/// Forge's own app is the launcher with no extensions. An app built on the
+/// library reads the Dart editor's summaries under this package's prefix, and
+/// its extension modules route dialogs through the suite's navigator
+/// (wonecmpc33).
 library;
 
 import 'package:flutter/foundation.dart';
@@ -114,5 +117,32 @@ void main() {
     await tester.pumpWidget(const ForgeSuiteLauncher(appName: 'Webforge test'));
     expect(find.byType(WorkspaceWelcomePage), findsOneWidget);
     expect(tester.widget<MaterialApp>(find.byType(MaterialApp)).title, 'Webforge test');
+  });
+
+  test('FS-4: the suite carries the navigator its extensions route dialogs '
+      'through, and points the Dart editor at the summaries it was given',
+      () async {
+    final shell = _shell();
+    addTearDown(shell.dispose);
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/',
+      navigatorKey: navigatorKey,
+      dartSummaryAssets: forgeSuiteDartSummaries,
+      restoreApplications: false,
+    );
+    expect(suite.navigatorKey, same(navigatorKey));
+    final assets = (shell.layout as DefaultLayoutController).dartSummaryAssets;
+    expect(assets.sdkSummary, 'packages/tom_forge_app/assets/sdk_summary.sum');
+    expect(assets.packageSummary, 'packages/tom_forge_app/assets/packages.sum');
+
+    final own = _shell();
+    addTearDown(own.dispose);
+    await composeForgeSuite(
+        shell: own, workspaceRoot: '/', restoreApplications: false);
+    expect((own.layout as DefaultLayoutController).dartSummaryAssets,
+        same(ForgeDartSummaryAssets.root),
+        reason: 'Tom Forge\'s own app reads the summaries it carries');
   });
 }

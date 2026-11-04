@@ -8,20 +8,30 @@ Main Tom Forge shell application.
 functionality, so an app built on Forge starts from it instead of copying
 Forge's setup:
 
-- `composeForgeSuite(shell:, workspaceRoot:, extensions:)` registers Forge's
-  modules (the shell module, `ForgeAppModule`, `WebsiteEditorModule`), adds the
-  tom_forge application (`forgeApplicationId`), then each
-  `ForgeSuiteExtension`'s modules (activated and registered after Forge's) and
-  applications (added after the tom_forge one), and restores the applications
-  open at the last exit.
+- `composeForgeSuite(shell:, workspaceRoot:, navigatorKey:, extensions:,
+  dartSummaryAssets:)` registers Forge's modules (the shell module,
+  `ForgeAppModule`, `WebsiteEditorModule`), adds the tom_forge application
+  (`forgeApplicationId`), then each `ForgeSuiteExtension`'s modules (activated
+  and registered after Forge's) and applications (added after the tom_forge
+  one), and restores the applications open at the last exit. The suite carries
+  `navigatorKey`, which an extension module raises its dialogs on.
 - `resolveForgeWorkspace(folder)` resolves a picked folder to its workspace
   root and state.
-- `ForgeSuiteLauncher(appName:, extensions:)` is the root widget: the welcome
-  page, then the shell over the picked folder.
+- `ForgeSuiteLauncher(appName:, extensions:, workspace:, dartSummaryAssets:,
+  onComposed:)` is the root widget: the welcome page — or straight away the
+  folder `workspace` names — then the shell over the folder; `onComposed` is
+  called with each composed suite.
+
+**The Dart editor's summaries.** This package carries
+`assets/sdk_summary.sum` and `assets/packages.sum`. Tom Forge's own app reads
+them under its own keys (`ForgeDartSummaryAssets.root`, the default); an app
+built on the library reads them under this package's prefix, which Flutter
+gives a dependency's assets, by passing `forgeSuiteDartSummaries`.
 
 `main.dart` is `runApp(const ForgeSuiteLauncher())`. Webforge passes its
-extensions (the Webwork full-screen application, the quest extension). The
-library names no Webwork package: Forge's licence direction holds.
+extensions (the Webwork full-screen application, the quest extension) and
+`forgeSuiteDartSummaries`. The library names no Webwork package: Forge's
+licence direction holds.
 
 ## Website module layout
 

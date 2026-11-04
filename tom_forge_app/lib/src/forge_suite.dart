@@ -29,6 +29,7 @@ class ForgeSuiteExtension {
 class ForgeSuite {
   ForgeSuite._({
     required this.shell,
+    required this.navigatorKey,
     required this.workspaceRoot,
     required this.shellModule,
     required this.appModule,
@@ -36,6 +37,10 @@ class ForgeSuite {
   });
 
   final DefaultShellApi shell;
+
+  /// The navigator the shell's dialogs are routed through, for an extension
+  /// module that raises its own; null when the composer was given none.
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   /// The workspace folder the suite edits.
   final String workspaceRoot;
@@ -62,22 +67,36 @@ class ForgeSuite {
 /// The id of the tom_forge application.
 const forgeApplicationId = 'tom-forge';
 
+/// The Dart editor's summaries in an app built on this library: the two files
+/// `tom_forge_app` carries, under its package prefix.
+final ForgeDartSummaryAssets forgeSuiteDartSummaries =
+    ForgeDartSummaryAssets.ofPackage('tom_forge_app');
+
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
 /// app module and the website editor module, the tom_forge application, then
 /// each extension's modules and applications. Applications open at the last
 /// exit come back through their factories ([ForgeShellApi.restoreApplications])
 /// once everything is registered.
+///
+/// [dartSummaryAssets] is where the Dart editor reads its summaries: Tom
+/// Forge's own app carries them ([ForgeDartSummaryAssets.root]), an app built
+/// on this library reads this package's ([forgeSuiteDartSummaries]).
 Future<ForgeSuite> composeForgeSuite({
   required DefaultShellApi shell,
   required String workspaceRoot,
+  GlobalKey<NavigatorState>? navigatorKey,
   List<ForgeSuiteExtension> extensions = const [],
+  ForgeDartSummaryAssets dartSummaryAssets = ForgeDartSummaryAssets.root,
   bool restoreApplications = true,
 }) async {
   // The root is set before the modules activate: the website module
   // resolves its config file against it.
   (shell.systemState as DefaultSystemState).setWorkspaceRootPath(workspaceRoot);
+  (shell.layout as DefaultLayoutController).dartSummaryAssets =
+      dartSummaryAssets;
   final suite = ForgeSuite._(
     shell: shell,
+    navigatorKey: navigatorKey,
     workspaceRoot: workspaceRoot,
     shellModule: TomForgeShellModule(),
     appModule: ForgeAppModule(workspaceRootUri: Directory(workspaceRoot).uri),
@@ -234,12 +253,26 @@ class ForgeSuiteLauncher extends StatefulWidget {
     super.key,
     this.appName = 'Tom Forge',
     this.extensions = const [],
+    this.workspace,
+    this.dartSummaryAssets = ForgeDartSummaryAssets.root,
+    this.onComposed,
   });
 
   /// The app's name: the window title and the shell's.
   final String appName;
 
   final List<ForgeSuiteExtension> extensions;
+
+  /// A folder to open at once instead of showing the welcome page — the
+  /// command line's; null shows the welcome page.
+  final Directory? workspace;
+
+  /// Where the Dart editor reads its summaries ([composeForgeSuite]).
+  final ForgeDartSummaryAssets dartSummaryAssets;
+
+  /// Called once a folder's suite is composed and about to be shown, for a
+  /// host that opens files in it (the command line's documents).
+  final void Function(ForgeSuite suite)? onComposed;
 
   @override
   State<ForgeSuiteLauncher> createState() => _ForgeSuiteLauncherState();
@@ -254,6 +287,13 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
   );
   DefaultShellApi? _shell;
 
+  @override
+  void initState() {
+    super.initState();
+    final workspace = widget.workspace;
+    if (workspace != null) _open(workspace);
+  }
+
   void _open(Directory folder) => unawaited(_openAsync(folder));
 
   Future<void> _openAsync(Directory folder) async {
@@ -265,10 +305,12 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
       workspaceState: state,
       storage: PersistentModuleStorage(forgeDir: state.forgeDirectoryPath),
     );
-    await composeForgeSuite(
+    final suite = await composeForgeSuite(
       shell: shell,
       workspaceRoot: root,
+      navigatorKey: _navigatorKey,
       extensions: widget.extensions,
+      dartSummaryAssets: widget.dartSummaryAssets,
     );
     if (!mounted) {
       shell.dispose();
@@ -276,6 +318,7 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
     }
     final previous = _shell;
     setState(() => _shell = shell);
+    widget.onComposed?.call(suite);
     // The previous folder's shell goes once its scaffold has left the tree.
     if (previous != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => previous.dispose());
