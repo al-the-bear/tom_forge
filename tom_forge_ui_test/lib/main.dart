@@ -48,7 +48,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     // Initialize workspace state (.forge/ directory) before creating shell
     // so persistent storage can use the .forge/ path.
     await wsManager.initialize(effectiveDir.path);
-    await wsManager.suggestGitignore(effectiveDir.path);
+    await wsManager.keepForgeStateOutOfGit(effectiveDir.path);
 
     // Save the workspace path to preferences for next-launch recovery.
     final prefs = ForgePreferencesService.instance;

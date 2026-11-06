@@ -304,9 +304,11 @@ Future<(String, DefaultWorkspaceStateManager)> resolveForgeWorkspace(
     debugPrint('[forge_suite] workspace initialize failed: $e');
   }
   try {
-    await state.suggestGitignore(root);
+    // `.forge/` is per-machine state: kept out of git through the clone's
+    // own exclude file, never by editing a file the workspace tracks.
+    await state.keepForgeStateOutOfGit(root);
   } catch (e) {
-    debugPrint('[forge_suite] suggestGitignore failed: $e');
+    debugPrint('[forge_suite] keepForgeStateOutOfGit failed: $e');
   }
   final prefs = ForgePreferencesService.instance;
   if (!prefs.isLoaded) await prefs.load();
