@@ -22,6 +22,7 @@ class ForgeSuiteExtension {
     this.modules,
     this.applications,
     this.fileEditorBuilders,
+    this.fileEditorAlternatives,
   });
 
   /// The extension's modules; the suite activates and registers each.
@@ -32,6 +33,12 @@ class ForgeSuiteExtension {
   /// registered; a later extension's builder of a kind wins.
   final Map<ForgeFileKind, ForgeFileEditorBuilder> Function(ForgeSuite suite)?
   fileEditorBuilders;
+
+  /// Other editors the extension offers for some files beside Forge's editor
+  /// of their kind — Open With lists both (Webforge's TomSpecs editor for a
+  /// spec document beside the YAML editor).
+  final List<ForgeFileEditorAlternative> Function(ForgeSuite suite)?
+  fileEditorAlternatives;
 
   /// The extension's applications, added to `shell.applications` in order.
   final List<ForgeApplication> Function(ForgeSuite suite)? applications;
@@ -154,6 +161,10 @@ Future<ForgeSuite> composeForgeSuite({
       for (final extension in extensions)
         ...?extension.fileEditorBuilders?.call(suite),
     },
+    alternatives: [
+      for (final extension in extensions)
+        ...?extension.fileEditorAlternatives?.call(suite),
+    ],
     claims: (uri) => _fileEditorsClaim(shell, uri),
   );
   suite._register(suite.fileEditorsModule);

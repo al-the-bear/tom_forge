@@ -26,7 +26,9 @@ Forge's setup:
   Dart files to the shell's Dart editor and an extension the user gave a
   default editor to that editor. An extension replaces Forge's editor of a
   kind through `ForgeSuiteExtension.fileEditorBuilders` (Webforge's rich
-  Markdown editor).
+  Markdown editor), and offers another beside it for some files through
+  `ForgeSuiteExtension.fileEditorAlternatives` — Open With lists both
+  (Webforge's TomSpecs editor for spec documents).
 - `resolveForgeWorkspace(folder)` resolves a picked folder to its workspace
   root and state.
 - `ForgeSuiteLauncher(appName:, extensions:, workspace:, dartSummaryAssets:,

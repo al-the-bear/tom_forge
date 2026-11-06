@@ -418,6 +418,9 @@ class _TestModule implements ForgeModule {
   String get displayName => 'Test Module';
 
   @override
+  List<ForgeEditorChoice> editorChoicesFor(Uri uri) => const [];
+
+  @override
   void activate(ForgeShellApi api) {}
 
   @override
