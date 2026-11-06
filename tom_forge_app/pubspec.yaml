@@ -21,6 +21,10 @@ dependencies:
     path: ../tom_forge_core
   tom_website_editor:
     path: ../tom_website_editor
+  # The file editors: Markdown, YAML, todo files, .env and text, each over a
+  # ForgeFileSession.
+  tom_forge_file_editors:
+    path: ../tom_forge_file_editors
   # The quest applications: one per open quest, the picker, the frame.
   tom_forge_quests:
     path: ../tom_forge_quests

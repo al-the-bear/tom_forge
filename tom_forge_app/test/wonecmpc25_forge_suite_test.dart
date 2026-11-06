@@ -108,7 +108,13 @@ void main() {
       ],
     );
     expect(module.shell, same(shell), reason: 'activated on the shell');
-    expect(shell.modules.allModules.last, same(module));
+    // Forge's own modules, the extension's, then the file editors — so a
+    // module that opens its own files is asked before them.
+    final modules = shell.modules.allModules.toList();
+    expect(modules.indexOf(module),
+        greaterThan(modules.indexOf(suite.questsModule)));
+    expect(modules.last, same(suite.fileEditorsModule));
+    expect(modules[modules.length - 2], same(module));
     expect(suite.extensionModules, [module]);
     expect(shell.applications.all.map((a) => a.id), [forgeApplicationId, 'stand-in']);
     expect(suite.extensionApplications.single.id, 'stand-in');

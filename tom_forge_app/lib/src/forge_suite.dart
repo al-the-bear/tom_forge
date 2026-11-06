@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:tom_file_system/io.dart';
+import 'package:tom_forge_core/tom_forge_core.dart' show FileHandlingResult;
+import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
 import 'package:tom_forge_quests/tom_forge_quests.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
@@ -16,10 +18,20 @@ import 'forge_app_module.dart';
 /// Both are made from the composed [ForgeSuite], so an extension's
 /// application can lay out views of Forge's modules as well as its own.
 class ForgeSuiteExtension {
-  const ForgeSuiteExtension({this.modules, this.applications});
+  const ForgeSuiteExtension({
+    this.modules,
+    this.applications,
+    this.fileEditorBuilders,
+  });
 
   /// The extension's modules; the suite activates and registers each.
   final List<ForgeModule> Function(ForgeSuite suite)? modules;
+
+  /// Editors the extension puts in place of Forge's for a kind of file
+  /// (Webwork's rich Markdown editor, say), made once its modules are
+  /// registered; a later extension's builder of a kind wins.
+  final Map<ForgeFileKind, ForgeFileEditorBuilder> Function(ForgeSuite suite)?
+  fileEditorBuilders;
 
   /// The extension's applications, added to `shell.applications` in order.
   final List<ForgeApplication> Function(ForgeSuite suite)? applications;
@@ -58,6 +70,10 @@ class ForgeSuite {
   /// The tom_forge application (Forge's own panel layout).
   late final ForgeApplication forgeApplication;
 
+  /// The file editors: every file a module does not take opens in the editor
+  /// of its kind over a `ForgeFileSession` (see [composeForgeSuite]).
+  late final ForgeFileEditorsModule fileEditorsModule;
+
   /// The modules the extensions added, in order.
   final List<ForgeModule> extensionModules = [];
 
@@ -80,8 +96,9 @@ final ForgeDartSummaryAssets forgeSuiteDartSummaries =
 
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
 /// app module, the website editor module and the quests module, the
-/// tom_forge application, then
-/// each extension's modules and applications. Applications open at the last
+/// tom_forge application, each extension's modules, the file editors module
+/// (with the extensions' [ForgeSuiteExtension.fileEditorBuilders]), then each
+/// extension's applications. Applications open at the last
 /// exit come back through their factories ([ForgeShellApi.restoreApplications])
 /// once everything is registered.
 ///
@@ -130,6 +147,16 @@ Future<ForgeSuite> composeForgeSuite({
       suite.extensionModules.add(module);
     }
   }
+  // After the extensions' modules, so a module that opens its own files (a
+  // Webwork document) is asked first.
+  suite.fileEditorsModule = ForgeFileEditorsModule(
+    builders: {
+      for (final extension in extensions)
+        ...?extension.fileEditorBuilders?.call(suite),
+    },
+    claims: (uri) => _fileEditorsClaim(shell, uri),
+  );
+  suite._register(suite.fileEditorsModule);
   for (final extension in extensions) {
     for (final app in extension.applications?.call(suite) ??
         const <ForgeApplication>[]) {
@@ -139,6 +166,29 @@ Future<ForgeSuite> composeForgeSuite({
   }
   if (restoreApplications) await shell.restoreApplications();
   return suite;
+}
+
+/// Whether the file editors open [uri]: not a file another module's editor
+/// takes (the website module's `tom.website-editor.yaml`), not a Dart file
+/// (the shell's Dart editor), and not a file whose extension the user gave a
+/// default editor of the shell's.
+bool _fileEditorsClaim(DefaultShellApi shell, Uri uri) {
+  for (final module in shell.modules.allModules) {
+    // The shell module lists the shell's own open editors, and the file
+    // editors module its own: neither takes a file away.
+    if (module is TomForgeShellModule || module is ForgeFileEditorsModule) {
+      continue;
+    }
+    for (final editor in module.editors) {
+      if (editor.canHandle(uri) == FileHandlingResult.accept) return false;
+    }
+  }
+  final name = uri.pathSegments.isEmpty ? '' : uri.pathSegments.last;
+  final dot = name.lastIndexOf('.');
+  final extension = dot < 0 ? '' : name.substring(dot + 1).toLowerCase();
+  if (extension == 'dart') return false;
+  final layout = shell.layout as DefaultLayoutController;
+  return layout.getFileTypeDefaultEditor(extension) == null;
 }
 
 ForgeApplication _forgeApplication(ForgeSuite suite) {

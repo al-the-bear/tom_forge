@@ -13,9 +13,20 @@ Forge's setup:
   `ForgeAppModule`, `WebsiteEditorModule` and `ForgeQuestsModule` — the quest
   applications, from `tom_forge_quests`), adds the tom_forge application
   (`forgeApplicationId`), then each `ForgeSuiteExtension`'s modules (activated
-  and registered after Forge's) and applications (added after the tom_forge
-  one), and restores the applications open at the last exit. The suite carries
+  and registered after Forge's), the file editors module, the extensions'
+  applications (added after the tom_forge one), and restores the applications
+  open at the last exit. The suite carries
   `navigatorKey`, which an extension module raises its dialogs on.
+- **The file editors.** `suite.fileEditorsModule` (`tom_forge_file_editors`)
+  opens Markdown, YAML, todo files, `.env` and other text in the editor of
+  their kind, each over a `ForgeFileSession` that keeps the file's bytes and
+  saves it. It is registered after the extensions' modules, so a module that
+  opens its own files (a Webwork document) is asked first, and it leaves a
+  file to another module's editor that takes it (`tom.website-editor.yaml`),
+  Dart files to the shell's Dart editor and an extension the user gave a
+  default editor to that editor. An extension replaces Forge's editor of a
+  kind through `ForgeSuiteExtension.fileEditorBuilders` (Webforge's rich
+  Markdown editor).
 - `resolveForgeWorkspace(folder)` resolves a picked folder to its workspace
   root and state.
 - `ForgeSuiteLauncher(appName:, extensions:, workspace:, dartSummaryAssets:,
