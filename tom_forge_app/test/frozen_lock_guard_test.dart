@@ -22,16 +22,17 @@
 // every run says how strong it is on this machine.
 //
 // THE CACHE PROVES A VERSION WAS ON HAND, NOT THAT IT WAS ADMISSIBLE. A newer
-// release can require something no package here can take: Forge's Dart editor
-// stack declares analyzer ^10, and tom_d4rt 1.230 / tom_analyzer_shared 0.8
-// need analyzer ^14. Such a range is HELD BACK, with the todo that lifts it;
-// FL-4 fails once a hold no longer holds any lock back.
+// release can require something no package here can take (a newer analyzer, a
+// newer SDK). Such a range is HELD BACK in `_heldBackVersions`, with the todo
+// that lifts it; FL-4 fails once a hold no longer holds any lock back. None
+// is held: Forge moved to analyzer ^14 (tom_forge
+// later10_akft-forge-onto-analyzer-14), which lifted the three it had.
 //
 // WHAT THIS REPO HAD, measured 2026-11-06 on mbp and cleared by the sweep that
 // added this file (tom_forge later1_akfb-frozen-locks-sweep-and-guard): one
 // frozen resolution, tom_specs_editor's tom_d4rt_dcli 1.5.0 (1.12.1 cached),
-// moved by `flutter pub upgrade` to 1.11.0, the newest it can take. The ranges
-// above it are held by analyzer, below.
+// moved by `flutter pub upgrade` to 1.11.0, then the analyzer-14 move took
+// the newer releases.
 //
 // WHY IT LIVES HERE. tom_forge_app composes the whole Forge suite and is
 // `publish_to: none`, so a guard that walks sibling packages costs no consumer
@@ -82,27 +83,7 @@ class _HeldBack {
 
 /// Cached versions FL-2 ignores, by package name. FL-4 fails once one no
 /// longer holds any lock back.
-const Map<String, _HeldBack> _heldBackVersions = <String, _HeldBack>{
-  'tom_analyzer_shared': _HeldBack(
-    from: '0.8.0',
-    owner: 'tom_forge later10_akft-forge-onto-analyzer-14',
-    reason:
-        '0.8.0 needs analyzer ^14.1.0; tom_dart_editor_bundler declares '
-        'analyzer ^10.0.0.',
-  ),
-  'tom_d4rt': _HeldBack(
-    from: '1.230.0',
-    owner: 'tom_forge later10_akft-forge-onto-analyzer-14',
-    reason:
-        '1.230.0 needs analyzer ^14.5.0; tom_dart_editor declares analyzer '
-        '^10.0.0 and tom_specs_editor resolves both.',
-  ),
-  'tom_d4rt_dcli': _HeldBack(
-    from: '1.12.0',
-    owner: 'tom_forge later10_akft-forge-onto-analyzer-14',
-    reason: '1.12.0 needs tom_d4rt ^1.230.0, held above.',
-  ),
-};
+const Map<String, _HeldBack> _heldBackVersions = <String, _HeldBack>{};
 
 /// Below this many distinct cached `tom_*` packages, a pass means nothing: the
 /// discriminator can only see a freeze whose newer version is cached here.
