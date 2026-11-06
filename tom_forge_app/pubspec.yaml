@@ -28,6 +28,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # Joining the paths the licence audit test reads and writes.
+  path: ^1.9.0
+  # The licence audit of the packages this app resolves (licence_audit.dart).
+  tom_test_support:
+    path: ../../tom_ai/basics/tom_test_support
 
 flutter:
   uses-material-design: true

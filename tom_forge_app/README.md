@@ -33,6 +33,18 @@ extensions (the Webwork full-screen application, the quest extension) and
 `forgeSuiteDartSummaries`. The library names no Webwork package: Forge's
 licence direction holds.
 
+## Licence
+
+Tom Forge is BSD-3-Clause, and an app built on it can be distributed as
+BSD-3 on its own: every package this app links is permissive, or MPL-2.0 with
+the notice in [`THIRD_PARTY.md`](THIRD_PARTY.md); nothing under a GPL family,
+the LGPL included. `test/qim_none1_licence_audit_test.dart` holds it — it
+walks the packages this app resolves (`tom_test_support`'s licence audit) and
+fails on a missing licence, a GPL-family one, an MPL-2.0 package the notice
+does not list, or build tooling (`tom_build_base`, `dcli`, `ini`) in the
+resolved graph. Run `flutter pub get` first: the package configuration is
+what it reads.
+
 ## Website module layout
 
 `composeForgeSuite` registers `WebsiteEditorModule` on every launch and places its four
