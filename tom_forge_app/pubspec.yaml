@@ -21,6 +21,9 @@ dependencies:
     path: ../tom_forge_core
   tom_website_editor:
     path: ../tom_website_editor
+  # The quest applications: one per open quest, the picker, the frame.
+  tom_forge_quests:
+    path: ../tom_forge_quests
   dart_style: ^3.1.2
   cupertino_icons: ^1.0.8
 

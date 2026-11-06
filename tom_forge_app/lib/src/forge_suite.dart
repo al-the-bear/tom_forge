@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:tom_file_system/io.dart';
+import 'package:tom_forge_quests/tom_forge_quests.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
@@ -34,6 +35,7 @@ class ForgeSuite {
     required this.shellModule,
     required this.appModule,
     required this.websiteModule,
+    required this.questsModule,
   });
 
   final DefaultShellApi shell;
@@ -48,6 +50,10 @@ class ForgeSuite {
   final TomForgeShellModule shellModule;
   final ForgeAppModule appModule;
   final WebsiteEditorModule websiteModule;
+
+  /// The quest applications: their factory and the Open Quest picker, in the
+  /// tom_forge application and every quest application.
+  final ForgeQuestsModule questsModule;
 
   /// The tom_forge application (Forge's own panel layout).
   late final ForgeApplication forgeApplication;
@@ -73,7 +79,8 @@ final ForgeDartSummaryAssets forgeSuiteDartSummaries =
     ForgeDartSummaryAssets.ofPackage('tom_forge_app');
 
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
-/// app module and the website editor module, the tom_forge application, then
+/// app module, the website editor module and the quests module, the
+/// tom_forge application, then
 /// each extension's modules and applications. Applications open at the last
 /// exit come back through their factories ([ForgeShellApi.restoreApplications])
 /// once everything is registered.
@@ -101,6 +108,7 @@ Future<ForgeSuite> composeForgeSuite({
     shellModule: TomForgeShellModule(),
     appModule: ForgeAppModule(workspaceRootUri: Directory(workspaceRoot).uri),
     websiteModule: WebsiteEditorModule(),
+    questsModule: ForgeQuestsModule(),
   );
   suite
     .._register(suite.shellModule)
@@ -108,7 +116,10 @@ Future<ForgeSuite> composeForgeSuite({
     // The website editor (§9): the site preview, the dev-server / generator
     // panel and the content catalog. It disables itself when the workspace
     // has no tom.website-editor.yaml.
-    .._register(suite.websiteModule);
+    .._register(suite.websiteModule)
+    // The quest applications (one per open quest): registered before the
+    // restore below, which recreates the ones open at the last exit.
+    .._register(suite.questsModule);
 
   suite.forgeApplication = _forgeApplication(suite);
   shell.applications.add(suite.forgeApplication);

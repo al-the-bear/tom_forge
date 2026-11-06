@@ -5,7 +5,8 @@
 /// Forge's own app is the launcher with no extensions. An app built on the
 /// library reads the Dart editor's summaries under this package's prefix, and
 /// its extension modules route dialogs through the suite's navigator
-/// (wonecmpc33).
+/// (wonecmpc33). Every app built on it has the quest applications
+/// (qim_none-4): the tom_forge application offers the quest picker.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -57,7 +58,7 @@ DefaultShellApi _shell() => DefaultShellApi.withDefaults(
 );
 
 void main() {
-  test('FS-1: Tom Forge alone — its three modules and its application',
+  test('FS-1: Tom Forge alone — its four modules and its application',
       () async {
     final shell = _shell();
     addTearDown(shell.dispose);
@@ -70,8 +71,10 @@ void main() {
       suite.shellModule,
       suite.appModule,
       suite.websiteModule,
+      suite.questsModule,
     ]));
     expect(suite.websiteModule, isA<WebsiteEditorModule>());
+    expect(shell.applications.hasFactory(questApplicationKind), isTrue);
     expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
     expect(suite.forgeApplication.layout, isA<PanelLayout>());
     expect(suite.extensionModules, isEmpty);
@@ -117,6 +120,37 @@ void main() {
     await tester.pumpWidget(const ForgeSuiteLauncher(appName: 'Webforge test'));
     expect(find.byType(WorkspaceWelcomePage), findsOneWidget);
     expect(tester.widget<MaterialApp>(find.byType(MaterialApp)).title, 'Webforge test');
+  });
+
+  test('FS-5: the tom_forge application offers the quest picker over the '
+      'workspace\'s quests; a quest opens once', () async {
+    final shell = DefaultShellApi.withDefaults(
+      fileSystemSeed: const {
+        '/ws/_ai/quests/alpha/overview.alpha.md': '# alpha',
+        '/ws/_ai/quests/beta/overview.beta.md': '# beta',
+      },
+      appName: 'Suite',
+      navigatorKey: GlobalKey<NavigatorState>(),
+    );
+    addTearDown(shell.dispose);
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/ws',
+      restoreApplications: false,
+    );
+    expect(shell.applications.active!.id, forgeApplicationId);
+    expect(shell.isActionEnabled(forgeOpenQuestActionId), isTrue);
+    expect(await suite.questsModule.quests(), ['alpha', 'beta']);
+
+    final alpha = suite.questsModule.openQuest('alpha');
+    expect(questOf(alpha), 'alpha');
+    expect(shell.applications.active, same(alpha));
+    expect(shell.isActionEnabled(forgeOpenQuestActionId), isTrue,
+        reason: 'the picker is there in a quest application too');
+    shell.applications.activate(forgeApplicationId);
+    expect(suite.questsModule.openQuest('alpha'), same(alpha));
+    expect(shell.applications.all.map((a) => a.id),
+        [forgeApplicationId, alpha.id]);
   });
 
   test('FS-4: the suite carries the navigator its extensions route dialogs '

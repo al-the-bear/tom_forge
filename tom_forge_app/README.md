@@ -10,7 +10,8 @@ Forge's setup:
 
 - `composeForgeSuite(shell:, workspaceRoot:, navigatorKey:, extensions:,
   dartSummaryAssets:)` registers Forge's modules (the shell module,
-  `ForgeAppModule`, `WebsiteEditorModule`), adds the tom_forge application
+  `ForgeAppModule`, `WebsiteEditorModule` and `ForgeQuestsModule` — the quest
+  applications, from `tom_forge_quests`), adds the tom_forge application
   (`forgeApplicationId`), then each `ForgeSuiteExtension`'s modules (activated
   and registered after Forge's) and applications (added after the tom_forge
   one), and restores the applications open at the last exit. The suite carries
