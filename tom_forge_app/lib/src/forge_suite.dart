@@ -274,15 +274,16 @@ ForgeApplication _forgeApplication(ForgeSuite suite) {
 /// The folder a picked folder resolves to and its workspace state: a
 /// workspace root detected above the folder is taken only when it can be
 /// read (the macOS sandbox grants the picked folder alone), the workspace
-/// state initialised, a `.gitignore` entry suggested, and the folder
-/// remembered as the last workspace.
+/// state initialised over the workspace's file system (which the shell then
+/// shares), `.forge/` kept out of git, and the folder remembered as the last
+/// workspace.
 Future<(String, DefaultWorkspaceStateManager)> resolveForgeWorkspace(
   Directory picked,
 ) async {
   final state = DefaultWorkspaceStateManager();
   String? detected;
   try {
-    detected = await state.detectWorkspaceRoot(picked.path);
+    detected = await detectForgeWorkspaceRoot(picked.path);
     if (detected != null && detected != picked.path) {
       try {
         await Directory(detected).list(followLinks: false).first;
@@ -299,14 +300,15 @@ Future<(String, DefaultWorkspaceStateManager)> resolveForgeWorkspace(
   }
   final root = detected ?? picked.path;
   try {
-    await state.initialize(root);
+    // The one file system of the workspace: the shell's, and the state's.
+    await state.initialize(TomLocalFileSystem(root));
   } catch (e) {
     debugPrint('[forge_suite] workspace initialize failed: $e');
   }
   try {
     // `.forge/` is per-machine state: kept out of git through the clone's
     // own exclude file, never by editing a file the workspace tracks.
-    await state.keepForgeStateOutOfGit(root);
+    await keepForgeStateOutOfGit(root);
   } catch (e) {
     debugPrint('[forge_suite] keepForgeStateOutOfGit failed: $e');
   }
@@ -372,12 +374,15 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
 
   Future<void> _openAsync(Directory folder) async {
     final (root, state) = await resolveForgeWorkspace(folder);
+    final fileSystem = state.isInitialized
+        ? state.fileSystem
+        : TomLocalFileSystem(root);
     final shell = DefaultShellApi.withDefaultsAndFileSystem(
-      fileSystem: TomLocalFileSystem(root),
+      fileSystem: fileSystem,
       appName: widget.appName,
       navigatorKey: _navigatorKey,
       workspaceState: state,
-      storage: PersistentModuleStorage(forgeDir: state.forgeDirectoryPath),
+      storage: await PersistentModuleStorage.open(fileSystem),
     );
     final suite = await composeForgeSuite(
       shell: shell,

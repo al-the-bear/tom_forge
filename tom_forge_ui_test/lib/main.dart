@@ -40,15 +40,15 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
   void _initializeWithWorkspace(Directory workspaceDir) async {
     // Walk-up detection: check if a parent directory has `.forge/`
     final wsManager = DefaultWorkspaceStateManager();
-    final detectedRoot =
-        await wsManager.detectWorkspaceRoot(workspaceDir.path);
+    final detectedRoot = await detectForgeWorkspaceRoot(workspaceDir.path);
     final effectiveDir =
         detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
 
-    // Initialize workspace state (.forge/ directory) before creating shell
-    // so persistent storage can use the .forge/ path.
-    await wsManager.initialize(effectiveDir.path);
-    await wsManager.keepForgeStateOutOfGit(effectiveDir.path);
+    // The local file system over the selected directory: the shell's, and
+    // the workspace state's (.forge/) and module storage's.
+    final realFs = TomLocalFileSystem(effectiveDir.path);
+    await wsManager.initialize(realFs);
+    await keepForgeStateOutOfGit(effectiveDir.path);
 
     // Save the workspace path to preferences for next-launch recovery.
     final prefs = ForgePreferencesService.instance;
@@ -56,13 +56,8 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     prefs.startupPreferences.lastWorkspacePath = effectiveDir.path;
     await prefs.save();
 
-    // Create persistent module storage backed by .forge/state/modules/
-    final persistentStorage = PersistentModuleStorage(
-      forgeDir: wsManager.forgeDirectoryPath,
-    );
-
-    // The local file system over the selected directory
-    final realFs = TomLocalFileSystem(effectiveDir.path);
+    // Module storage under .forge/state/modules/.
+    final persistentStorage = await PersistentModuleStorage.open(realFs);
 
     final shell = DefaultShellApi.withDefaultsAndFileSystem(
       fileSystem: realFs,
