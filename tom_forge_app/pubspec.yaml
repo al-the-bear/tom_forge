@@ -43,9 +43,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # The Dart editor's summary pair, built by tom_dart_editor_bundler in
+  # tom_dart_editor_test and copied here (asset directory entries are not
+  # recursive, so the scope's folder is listed).
   assets:
-    - assets/sdk_summary.sum
-    - assets/packages.sum
+    - assets/summaries/
+    - assets/summaries/dart-editor/
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf

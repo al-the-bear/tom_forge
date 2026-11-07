@@ -37,7 +37,9 @@ Forge's setup:
   called with each composed suite.
 
 **The Dart editor's summaries.** This package carries
-`assets/sdk_summary.sum` and `assets/packages.sum`. Tom Forge's own app reads
+`assets/summaries/sdk_summary.sum` and `assets/summaries/dart-editor/packages.sum`
+(with their stamps), the pair tom_dart_editor_bundler builds in
+`tom_dart_editor_test` and copied here. Tom Forge's own app reads
 them under its own keys (`ForgeDartSummaryAssets.root`, the default); an app
 built on the library reads them under this package's prefix, which Flutter
 gives a dependency's assets, by passing `forgeSuiteDartSummaries`.

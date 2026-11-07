@@ -174,8 +174,14 @@ void main() {
     );
     expect(suite.navigatorKey, same(navigatorKey));
     final assets = (shell.layout as DefaultLayoutController).dartSummaryAssets;
-    expect(assets.sdkSummary, 'packages/tom_forge_app/assets/sdk_summary.sum');
-    expect(assets.packageSummary, 'packages/tom_forge_app/assets/packages.sum');
+    expect(
+      assets.sdkSummary,
+      'packages/tom_forge_app/assets/summaries/sdk_summary.sum',
+    );
+    expect(
+      assets.packageSummary,
+      'packages/tom_forge_app/assets/summaries/dart-editor/packages.sum',
+    );
 
     final own = _shell();
     addTearDown(own.dispose);
