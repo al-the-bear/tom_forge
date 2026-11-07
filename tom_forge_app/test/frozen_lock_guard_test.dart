@@ -24,10 +24,12 @@
 // THE CACHE PROVES A VERSION WAS ON HAND, NOT THAT IT WAS ADMISSIBLE. A newer
 // release can require something no package here can take (a newer analyzer, a
 // newer SDK). Such a range is HELD BACK in `_heldBackVersions`, with the todo
-// that lifts it; FL-4 fails once a hold no longer holds any lock back. One
-// is held: tom_d4rt_dcli 1.14.0 and later need dcli ^10.4.7 (equatable ^3),
-// while tom_forge_ui's xterm ^4 needs equatable ^2 (tom_forge
-// later20_akgk-xterm-equatable-holds-dcli-10-0).
+// that lifts it; FL-4 fails once a hold no longer holds any lock back. None
+// is held: Forge moved to analyzer ^14 (tom_forge
+// later10_akft-forge-onto-analyzer-14), which lifted the three it had, and
+// tom_forge_ui to the xterm fork without its unused equatable ^2 (tom_forge
+// later20_akgk-xterm-equatable-holds-dcli-10-0), which lifted tom_d4rt_dcli
+// 1.14.0 (dcli 10.4.7, equatable 3).
 //
 // WHAT THIS REPO HAD, measured 2026-11-06 on mbp and cleared by the sweep that
 // added this file (tom_forge later1_akfb-frozen-locks-sweep-and-guard): one
@@ -84,15 +86,7 @@ class _HeldBack {
 
 /// Cached versions FL-2 ignores, by package name. FL-4 fails once one no
 /// longer holds any lock back.
-const Map<String, _HeldBack> _heldBackVersions = <String, _HeldBack>{
-  'tom_d4rt_dcli': _HeldBack(
-    from: '1.14.0',
-    owner: 'later20_akgk-xterm-equatable-holds-dcli-10-0',
-    reason:
-        'needs dcli ^10.4.7, which needs equatable ^3; tom_forge_ui depends '
-        'on xterm ^4.0.0, whose every release needs equatable ^2.0.3',
-  ),
-};
+const Map<String, _HeldBack> _heldBackVersions = <String, _HeldBack>{};
 
 /// Below this many distinct cached `tom_*` packages, a pass means nothing: the
 /// discriminator can only see a freeze whose newer version is cached here.
