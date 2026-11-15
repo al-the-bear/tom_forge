@@ -58,11 +58,7 @@ const Set<String> _harness = <String>{
 /// with why it does not bring Webwork in. AN ENTRY IS A LICENCE CLAIM: only a
 /// BSD-3 package that depends on no Webwork application package belongs
 /// here. PL-5 fails once an entry is no longer used.
-const Map<String, String> _webworkRepoPackagesAllowed = <String, String>{
-  'tom_reusable_ui':
-      'BSD-3 reusable widgets (the todo file editor) that live in Webwork\'s '
-      'repository; no Webwork application package.',
-};
+const Map<String, String> _webworkRepoPackagesAllowed = <String, String>{};
 
 class _Dependency {
   const _Dependency(this.name, this.path, {required this.dev});
@@ -253,8 +249,9 @@ void main() {
         isEmpty,
         reason:
             'Webwork joins Forge only through Forge\'s extension points '
-            '(ForgeSuiteExtension), never as a dependency: it is GPL, and '
-            'every Forge package is BSD-3.\n${offenders.join('\n')}',
+            '(ForgeSuiteExtension), never as a dependency: Forge is the '
+            'platform and Webwork an application on it.\n'
+            '${offenders.join('\n')}',
       );
     });
 

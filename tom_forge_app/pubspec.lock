@@ -25,14 +25,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
-  archive:
-    dependency: transitive
-    description:
-      name: archive
-      sha256: de5ac590b8155e4e676088d714bd41ea620449a6adc0f7950c5073874b287ddb
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.6.0"
   args:
     dependency: transitive
     description:
@@ -728,22 +720,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
-  pointycastle:
-    dependency: transitive
-    description:
-      name: pointycastle
-      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0"
-  posix:
-    dependency: transitive
-    description:
-      name: posix
-      sha256: "613646d076944f3acc125830af935b48d4b8a57a388691547bbfd25b434f4d63"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.5.4"
   provider:
     dependency: transitive
     description:
@@ -901,27 +877,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.0"
-  tom_calendar_model:
-    dependency: transitive
-    description:
-      path: "../../tom_ai/modules/tom_calendar_model"
-      relative: true
-    source: path
-    version: "0.1.0"
-  tom_core_storage:
-    dependency: transitive
-    description:
-      path: "../../tom_ai/core/tom_core_storage"
-      relative: true
-    source: path
-    version: "0.1.2"
-  tom_core_sync:
-    dependency: transitive
-    description:
-      path: "../../tom_ai/core_extension/tom_core_sync"
-      relative: true
-    source: path
-    version: "0.1.0"
   tom_dart_editor:
     dependency: transitive
     description:
@@ -947,6 +902,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../tom_editors_shared"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_file_editors:
+    dependency: transitive
+    description:
+      path: "../../tom_ai/modules/tom_file_editors"
       relative: true
     source: path
     version: "0.1.0"
@@ -992,13 +954,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  tom_git:
-    dependency: transitive
-    description:
-      path: "../../tom_ai/basics/tom_git"
-      relative: true
-    source: path
-    version: "0.2.0"
   tom_github_api:
     dependency: transitive
     description:
@@ -1006,24 +961,10 @@ packages:
       relative: true
     source: path
     version: "1.4.0"
-  tom_llm:
-    dependency: transitive
-    description:
-      path: "../../tom_ai/basics/tom_llm"
-      relative: true
-    source: path
-    version: "0.1.1"
   tom_md_editor:
     dependency: transitive
     description:
       path: "../tom_md_editor"
-      relative: true
-    source: path
-    version: "0.1.0"
-  tom_reusable_ui:
-    dependency: transitive
-    description:
-      path: "../../app_webwork/reusable/tom_reusable_ui"
       relative: true
     source: path
     version: "0.1.0"
@@ -1049,6 +990,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  tom_todo_ui:
+    dependency: transitive
+    description:
+      path: "../../tom_ai/modules/tom_todo_ui"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_ui_support:
+    dependency: transitive
+    description:
+      path: "../../tom_ai/modules/tom_ui_support"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_undo:
     dependency: transitive
     description:
