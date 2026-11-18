@@ -940,6 +940,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_pdf_editors:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_pdf_editors"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_quests:
     dependency: "direct main"
     description:
@@ -965,6 +972,13 @@ packages:
     dependency: transitive
     description:
       path: "../tom_md_editor"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_pdf_editor:
+    dependency: "direct main"
+    description:
+      path: "../../tom_ai/modules/tom_pdf_editor"
       relative: true
     source: path
     version: "0.1.0"

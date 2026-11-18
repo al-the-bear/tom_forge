@@ -10,8 +10,8 @@ Forge's setup:
 
 - `composeForgeSuite(shell:, workspaceRoot:, navigatorKey:, extensions:,
   dartSummaryAssets:)` registers Forge's modules (the shell module,
-  `ForgeAppModule`, `WebsiteEditorModule` and `ForgeQuestsModule` — the quest
-  applications, from `tom_forge_quests`), adds the tom_forge application
+  `ForgeAppModule`, `WebsiteEditorModule`, `ForgeQuestsModule` — the quest
+  applications, from `tom_forge_quests` — and `ForgePdfEditorsModule`), adds the tom_forge application
   (`forgeApplicationId`), then each `ForgeSuiteExtension`'s modules (activated
   and registered after Forge's), the file editors module, the extensions'
   applications (added after the tom_forge one), and restores the applications
@@ -29,6 +29,11 @@ Forge's setup:
   Markdown editor), and offers another beside it for some files through
   `ForgeSuiteExtension.fileEditorAlternatives` — Open With lists both
   (Webforge's TomSpecs editor for spec documents).
+- **The PDF editors.** `suite.pdfModule` (`tom_forge_pdf_editors`) opens
+  every `.pdf` in the PDFium editor (the default) or pdf.js (*Open With*).
+  It is registered after the quests module and before the extensions'
+  modules, so an extension's PDF editor adds a choice rather than replacing
+  the default, and the file editors leave PDFs to it.
 - `resolveForgeWorkspace(folder)` resolves a picked folder to its workspace
   root and state.
 - `ForgeSuiteLauncher(appName:, extensions:, workspace:, dartSummaryAssets:,
@@ -44,7 +49,11 @@ them under its own keys (`ForgeDartSummaryAssets.root`, the default); an app
 built on the library reads them under this package's prefix, which Flutter
 gives a dependency's assets, by passing `forgeSuiteDartSummaries`.
 
-`main.dart` is `runApp(const ForgeSuiteLauncher())`. Webforge passes its
+`main.dart` runs `ForgeSuiteLauncher` with what the command line asks for
+(`ForgeLaunch.parse`): `--workspace=<folder>` opens that folder at once, every
+other argument not starting with `-` is a file opened in it (with no folder,
+the first file's folder is the workspace), and `--trail=pdf` switches the PDF
+editors' debug trails on (`[FP]`, `[PE]`, `[PE:js]`). Webforge passes its
 extensions (the Webwork full-screen application, the quest extension) and
 `forgeSuiteDartSummaries`. The library names no Webwork package: Forge's
 licence direction holds.
@@ -58,8 +67,12 @@ the LGPL included. `test/qim_none1_licence_audit_test.dart` holds it — it
 walks the packages this app resolves (`tom_test_support`'s licence audit) and
 fails on a missing licence, a GPL-family one, an MPL-2.0 package the notice
 does not list, or build tooling (`tom_build_base`, `dcli`, `ini`) in the
-resolved graph. Run `flutter pub get` first: the package configuration is
-what it reads.
+resolved graph. `test/qim_none1_vendored_components_test.dart` covers what
+the Dart graph does not show: every `third_party/` folder and asset licence
+file of the Tom packages this app links (PDFium's headers, pdf.js) needs a row
+in `THIRD_PARTY.md` § Vendored and shipped components and licence files of
+the permissive families, OFL-1.1 or CC0-1.0. Run `flutter pub get` first: the
+package configuration is what both read.
 
 ## Website module layout
 
@@ -82,7 +95,16 @@ exposed and activation is safe without a `tom.website-editor.yaml`).
 ```bash
 flutter pub get
 flutter run --debug
+flutter run --debug --dart-entrypoint-args --workspace=$HOME/notes
+flutter run --debug --dart-entrypoint-args=--trail=pdf \
+  --dart-entrypoint-args=$HOME/notes/report.pdf
 ```
+
+The macOS build needs CocoaPods on the `PATH` (`/opt/homebrew/bin`). The
+release build is sandboxed (`macos/Runner/Release.entitlements`): a folder
+named on the command line and the binaries layer are outside it, so the PDF
+editor reports PDFium missing there; debug and profile builds are not
+sandboxed.
 
 ## Linux WebView Rendering Notes
 

@@ -10,6 +10,10 @@ library;
 export 'src/app.dart' show ForgeApp;
 export 'src/forge_app_module.dart' show ForgeAppModule;
 export 'src/forge_suite.dart';
+export 'src/forge_launch.dart';
+// The PDF editors (`suite.pdfModule`).
+export 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart'
+    show ForgePdfEditorsModule;
 // The file editors (`suite.fileEditorsModule`) and what an extension's
 // `fileEditorBuilders` names.
 export 'package:tom_forge_file_editors/tom_forge_file_editors.dart'
@@ -20,4 +24,8 @@ export 'package:tom_forge_file_editors/tom_forge_file_editors.dart'
         ForgeFileKind;
 // The quest applications every app built on Forge has (`suite.questsModule`).
 export 'package:tom_forge_quests/tom_forge_quests.dart'
-    show ForgeQuestsModule, forgeOpenQuestActionId, questApplicationKind, questOf;
+    show
+        ForgeQuestsModule,
+        forgeOpenQuestActionId,
+        questApplicationKind,
+        questOf;

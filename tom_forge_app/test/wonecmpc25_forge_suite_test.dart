@@ -6,7 +6,9 @@
 /// library reads the Dart editor's summaries under this package's prefix, and
 /// its extension modules route dialogs through the suite's navigator
 /// (wonecmpc33). Every app built on it has the quest applications
-/// (qim_none-4): the tom_forge application offers the quest picker.
+/// (qim_none-4): the tom_forge application offers the quest picker; and the
+/// PDF editors (officeproto21): a `.pdf` is the PDF module's, never the file
+/// editors'.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -58,74 +60,103 @@ DefaultShellApi _shell() => DefaultShellApi.withDefaults(
 );
 
 void main() {
-  test('FS-1: Tom Forge alone — its four modules and its application',
-      () async {
-    final shell = _shell();
-    addTearDown(shell.dispose);
-    final suite = await composeForgeSuite(
-      shell: shell,
-      workspaceRoot: '/',
-      restoreApplications: false,
-    );
-    expect(shell.modules.allModules, containsAll(<ForgeModule>[
-      suite.shellModule,
-      suite.appModule,
-      suite.websiteModule,
-      suite.questsModule,
-    ]));
-    expect(suite.websiteModule, isA<WebsiteEditorModule>());
-    expect(shell.applications.hasFactory(questApplicationKind), isTrue);
-    expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
-    expect(suite.forgeApplication.layout, isA<PanelLayout>());
-    expect(suite.extensionModules, isEmpty);
-  });
+  test(
+    'FS-1: Tom Forge alone — its five modules and its application',
+    () async {
+      final shell = _shell();
+      addTearDown(shell.dispose);
+      final suite = await composeForgeSuite(
+        shell: shell,
+        workspaceRoot: '/',
+        restoreApplications: false,
+      );
+      expect(
+        shell.modules.allModules,
+        containsAll(<ForgeModule>[
+          suite.shellModule,
+          suite.appModule,
+          suite.websiteModule,
+          suite.questsModule,
+          suite.pdfModule,
+        ]),
+      );
+      expect(suite.websiteModule, isA<WebsiteEditorModule>());
+      expect(shell.applications.hasFactory(questApplicationKind), isTrue);
+      expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
+      expect(suite.forgeApplication.layout, isA<PanelLayout>());
+      expect(suite.extensionModules, isEmpty);
+    },
+  );
 
-  test('FS-2: an extension\'s module is activated and registered after '
-      'Forge\'s, and its application is added after the tom_forge one',
-      () async {
-    final shell = _shell();
-    addTearDown(shell.dispose);
-    final module = _StandInModule();
-    late ForgeSuite seen;
-    final suite = await composeForgeSuite(
-      shell: shell,
-      workspaceRoot: '/',
-      restoreApplications: false,
-      extensions: [
-        ForgeSuiteExtension(
-          modules: (_) => [module],
-          applications: (s) {
-            seen = s;
-            return [
-              ForgeApplication(
-                id: 'stand-in',
-                title: 'Stand-in',
-                layout: FullScreenLayout(view: module.view),
-              ),
-            ];
-          },
-        ),
-      ],
-    );
-    expect(module.shell, same(shell), reason: 'activated on the shell');
-    // Forge's own modules, the extension's, then the file editors — so a
-    // module that opens its own files is asked before them.
-    final modules = shell.modules.allModules.toList();
-    expect(modules.indexOf(module),
-        greaterThan(modules.indexOf(suite.questsModule)));
-    expect(modules.last, same(suite.fileEditorsModule));
-    expect(modules[modules.length - 2], same(module));
-    expect(suite.extensionModules, [module]);
-    expect(shell.applications.all.map((a) => a.id), [forgeApplicationId, 'stand-in']);
-    expect(suite.extensionApplications.single.id, 'stand-in');
-    expect(seen.appModule, same(suite.appModule), reason: 'Forge\'s modules are there');
-  });
+  test(
+    'FS-2: an extension\'s module is activated and registered after '
+    'Forge\'s, and its application is added after the tom_forge one',
+    () async {
+      final shell = _shell();
+      addTearDown(shell.dispose);
+      final module = _StandInModule();
+      late ForgeSuite seen;
+      final suite = await composeForgeSuite(
+        shell: shell,
+        workspaceRoot: '/',
+        restoreApplications: false,
+        extensions: [
+          ForgeSuiteExtension(
+            modules: (_) => [module],
+            applications: (s) {
+              seen = s;
+              return [
+                ForgeApplication(
+                  id: 'stand-in',
+                  title: 'Stand-in',
+                  layout: FullScreenLayout(view: module.view),
+                ),
+              ];
+            },
+          ),
+        ],
+      );
+      expect(module.shell, same(shell), reason: 'activated on the shell');
+      // Forge's own modules, the extension's, then the file editors — so a
+      // module that opens its own files is asked before them.
+      final modules = shell.modules.allModules.toList();
+      expect(
+        modules.indexOf(module),
+        greaterThan(modules.indexOf(suite.questsModule)),
+      );
+      expect(modules.last, same(suite.fileEditorsModule));
+      expect(modules[modules.length - 2], same(module));
+      // Forge's PDF editors come before an extension's modules.
+      expect(
+        modules.indexOf(suite.pdfModule),
+        greaterThan(modules.indexOf(suite.questsModule)),
+      );
+      expect(
+        modules.indexOf(suite.pdfModule),
+        lessThan(modules.indexOf(module)),
+      );
+      expect(suite.extensionModules, [module]);
+      expect(shell.applications.all.map((a) => a.id), [
+        forgeApplicationId,
+        'stand-in',
+      ]);
+      expect(suite.extensionApplications.single.id, 'stand-in');
+      expect(
+        seen.appModule,
+        same(suite.appModule),
+        reason: 'Forge\'s modules are there',
+      );
+    },
+  );
 
   testWidgets('FS-3: the launcher opens on the welcome page under the app\'s '
       'name', (tester) async {
     await tester.pumpWidget(const ForgeSuiteLauncher(appName: 'Webforge test'));
     expect(find.byType(WorkspaceWelcomePage), findsOneWidget);
-    expect(tester.widget<MaterialApp>(find.byType(MaterialApp)).title, 'Webforge test');
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).title,
+      'Webforge test',
+    );
   });
 
   test('FS-5: the tom_forge application offers the quest picker over the '
@@ -151,44 +182,81 @@ void main() {
     final alpha = suite.questsModule.openQuest('alpha');
     expect(questOf(alpha), 'alpha');
     expect(shell.applications.active, same(alpha));
-    expect(shell.isActionEnabled(forgeOpenQuestActionId), isTrue,
-        reason: 'the picker is there in a quest application too');
+    expect(
+      shell.isActionEnabled(forgeOpenQuestActionId),
+      isTrue,
+      reason: 'the picker is there in a quest application too',
+    );
     shell.applications.activate(forgeApplicationId);
     expect(suite.questsModule.openQuest('alpha'), same(alpha));
-    expect(shell.applications.all.map((a) => a.id),
-        [forgeApplicationId, alpha.id]);
+    expect(shell.applications.all.map((a) => a.id), [
+      forgeApplicationId,
+      alpha.id,
+    ]);
   });
 
-  test('FS-4: the suite carries the navigator its extensions route dialogs '
-      'through, and points the Dart editor at the summaries it was given',
-      () async {
+  test(
+    'FS-4: the suite carries the navigator its extensions route dialogs '
+    'through, and points the Dart editor at the summaries it was given',
+    () async {
+      final shell = _shell();
+      addTearDown(shell.dispose);
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final suite = await composeForgeSuite(
+        shell: shell,
+        workspaceRoot: '/',
+        navigatorKey: navigatorKey,
+        dartSummaryAssets: forgeSuiteDartSummaries,
+        restoreApplications: false,
+      );
+      expect(suite.navigatorKey, same(navigatorKey));
+      final assets =
+          (shell.layout as DefaultLayoutController).dartSummaryAssets;
+      expect(
+        assets.sdkSummary,
+        'packages/tom_forge_app/assets/summaries/sdk_summary.sum',
+      );
+      expect(
+        assets.packageSummary,
+        'packages/tom_forge_app/assets/summaries/dart-editor/packages.sum',
+      );
+
+      final own = _shell();
+      addTearDown(own.dispose);
+      await composeForgeSuite(
+        shell: own,
+        workspaceRoot: '/',
+        restoreApplications: false,
+      );
+      expect(
+        (own.layout as DefaultLayoutController).dartSummaryAssets,
+        same(ForgeDartSummaryAssets.root),
+        reason: 'Tom Forge\'s own app reads the summaries it carries',
+      );
+    },
+  );
+
+  test('FS-6: a PDF opens in the PDF editors, with PDFium the default and '
+      'pdf.js under Open With; the file editors leave it alone', () async {
     final shell = _shell();
     addTearDown(shell.dispose);
-    final navigatorKey = GlobalKey<NavigatorState>();
     final suite = await composeForgeSuite(
       shell: shell,
       workspaceRoot: '/',
-      navigatorKey: navigatorKey,
-      dartSummaryAssets: forgeSuiteDartSummaries,
       restoreApplications: false,
     );
-    expect(suite.navigatorKey, same(navigatorKey));
-    final assets = (shell.layout as DefaultLayoutController).dartSummaryAssets;
+    final pdf = Uri.file('/docs/Report.PDF');
+    expect(suite.pdfModule, isA<ForgePdfEditorsModule>());
+    expect(suite.pdfModule.handles(pdf), isTrue);
+    expect(suite.fileEditorsModule.editorFor(pdf), isNull);
+    expect(suite.fileEditorsModule.openUri(pdf), isFalse);
+    expect(suite.pdfModule.editorChoicesFor(pdf).map((c) => c.id), [
+      ForgePdfEditorsModule.pdfiumChoiceId,
+      ForgePdfEditorsModule.pdfJsChoiceId,
+    ]);
     expect(
-      assets.sdkSummary,
-      'packages/tom_forge_app/assets/summaries/sdk_summary.sum',
+      suite.fileEditorsModule.editorFor(Uri.file('/docs/notes.txt')),
+      isNotNull,
     );
-    expect(
-      assets.packageSummary,
-      'packages/tom_forge_app/assets/summaries/dart-editor/packages.sum',
-    );
-
-    final own = _shell();
-    addTearDown(own.dispose);
-    await composeForgeSuite(
-        shell: own, workspaceRoot: '/', restoreApplications: false);
-    expect((own.layout as DefaultLayoutController).dartSummaryAssets,
-        same(ForgeDartSummaryAssets.root),
-        reason: 'Tom Forge\'s own app reads the summaries it carries');
   });
 }

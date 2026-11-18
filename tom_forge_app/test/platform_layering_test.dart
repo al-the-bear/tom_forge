@@ -36,6 +36,7 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_agentic': 4,
   // 5 Modules.
   'tom_forge_file_editors': 5,
+  'tom_forge_pdf_editors': 5,
   'tom_forge_quests': 5,
   'tom_website_editor': 5,
   'tom_specs_editor': 5,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:tom_file_system/io.dart';
 import 'package:tom_forge_core/tom_forge_core.dart' show FileHandlingResult;
 import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
+import 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart';
 import 'package:tom_forge_quests/tom_forge_quests.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
@@ -55,6 +56,7 @@ class ForgeSuite {
     required this.appModule,
     required this.websiteModule,
     required this.questsModule,
+    required this.pdfModule,
   });
 
   final DefaultShellApi shell;
@@ -73,6 +75,10 @@ class ForgeSuite {
   /// The quest applications: their factory and the Open Quest picker, in the
   /// tom_forge application and every quest application.
   final ForgeQuestsModule questsModule;
+
+  /// The PDF editors: PDFium (the default for `.pdf`) and pdf.js, under
+  /// *Open With*. Asked before the extensions' modules and the file editors.
+  final ForgePdfEditorsModule pdfModule;
 
   /// The tom_forge application (Forge's own panel layout).
   late final ForgeApplication forgeApplication;
@@ -102,7 +108,8 @@ final ForgeDartSummaryAssets forgeSuiteDartSummaries =
     ForgeDartSummaryAssets.ofPackage('tom_forge_app');
 
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
-/// app module, the website editor module and the quests module, the
+/// app module, the website editor module, the quests module and the PDF
+/// editors module, the
 /// tom_forge application, each extension's modules, the file editors module
 /// (with the extensions' [ForgeSuiteExtension.fileEditorBuilders]), then each
 /// extension's applications. Applications open at the last
@@ -133,6 +140,7 @@ Future<ForgeSuite> composeForgeSuite({
     appModule: ForgeAppModule(workspaceRootUri: Directory(workspaceRoot).uri),
     websiteModule: WebsiteEditorModule(),
     questsModule: ForgeQuestsModule(),
+    pdfModule: ForgePdfEditorsModule(),
   );
   suite
     .._register(suite.shellModule)
@@ -143,13 +151,18 @@ Future<ForgeSuite> composeForgeSuite({
     .._register(suite.websiteModule)
     // The quest applications (one per open quest): registered before the
     // restore below, which recreates the ones open at the last exit.
-    .._register(suite.questsModule);
+    .._register(suite.questsModule)
+    // The PDF editors, Forge's own: after the quests module, before the
+    // extensions' modules (an extension's PDF editor adds a choice, it does
+    // not replace the default) and so before the file editors.
+    .._register(suite.pdfModule);
 
   suite.forgeApplication = _forgeApplication(suite);
   shell.applications.add(suite.forgeApplication);
 
   for (final extension in extensions) {
-    for (final module in extension.modules?.call(suite) ?? const <ForgeModule>[]) {
+    for (final module
+        in extension.modules?.call(suite) ?? const <ForgeModule>[]) {
       suite._register(module);
       suite.extensionModules.add(module);
     }
@@ -169,8 +182,8 @@ Future<ForgeSuite> composeForgeSuite({
   );
   suite._register(suite.fileEditorsModule);
   for (final extension in extensions) {
-    for (final app in extension.applications?.call(suite) ??
-        const <ForgeApplication>[]) {
+    for (final app
+        in extension.applications?.call(suite) ?? const <ForgeApplication>[]) {
       shell.applications.add(app);
       suite.extensionApplications.add(app);
     }
@@ -180,11 +193,13 @@ Future<ForgeSuite> composeForgeSuite({
 }
 
 /// Whether the file editors open [uri]: not a file another module's editor
-/// takes (the website module's `tom.website-editor.yaml`), not a Dart file
+/// takes (the website module's `tom.website-editor.yaml`), not a PDF (the
+/// PDF editors module's, even before it has an editor open), not a Dart file
 /// (the shell's Dart editor), and not a file whose extension the user gave a
 /// default editor of the shell's.
 bool _fileEditorsClaim(DefaultShellApi shell, Uri uri) {
   for (final module in shell.modules.allModules) {
+    if (module is ForgePdfEditorsModule && module.handles(uri)) return false;
     // The shell module lists the shell's own open editors, and the file
     // editors module its own: neither takes a file away.
     if (module is TomForgeShellModule || module is ForgeFileEditorsModule) {
@@ -263,7 +278,11 @@ ForgeApplication _forgeApplication(ForgeSuite suite) {
             icon: Icons.web,
             sections: [website.previewView!],
           ),
-          const PanelTabConfig(title: 'Terminal', icon: Icons.code, sections: []),
+          const PanelTabConfig(
+            title: 'Terminal',
+            icon: Icons.code,
+            sections: [],
+          ),
         ],
       ),
       middlePanels: [const MiddlePanelConfig()],

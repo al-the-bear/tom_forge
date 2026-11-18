@@ -42,3 +42,24 @@ the locations given, and from pub.dev under the package's name.
 | Package | Source | Reached through |
 | --- | --- | --- |
 | `dbus` | <https://github.com/canonical/dbus.dart>, by Canonical | `tom_forge_ui` → `file_picker` → `file_picker_linux` (the Linux file dialog over the desktop portal) |
+
+## Vendored and shipped components
+
+Native and web components that reach a user without being a Dart package:
+vendored in a Tom package (its `third_party/` folders and the licence files of
+its assets) or loaded from the binaries layer. The Dart audit above does not
+see them; `test/qim_none1_vendored_components_test.dart` lists every vendored
+component of the Tom packages this application links and fails when one has
+no row here (its folder, `<package>/<folder>` in backticks, in the *Where* column; a component outside the Tom packages is named without backticks), when a row
+names a folder that holds none, or when a licence file in it is outside the
+admitted families: the permissive ones above, and for fonts and data the SIL
+Open Font License 1.1 and CC0-1.0. The licence texts are beside each
+component; each Tom package's own `THIRD_PARTY.md` describes what it vendors.
+The vendored folders of pub.dev packages travel under the package's own
+`LICENSE` and the `NOTICES` asset.
+
+| Component | Where | Licence | How it reaches a user |
+| --- | --- | --- | --- |
+| PDFium — its public headers (pdfium-binaries `chromium/8152`) | `tom_pdf_editor/third_party/pdfium` | BSD-3-Clause | read at build time into the FFI bindings; not shipped as files |
+| PDFium — the library `libpdfium.dylib` | the binaries layer (the tom_binaries repository, pdfium/*platform*/) | BSD-3-Clause, with permissive third-party code built in (FreeType, HarfBuzz, ICU, libjpeg-turbo, OpenJPEG, libpng, zlib, lcms2, abseil), one text each in its `licenses/` folder | loaded at runtime by the PDFium editor; not shipped inside the app |
+| pdf.js 6.5.438 (Mozilla), the legacy viewer build and its viewer components | `tom_pdf_editor/third_party/pdfjs` | Apache-2.0; its data: OpenJPEG BSD-2-Clause, the JBIG2 decoder BSD-3-Clause, qcms and QuickJS MIT, the CMaps BSD-3-Clause (Adobe), the ICC profiles CC0-1.0, the Foxit fonts BSD-3-Clause, Liberation Sans 2.1.5 OFL-1.1 (in place of pdf.js's GPL copy) | shipped as Flutter assets, served to the pdf.js view's webview |

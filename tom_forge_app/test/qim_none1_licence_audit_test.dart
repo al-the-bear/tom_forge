@@ -88,6 +88,10 @@ void main() {
           'tom_dart_editor',
           'flutter_inappwebview',
           'file_picker',
+          // The PDF editors and the FFI they reach PDFium through.
+          'tom_forge_pdf_editors',
+          'tom_pdf_editor',
+          'ffi',
         ]),
       );
       final audit = _forgeAudit(
