@@ -25,6 +25,7 @@ const Map<String, int> _layers = <String, int>{
   'tom_web_build_probe': 0,
   // 1 Editor kit.
   'tom_editors_shared': 1,
+  'tom_mermaid_view': 1,
   // 2 Editors: usable without the shell.
   'tom_md_editor': 2,
   'tom_yaml_editor': 2,
