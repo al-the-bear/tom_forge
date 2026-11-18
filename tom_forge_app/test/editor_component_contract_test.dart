@@ -35,6 +35,8 @@ const Map<String, String> _documentEditors = <String, String>{
       'tom_website_editor/test/website_config_editor_undo_conformance_test.dart',
   'SpecFileEditor':
       'tom_specs_editor/test/spec_file_editor_undo_conformance_test.dart',
+  'ForgePdfEditor': 'tom_forge_pdf_editors/test/undo_conformance_test.dart',
+  'ForgePdfJsEditor': 'tom_forge_pdf_editors/test/undo_conformance_test.dart',
 };
 
 /// Document editors whose conformance is another register entry's run,
