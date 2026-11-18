@@ -452,4 +452,7 @@ class _TestModule implements ForgeModule {
 
   @override
   List<ForgeConfigPanel> get configPanels => const [];
+
+  @override
+  List<ForgeExternalTool> get externalTools => const [];
 }
