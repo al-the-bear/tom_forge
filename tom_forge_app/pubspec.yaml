@@ -40,6 +40,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # The undo conformance harness and the shell test doubles.
+  tom_forge_ui_testing:
+    path: ../tom_forge_ui_testing
   flutter_lints: ^6.0.0
   # Joining the paths the licence audit test reads and writes.
   path: ^1.9.0

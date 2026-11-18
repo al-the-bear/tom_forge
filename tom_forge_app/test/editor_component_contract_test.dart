@@ -133,7 +133,8 @@ void main() {
   };
   bool isSurface(String name) =>
       _bases(classes, name).contains('ForgeSurfaceEditor');
-  bool isTestDouble(_Class c) => c.file.contains('/lib/src/testing/');
+  // The shell's test doubles live in the test-support package.
+  bool isTestDouble(_Class c) => c.file.startsWith('tom_forge_ui_testing/');
 
   bool reachable() {
     if (root != null) return true;

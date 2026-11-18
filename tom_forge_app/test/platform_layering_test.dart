@@ -34,6 +34,8 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_ui': 3,
   // 4 Shell services.
   'tom_forge_agentic': 4,
+  // 4 Test support (see _testSupport).
+  'tom_forge_ui_testing': 4,
   // 5 Modules.
   'tom_forge_file_editors': 5,
   'tom_forge_pdf_editors': 5,
@@ -43,6 +45,12 @@ const Map<String, int> _layers = <String, int>{
   // 6 Apps.
   'tom_forge_app': 6,
 };
+
+/// Test support: packages built on `flutter_test` for other packages'
+/// suites. Any package may take one as a dev_dependency, also a lower one
+/// (`tom_forge_ui`'s suites run the harness built on `tom_forge_ui`); as a
+/// dependency they follow the layers like every other package.
+const Set<String> _testSupport = <String>{'tom_forge_ui_testing'};
 
 /// Companion apps and test beds: they depend on anything below the apps, and
 /// nothing depends on them.
@@ -190,6 +198,7 @@ void main() {
           // An unplaced package is PL-1's finding, not a layering one.
           if (!placed(from) || !placed(to)) continue;
           final kind = dep.dev ? 'dev_dependency' : 'dependency';
+          if (dep.dev && _testSupport.contains(to)) continue;
           if (_harness.contains(to)) {
             offenders.add('$from has a $kind on the harness package $to');
           } else if (_harness.contains(from)) {

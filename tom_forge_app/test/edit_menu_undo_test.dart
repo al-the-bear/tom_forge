@@ -12,6 +12,7 @@ import 'package:tom_editors_shared/tom_editors_shared.dart'
     show StandardEditingActions;
 import 'package:tom_forge_app/src/forge_app_module.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_ui_testing/tom_forge_ui_testing.dart';
 
 /// An editor with its own history that pushes nothing into the shell's
 /// manager — a tree-mode YAML editor, a model-owning editor.

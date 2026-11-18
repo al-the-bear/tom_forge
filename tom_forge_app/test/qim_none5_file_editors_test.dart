@@ -15,7 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tom_forge_app/forge_suite.dart';
 import 'package:tom_forge_file_editors/testing.dart';
 import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
-import 'package:tom_forge_ui/testing.dart';
+import 'package:tom_forge_ui_testing/tom_forge_ui_testing.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
