@@ -4,7 +4,7 @@
 // editor component carries its debug trail, web build check and embedding
 // documentation.
 //
-// The contract is `tom_forge/_copilot_guidelines/editor_component_contract.md`;
+// The contract is `tom_forge/_agent_guidelines/editor_component_contract.md`;
 // the register below is its §2 table. It reads the source (class
 // declarations, test files), so it needs no editor to be constructed. It
 // skips when the repo root is not reachable.

@@ -117,13 +117,21 @@ flutter run --debug --dart-entrypoint-args=--trail=office \
   --dart-entrypoint-args=$HOME/notes/report.docx
 ```
 
-The macOS build needs CocoaPods on the `PATH` (`/opt/homebrew/bin`). The
-release build is sandboxed (`macos/Runner/Release.entitlements`): a folder
-named on the command line and the binaries layer are outside it, so the PDF
-editor reports PDFium missing there, `tom_office_host` cannot be started and
-the local servers of pdf.js and ZetaOffice cannot bind (risk R-1 of the
-office/PDF prototype lists every denial); debug and profile builds are not
-sandboxed.
+The macOS build needs CocoaPods on the `PATH` (`/opt/homebrew/bin`).
+
+**Not sandboxed.** The release build ships without the App Sandbox, like the
+debug and profile builds (`macos/Runner/Release.entitlements`; TD-25 of the
+office/PDF prototype). The native editors need what the sandbox blocks: the
+office editor starts its helper process (`tom_office_host`) from the binaries
+layer and LibreOffice loads from `/Applications`; the PDF editor loads PDFium,
+a library from outside the bundle; pdf.js and ZetaOffice are served by a local
+HTTP server on `127.0.0.1`; and Forge edits the files of its workspace tree,
+not only files picked in an open panel. Risk R-1 of the prototype's working
+document lists every denial of a sandboxed build. Forge is not distributed
+through the App Store, so the sandbox buys nothing it needs. A build that ran
+sandboxed once keeps a container, and the `defaults` tool then names the
+container's preferences; the unsandboxed app reads
+`~/Library/Preferences/com.example.tomForgeApp.plist`.
 
 ## Linux WebView Rendering Notes
 

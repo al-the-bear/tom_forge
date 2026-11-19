@@ -989,6 +989,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_shared_ui:
+    dependency: transitive
+    description:
+      path: "../tom_forge_shared_ui"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_shell:
     dependency: transitive
     description:
@@ -1044,7 +1051,7 @@ packages:
       path: "../../tom_ai/modules/tom_office_editor"
       relative: true
     source: path
-    version: "0.4.0"
+    version: "0.4.1"
   tom_office_protocol:
     dependency: transitive
     description:
@@ -1065,7 +1072,7 @@ packages:
       path: "../../tom_ai/ai_build/tom_som_dart_runtime"
       relative: true
     source: path
-    version: "1.12.0"
+    version: "1.12.1"
   tom_test_support:
     dependency: "direct dev"
     description:

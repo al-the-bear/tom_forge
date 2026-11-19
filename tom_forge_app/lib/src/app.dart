@@ -24,16 +24,28 @@ class ForgeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The theme follows the user's theme mode and high-contrast preference
+    // (and, for System, the platform); ForgeShellTheme is installed in each.
+    final preferences = ForgePreferencesService.instance;
+    return ListenableBuilder(
+      listenable: preferences,
+      builder: (context, _) => _buildApp(preferences),
+    );
+  }
+
+  Widget _buildApp(ForgePreferencesService preferences) {
+    final highContrast = preferences.highContrast;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: title,
       navigatorKey: navigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
+      themeMode: preferences.themeMode,
+      theme: forgeThemeData(Brightness.light, highContrast: highContrast),
+      darkTheme: forgeThemeData(Brightness.dark, highContrast: highContrast),
+      highContrastTheme: forgeThemeData(Brightness.light, highContrast: true),
+      highContrastDarkTheme: forgeThemeData(
+        Brightness.dark,
+        highContrast: true,
       ),
       home: workspaceReady
           ? ForgeShellScaffold(

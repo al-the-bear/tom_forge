@@ -13,7 +13,7 @@ export 'src/forge_suite.dart';
 export 'src/forge_launch.dart';
 // The office editors (`suite.officeModule`).
 export 'package:tom_forge_office_editors/tom_forge_office_editors.dart'
-    show ForgeOfficeEditorsModule;
+    show ForgeOfficeEditorsModule, LibreOfficeInstallation, LibreOfficeState;
 // The PDF editors (`suite.pdfModule`).
 export 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart'
     show ForgePdfEditorsModule;

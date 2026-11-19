@@ -2,9 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!--
+	  Not sandboxed (TD-25 of the office/PDF prototype; risk R-1). The native
+	  editors need what the App Sandbox blocks: the office editor starts its
+	  helper process (tom_office_host) from the binaries layer and LibreOffice
+	  loads from /Applications; the PDF editor loads PDFium from the binaries
+	  layer; pdf.js and ZetaOffice are served by a local HTTP server on
+	  127.0.0.1; and Forge edits the files of its workspace tree, not only
+	  files picked in an open panel. The sandbox-only entitlements (user-
+	  selected files, network) mean nothing without it. Forge is not
+	  distributed through the App Store, so the sandbox buys nothing it needs.
+	-->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.files.user-selected.read-write</key>
-	<true/>
+	<false/>
 </dict>
 </plist>

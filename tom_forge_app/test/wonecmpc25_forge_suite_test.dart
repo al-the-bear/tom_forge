@@ -311,4 +311,30 @@ void main() {
     expect(suite.officeModule.handles(csv), isFalse);
     expect(suite.fileEditorsModule.editorFor(csv), isNotNull);
   });
+
+  test('FS-7: a given office module is the suite\'s: its detection runs at '
+      'activation instead of the desktop\'s', () async {
+    final shell = _shell();
+    addTearDown(shell.dispose);
+    final asked = <String>[];
+    final office = ForgeOfficeEditorsModule(
+      detect: (path) async {
+        asked.add(path);
+        return const LibreOfficeInstallation(state: LibreOfficeState.missing);
+      },
+      libreOfficePath: () => '',
+      cleanUpHelpers: () async {},
+    );
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/',
+      restoreApplications: false,
+      officeModule: office,
+    );
+    expect(suite.officeModule, same(office));
+    expect(shell.modules.allModules, contains(office));
+    await office.detection;
+    expect(asked, ['']);
+    expect(office.installation?.state, LibreOfficeState.missing);
+  });
 }

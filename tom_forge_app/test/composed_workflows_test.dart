@@ -1,7 +1,7 @@
 /// Composed editor workflows: several kinds of documents open at once in the
 /// suite `composeForgeSuite` makes, on the running shell (`ForgeApp`), worked
 /// on the way a user does — the integrated UX patterns
-/// (`tom_forge/_copilot_guidelines/integrated_ux_patterns.md`) across editors
+/// (`tom_forge/_agent_guidelines/integrated_ux_patterns.md`) across editors
 /// of different packages, not one editor at a time.
 library;
 
