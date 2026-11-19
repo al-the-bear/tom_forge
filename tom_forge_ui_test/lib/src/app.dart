@@ -40,28 +40,21 @@ class _ForgeTestAppState extends State<ForgeTestApp> {
     if (mounted) setState(() {});
   }
 
-  ThemeData _buildThemeData(ThemeMode mode) {
-    final brightness =
-        mode == ThemeMode.light ? Brightness.light : Brightness.dark;
-    final shellTheme = ForgeShellTheme.forMode(mode);
-    return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blue,
-        brightness: brightness,
-      ),
-      useMaterial3: true,
-      extensions: <ThemeExtension>[shellTheme],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final themeMode = _preferences.themeMode;
+    final highContrast = _preferences.highContrast;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Forge Test IDE',
       navigatorKey: widget.navigatorKey,
-      theme: _buildThemeData(themeMode),
+      themeMode: _preferences.themeMode,
+      theme: forgeThemeData(Brightness.light, highContrast: highContrast),
+      darkTheme: forgeThemeData(Brightness.dark, highContrast: highContrast),
+      highContrastTheme: forgeThemeData(Brightness.light, highContrast: true),
+      highContrastDarkTheme: forgeThemeData(
+        Brightness.dark,
+        highContrast: true,
+      ),
       home: _workspaceSelected
           ? ForgeShellScaffold(
               shell: widget.shell,

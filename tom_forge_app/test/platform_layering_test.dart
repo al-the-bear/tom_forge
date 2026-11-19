@@ -23,9 +23,10 @@ const Map<String, int> _layers = <String, int>{
   'tom_website_editor_core': 0,
   'tom_dart_editor_bundler': 0,
   'tom_web_build_probe': 0,
-  // 1 Editor kit.
+  // 1 Editor kit and the shared look.
   'tom_editors_shared': 1,
   'tom_mermaid_view': 1,
+  'tom_forge_shared_ui': 1,
   // 2 Editors: usable without the shell.
   'tom_md_editor': 2,
   'tom_yaml_editor': 2,
@@ -294,6 +295,27 @@ void main() {
         _webworkRepoPackagesAllowed.keys.toSet().difference(used),
         isEmpty,
         reason: 'No longer used: delete the entry.',
+      );
+    });
+
+    test('PL-6: the shared look takes Flutter, tom_ui_support and at most '
+        'tom_forge_core', () {
+      if (!reachable()) return;
+      final shared = packages['tom_forge_shared_ui'];
+      expect(shared, isNotNull);
+      const allowed = {
+        'flutter',
+        'tom_ui_support',
+        'tom_forge_core',
+        'flutter_test',
+        'flutter_lints',
+      };
+      expect(
+        shared!.dependencies.map((d) => d.name).toSet().difference(allowed),
+        isEmpty,
+        reason:
+            'tom_forge_shared_ui is what Webwork takes for Forge\'s look: no '
+            'terminal, no editors, no webview, no native plugin.',
       );
     });
   });
