@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:tom_file_system/io.dart';
 import 'package:tom_forge_core/tom_forge_core.dart' show FileHandlingResult;
 import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
+import 'package:tom_forge_office_editors/tom_forge_office_editors.dart';
 import 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart';
 import 'package:tom_forge_quests/tom_forge_quests.dart';
 import 'package:tom_forge_ui/tom_forge_ui.dart';
@@ -56,6 +57,7 @@ class ForgeSuite {
     required this.appModule,
     required this.websiteModule,
     required this.questsModule,
+    required this.officeModule,
     required this.pdfModule,
   });
 
@@ -75,6 +77,12 @@ class ForgeSuite {
   /// The quest applications: their factory and the Open Quest picker, in the
   /// tom_forge application and every quest application.
   final ForgeQuestsModule questsModule;
+
+  /// The office editors: LibreOfficeKit (the default for the office kinds)
+  /// and ZetaOffice, under *Open With*; LibreOffice's External Tools row.
+  /// Asked before the PDF editors, the extensions' modules and the file
+  /// editors.
+  final ForgeOfficeEditorsModule officeModule;
 
   /// The PDF editors: PDFium (the default for `.pdf`) and pdf.js, under
   /// *Open With*. Asked before the extensions' modules and the file editors.
@@ -108,8 +116,8 @@ final ForgeDartSummaryAssets forgeSuiteDartSummaries =
     ForgeDartSummaryAssets.ofPackage('tom_forge_app');
 
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
-/// app module, the website editor module, the quests module and the PDF
-/// editors module, the
+/// app module, the website editor module, the quests module, the office
+/// editors module and the PDF editors module, the
 /// tom_forge application, each extension's modules, the file editors module
 /// (with the extensions' [ForgeSuiteExtension.fileEditorBuilders]), then each
 /// extension's applications. Applications open at the last
@@ -140,6 +148,7 @@ Future<ForgeSuite> composeForgeSuite({
     appModule: ForgeAppModule(workspaceRootUri: Directory(workspaceRoot).uri),
     websiteModule: WebsiteEditorModule(),
     questsModule: ForgeQuestsModule(),
+    officeModule: ForgeOfficeEditorsModule(),
     pdfModule: ForgePdfEditorsModule(),
   );
   suite
@@ -152,6 +161,11 @@ Future<ForgeSuite> composeForgeSuite({
     // The quest applications (one per open quest): registered before the
     // restore below, which recreates the ones open at the last exit.
     .._register(suite.questsModule)
+    // The office editors, Forge's own: after the quests module, before the
+    // PDF editors and the extensions' modules (an extension's office editor
+    // adds a choice, it does not replace the default) and so before the
+    // file editors.
+    .._register(suite.officeModule)
     // The PDF editors, Forge's own: after the quests module, before the
     // extensions' modules (an extension's PDF editor adds a choice, it does
     // not replace the default) and so before the file editors.
@@ -193,12 +207,16 @@ Future<ForgeSuite> composeForgeSuite({
 }
 
 /// Whether the file editors open [uri]: not a file another module's editor
-/// takes (the website module's `tom.website-editor.yaml`), not a PDF (the
-/// PDF editors module's, even before it has an editor open), not a Dart file
+/// takes (the website module's `tom.website-editor.yaml`), not an office
+/// file or a PDF (the office and PDF editors modules', even before they have
+/// an editor open; `.csv` stays the file editors'), not a Dart file
 /// (the shell's Dart editor), and not a file whose extension the user gave a
 /// default editor of the shell's.
 bool _fileEditorsClaim(DefaultShellApi shell, Uri uri) {
   for (final module in shell.modules.allModules) {
+    if (module is ForgeOfficeEditorsModule && module.handles(uri)) {
+      return false;
+    }
     if (module is ForgePdfEditorsModule && module.handles(uri)) return false;
     // The shell module lists the shell's own open editors, and the file
     // editors module its own: neither takes a file away.

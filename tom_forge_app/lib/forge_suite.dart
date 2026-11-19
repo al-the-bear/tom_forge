@@ -11,6 +11,9 @@ export 'src/app.dart' show ForgeApp;
 export 'src/forge_app_module.dart' show ForgeAppModule;
 export 'src/forge_suite.dart';
 export 'src/forge_launch.dart';
+// The office editors (`suite.officeModule`).
+export 'package:tom_forge_office_editors/tom_forge_office_editors.dart'
+    show ForgeOfficeEditorsModule;
 // The PDF editors (`suite.pdfModule`).
 export 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart'
     show ForgePdfEditorsModule;

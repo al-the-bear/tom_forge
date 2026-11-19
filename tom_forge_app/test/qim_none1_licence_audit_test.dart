@@ -92,6 +92,9 @@ void main() {
           'tom_forge_pdf_editors',
           'tom_pdf_editor',
           'ffi',
+          // The office editors and the office editor they compose.
+          'tom_forge_office_editors',
+          'tom_office_editor',
         ]),
       );
       final audit = _forgeAudit(

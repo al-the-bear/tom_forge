@@ -52,8 +52,10 @@ see them; `test/qim_none1_vendored_components_test.dart` lists every vendored
 component of the Tom packages this application links and fails when one has
 no row here (its folder, `<package>/<folder>` in backticks, in the *Where* column; a component outside the Tom packages is named without backticks), when a row
 names a folder that holds none, or when a licence file in it is outside the
-admitted families: the permissive ones above, and for fonts and data the SIL
-Open Font License 1.1 and CC0-1.0. The licence texts are beside each
+admitted families: the permissive ones above, for fonts and data the SIL
+Open Font License 1.1 and CC0-1.0, and MPL-2.0 (file-level copyleft) when the
+component says where its source is (a `SOURCE.md` beside it or a URL in its
+row). The licence texts are beside each
 component; each Tom package's own `THIRD_PARTY.md` describes what it vendors.
 The vendored folders of pub.dev packages travel under the package's own
 `LICENSE` and the `NOTICES` asset.
@@ -63,8 +65,7 @@ office editors' LibreOfficeKit helper `tom_office_host`, for one) are no
 packages the application links. The same test checks them from
 `tom_binaries/LICENSE`: every binary names its package, and every component
 that package vendors has a row in the package's own `THIRD_PARTY.md` and an
-admitted licence. For these, MPL-2.0 is admitted too (file-level copyleft
-that a BSD-3 binary may carry), when the component says where its source is.
+admitted licence, MPL-2.0 with its source included.
 
 | Component | Where | Licence | How it reaches a user |
 | --- | --- | --- | --- |
@@ -72,3 +73,5 @@ that a BSD-3 binary may carry), when the component says where its source is.
 | PDFium — the library `libpdfium.dylib` | the binaries layer (the tom_binaries repository, pdfium/*platform*/) | BSD-3-Clause, with permissive third-party code built in (FreeType, HarfBuzz, ICU, libjpeg-turbo, OpenJPEG, libpng, zlib, lcms2, abseil), one text each in its `licenses/` folder | loaded at runtime by the PDFium editor; not shipped inside the app |
 | mermaid.js 11.13.0, the unmodified distribution build `mermaid.min.js` (its bundled dependencies in `tom_mermaid_view/THIRD_PARTY.md`) | `tom_mermaid_view/assets/js` | MIT; its bundled dependencies MIT, ISC (`d3`), BSD-3-Clause (`d3-sankey`), DOMPurify MPL-2.0 or Apache-2.0 (used under Apache-2.0) | shipped as a Flutter asset, loaded into the Markdown editor's Mermaid webview (`tom_md_editor` → `tom_mermaid_view`) |
 | pdf.js 6.5.438 (Mozilla), the legacy viewer build and its viewer components | `tom_pdf_editor/third_party/pdfjs` | Apache-2.0; its data: OpenJPEG BSD-2-Clause, the JBIG2 decoder BSD-3-Clause, qcms and QuickJS MIT, the CMaps BSD-3-Clause (Adobe), the ICC profiles CC0-1.0, the Foxit fonts BSD-3-Clause, Liberation Sans 2.1.5 OFL-1.1 (in place of pdf.js's GPL copy) | shipped as Flutter assets, served to the pdf.js view's webview |
+| zetajs (allotropia), `source/zeta.js` at commit `b3dec98`, unmodified below a header naming its source; beside it the ZetaOffice view's own host page and scripts (BSD-3-Clause) | `tom_office_editor/assets/zetaoffice` | MIT | shipped as a Flutter asset, served to the ZetaOffice view's webview (`tom_forge_office_editors` → `tom_office_editor`) |
+| ZetaOffice 24.2.8.0.beta1 (LibreOffice compiled to WebAssembly: `soffice.js`, `soffice.wasm`, `soffice.data`) | the user's cache folder (`~/Library/Caches/tom_office_editor/zetaoffice/`), from cdn.zetaoffice.net | MPL-2.0 (LibreOffice) | downloaded at run time after the user confirms; never shipped, never committed |

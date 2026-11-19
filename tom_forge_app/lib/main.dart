@@ -1,8 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:tom_forge_office_editors/tom_forge_office_editors.dart'
+    show kForgeOfficeDebug;
 import 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart'
     show kForgePdfDebug;
+import 'package:tom_office_editor/tom_office_editor.dart'
+    show kOfficeEditorDebug;
+import 'package:tom_office_editor/zetaoffice.dart' show kZetaOfficeDebug;
 import 'package:tom_pdf_editor/tom_pdf_editor.dart' show kPdfEditorDebug;
 
 import 'forge_suite.dart';
@@ -21,6 +26,11 @@ void main(List<String> arguments) {
   if (launch.trails.contains('pdf')) {
     kForgePdfDebug = true;
     kPdfEditorDebug = true;
+  }
+  if (launch.trails.contains('office')) {
+    kForgeOfficeDebug = true;
+    kOfficeEditorDebug = true;
+    kZetaOfficeDebug = true;
   }
   runApp(
     ForgeSuiteLauncher(

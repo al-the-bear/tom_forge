@@ -29,6 +29,15 @@ Forge's setup:
   Markdown editor), and offers another beside it for some files through
   `ForgeSuiteExtension.fileEditorAlternatives` — Open With lists both
   (Webforge's TomSpecs editor for spec documents).
+- **The office editors.** `suite.officeModule` (`tom_forge_office_editors`)
+  opens `.docx .xlsx .pptx .odt .ods .odp` and the older `.doc .xls .ppt
+  .rtf` in the LibreOfficeKit editor (the default; the installed LibreOffice
+  through `tom_office_host` from the binaries layer) or ZetaOffice in a
+  webview (*Open With*), and adds LibreOffice's row to *External Tools*.
+  It is registered after the quests module and before the PDF editors and
+  the extensions' modules; the file editors leave those files to it, and
+  `.csv` stays theirs (the office editors are offered for it under *Open
+  With*).
 - **The PDF editors.** `suite.pdfModule` (`tom_forge_pdf_editors`) opens
   every `.pdf` in the PDFium editor (the default) or pdf.js (*Open With*).
   It is registered after the quests module and before the extensions'
@@ -52,8 +61,10 @@ gives a dependency's assets, by passing `forgeSuiteDartSummaries`.
 `main.dart` runs `ForgeSuiteLauncher` with what the command line asks for
 (`ForgeLaunch.parse`): `--workspace=<folder>` opens that folder at once, every
 other argument not starting with `-` is a file opened in it (with no folder,
-the first file's folder is the workspace), and `--trail=pdf` switches the PDF
-editors' debug trails on (`[FP]`, `[PE]`, `[PE:js]`). Webforge passes its
+the first file's folder is the workspace; the user's file-type defaults
+choose their editors), `--trail=pdf` switches the PDF editors' debug trails
+on (`[FP]`, `[PE]`, `[PE:js]`) and `--trail=office` the office editors' (`[FO]`,
+`[OE]`, `[ZO]`). Webforge passes its
 extensions (the Webwork full-screen application, the quest extension) and
 `forgeSuiteDartSummaries`. The library names no Webwork package: Forge's
 licence direction holds.
@@ -102,12 +113,16 @@ flutter run --debug
 flutter run --debug --dart-entrypoint-args --workspace=$HOME/notes
 flutter run --debug --dart-entrypoint-args=--trail=pdf \
   --dart-entrypoint-args=$HOME/notes/report.pdf
+flutter run --debug --dart-entrypoint-args=--trail=office \
+  --dart-entrypoint-args=$HOME/notes/report.docx
 ```
 
 The macOS build needs CocoaPods on the `PATH` (`/opt/homebrew/bin`). The
 release build is sandboxed (`macos/Runner/Release.entitlements`): a folder
 named on the command line and the binaries layer are outside it, so the PDF
-editor reports PDFium missing there; debug and profile builds are not
+editor reports PDFium missing there, `tom_office_host` cannot be started and
+the local servers of pdf.js and ZetaOffice cannot bind (risk R-1 of the
+office/PDF prototype lists every denial); debug and profile builds are not
 sandboxed.
 
 ## Linux WebView Rendering Notes

@@ -6,9 +6,10 @@
 /// library reads the Dart editor's summaries under this package's prefix, and
 /// its extension modules route dialogs through the suite's navigator
 /// (wonecmpc33). Every app built on it has the quest applications
-/// (qim_none-4): the tom_forge application offers the quest picker; and the
-/// PDF editors (officeproto21): a `.pdf` is the PDF module's, never the file
-/// editors'.
+/// (qim_none-4): the tom_forge application offers the quest picker; the
+/// office editors (officeprotooffice1): the office kinds are the office
+/// module's, never the file editors'; and the PDF editors (officeproto21): a
+/// `.pdf` is the PDF module's, never the file editors'.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -60,33 +61,32 @@ DefaultShellApi _shell() => DefaultShellApi.withDefaults(
 );
 
 void main() {
-  test(
-    'FS-1: Tom Forge alone — its five modules and its application',
-    () async {
-      final shell = _shell();
-      addTearDown(shell.dispose);
-      final suite = await composeForgeSuite(
-        shell: shell,
-        workspaceRoot: '/',
-        restoreApplications: false,
-      );
-      expect(
-        shell.modules.allModules,
-        containsAll(<ForgeModule>[
-          suite.shellModule,
-          suite.appModule,
-          suite.websiteModule,
-          suite.questsModule,
-          suite.pdfModule,
-        ]),
-      );
-      expect(suite.websiteModule, isA<WebsiteEditorModule>());
-      expect(shell.applications.hasFactory(questApplicationKind), isTrue);
-      expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
-      expect(suite.forgeApplication.layout, isA<PanelLayout>());
-      expect(suite.extensionModules, isEmpty);
-    },
-  );
+  test('FS-1: Tom Forge alone — its six modules and its application', () async {
+    final shell = _shell();
+    addTearDown(shell.dispose);
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/',
+      restoreApplications: false,
+    );
+    expect(
+      shell.modules.allModules,
+      containsAll(<ForgeModule>[
+        suite.shellModule,
+        suite.appModule,
+        suite.websiteModule,
+        suite.questsModule,
+        suite.officeModule,
+        suite.pdfModule,
+      ]),
+    );
+    expect(suite.officeModule, isA<ForgeOfficeEditorsModule>());
+    expect(suite.websiteModule, isA<WebsiteEditorModule>());
+    expect(shell.applications.hasFactory(questApplicationKind), isTrue);
+    expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
+    expect(suite.forgeApplication.layout, isA<PanelLayout>());
+    expect(suite.extensionModules, isEmpty);
+  });
 
   test(
     'FS-2: an extension\'s module is activated and registered after '
@@ -126,6 +126,16 @@ void main() {
       );
       expect(modules.last, same(suite.fileEditorsModule));
       expect(modules[modules.length - 2], same(module));
+      // Forge's office editors: after the quests module, before the PDF
+      // editors and so before an extension's modules.
+      expect(
+        modules.indexOf(suite.officeModule),
+        greaterThan(modules.indexOf(suite.questsModule)),
+      );
+      expect(
+        modules.indexOf(suite.officeModule),
+        lessThan(modules.indexOf(suite.pdfModule)),
+      );
       // Forge's PDF editors come before an extension's modules.
       expect(
         modules.indexOf(suite.pdfModule),
@@ -258,5 +268,47 @@ void main() {
       suite.fileEditorsModule.editorFor(Uri.file('/docs/notes.txt')),
       isNotNull,
     );
+  });
+
+  test('FS-6b: the office kinds open in the office editors, with '
+      'LibreOfficeKit the default and ZetaOffice under Open With; the file '
+      'editors leave them alone, .csv stays theirs', () async {
+    final shell = _shell();
+    addTearDown(shell.dispose);
+    final suite = await composeForgeSuite(
+      shell: shell,
+      workspaceRoot: '/',
+      restoreApplications: false,
+    );
+    for (final name in [
+      'Report.DOCX',
+      'sheet.xlsx',
+      'deck.pptx',
+      'letter.odt',
+      'sheet.ods',
+      'deck.odp',
+      'old.doc',
+      'old.xls',
+      'old.ppt',
+      'note.rtf',
+    ]) {
+      final uri = Uri.file('/docs/$name');
+      expect(suite.officeModule.handles(uri), isTrue, reason: name);
+      expect(suite.fileEditorsModule.editorFor(uri), isNull, reason: name);
+      expect(suite.fileEditorsModule.openUri(uri), isFalse, reason: name);
+    }
+    final docx = Uri.file('/docs/report.docx');
+    expect(suite.officeModule.editorChoicesFor(docx).map((c) => c.id), [
+      ForgeOfficeEditorsModule.lokChoiceId,
+      ForgeOfficeEditorsModule.zetaOfficeChoiceId,
+    ]);
+    expect(
+      suite.officeModule.externalTools.single.id,
+      'libreoffice',
+      reason: 'LibreOffice\'s External Tools row',
+    );
+    final csv = Uri.file('/docs/data.csv');
+    expect(suite.officeModule.handles(csv), isFalse);
+    expect(suite.fileEditorsModule.editorFor(csv), isNotNull);
   });
 }

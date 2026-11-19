@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:tom_forge_ui/tom_forge_ui.dart' show ForgePreferencesService;
 
 import 'forge_suite.dart';
 
@@ -11,6 +12,7 @@ import 'forge_suite.dart';
 /// flutter run -d macos --dart-entrypoint-args --workspace=$HOME/notes
 /// flutter run -d macos --dart-entrypoint-args $HOME/notes/report.pdf
 /// tom_forge_app.app/Contents/MacOS/tom_forge_app --trail=pdf report.pdf
+/// tom_forge_app.app/Contents/MacOS/tom_forge_app --trail=office report.docx
 /// ```
 @immutable
 class ForgeLaunch {
@@ -28,7 +30,8 @@ class ForgeLaunch {
   final List<String> documents;
 
   /// The debug trails to switch on (`pdf`: the PDF editors' `[FP]`, `[PE]`
-  /// and `[PE:js]`).
+  /// and `[PE:js]`; `office`: the office editors' `[FO]`, `[OE]` and
+  /// `[ZO]`).
   final Set<String> trails;
 
   /// Reads [arguments]: `--workspace=<folder>` (or `--workspace <folder>`)
@@ -67,8 +70,17 @@ class ForgeLaunch {
     );
   }
 
-  /// Opens the [documents] in [suite] through Forge's own open path.
-  void openDocuments(ForgeSuite suite) {
+  /// Opens the [documents] in [suite] through Forge's own open path, with
+  /// the user's file-type defaults ([preferences], default the app's)
+  /// applied first: the shell scaffold applies them only when it is first
+  /// built, after the documents opened.
+  void openDocuments(ForgeSuite suite, {ForgePreferencesService? preferences}) {
+    final prefs = preferences ?? ForgePreferencesService.instance;
+    if (documents.isNotEmpty && prefs.isLoaded) {
+      for (final e in prefs.fileTypeDefaultEditors.entries) {
+        suite.shell.setFileTypeDefault(e.key, e.value);
+      }
+    }
     for (final path in documents) {
       final uri = FileSystemEntity.isDirectorySync(path)
           ? Uri.directory(path)

@@ -28,6 +28,13 @@ dependencies:
   # The quest applications: one per open quest, the picker, the frame.
   tom_forge_quests:
     path: ../tom_forge_quests
+  # The office editors: LibreOfficeKit (the default for the office kinds)
+  # and ZetaOffice.
+  tom_forge_office_editors:
+    path: ../tom_forge_office_editors
+  # Its debug trail switches, which the command line's --trail=office sets.
+  tom_office_editor:
+    path: ../../tom_ai/modules/tom_office_editor
   # The PDF editors: PDFium (the default for .pdf) and pdf.js.
   tom_forge_pdf_editors:
     path: ../tom_forge_pdf_editors
@@ -40,6 +47,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # The preferences' mock store (forge_launch_test FL-2).
+  shared_preferences: ^2.2.0
   # The undo conformance harness and the shell test doubles.
   tom_forge_ui_testing:
     path: ../tom_forge_ui_testing

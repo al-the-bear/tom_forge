@@ -36,7 +36,12 @@ import 'package:tom_test_support/roots.dart';
 
 /// One vendored component: the package, its folder relative to the package
 /// root, and the licence files in it.
-typedef _Component = ({String package, String folder, List<File> licences});
+typedef _Component = ({
+  String package,
+  String root,
+  String folder,
+  List<File> licences,
+});
 
 /// Whether [name] is the name of a licence file.
 bool _isLicenceFile(String name) {
@@ -80,6 +85,7 @@ List<_Component> _componentsOf(String name, Directory root) {
       if (child is! Directory) continue;
       components.add((
         package: name,
+        root: root.path,
         folder: p.posix.join('third_party', p.basename(child.path)),
         licences: _licencesUnder(child),
       ));
@@ -94,7 +100,12 @@ List<_Component> _componentsOf(String name, Directory root) {
       (byFolder[p.split(folder).join('/')] ??= []).add(file);
     }
     for (final e in byFolder.entries) {
-      components.add((package: name, folder: e.key, licences: e.value));
+      components.add((
+        package: name,
+        root: root.path,
+        folder: e.key,
+        licences: e.value,
+      ));
     }
   }
   return components;
@@ -122,8 +133,13 @@ Set<String> _noticedComponents(File notice) {
 
 /// What is wrong with [components] against the [noticed] rows: a component
 /// without a row, without a licence file, or with a licence file outside the
-/// admitted families; a row naming no component.
-List<String> _problems(List<_Component> components, Set<String> noticed) {
+/// admitted families; MPL-2.0 without its source location (a `SOURCE.md`
+/// beside it or a URL in its row, [rowOf]); a row naming no component.
+List<String> _problems(
+  List<_Component> components,
+  Set<String> noticed, {
+  String? Function(String id)? rowOf,
+}) {
   final problems = <String>[];
   final found = <String>{};
   for (final c in components) {
@@ -136,12 +152,27 @@ List<String> _problems(List<_Component> components, Set<String> noticed) {
       problems.add('$id carries no licence file.');
     }
     for (final file in c.licences) {
-      if (_admittedFamily(file.readAsStringSync()) == null) {
-        problems.add(
-          '$id: ${p.basename(file.path)} is not a licence of the admitted '
-          'families (permissive, OFL-1.1, CC0-1.0).',
-        );
+      final text = file.readAsStringSync();
+      if (_admittedFamily(text) != null) continue;
+      // MPL-2.0 is file-level copyleft a BSD-3 app may carry, when the
+      // component says where its source is (MPL-2.0 §3.2(a)), as QIMN1-7
+      // admits it for the binaries layer.
+      if (tomClassifyLicence(text) == TomLicence.mpl2) {
+        final sourced =
+            File(p.join(c.root, c.folder, 'SOURCE.md')).existsSync() ||
+            (rowOf?.call(id)?.contains(RegExp(r'https?://')) ?? false);
+        if (!sourced) {
+          problems.add(
+            '$id is MPL-2.0 but names no source location (a SOURCE.md '
+            'beside it or a URL in its THIRD_PARTY row; MPL-2.0 §3.2(a)).',
+          );
+        }
+        continue;
       }
+      problems.add(
+        '$id: ${p.basename(file.path)} is not a licence of the admitted '
+        'families (permissive, OFL-1.1, CC0-1.0, MPL-2.0 with its source).',
+      );
     }
   }
   for (final id in noticed.difference(found)) {
@@ -311,25 +342,30 @@ void main() {
     ];
     final ids = components.map((c) => '${c.package}/${c.folder}').toSet();
     // Anti-vacuity: the PDF editors' PDFium headers and pdf.js are reached,
-    // with the licence files of pdf.js's data.
+    // with the licence files of pdf.js's data, and the office editors'
+    // zetajs.
     expect(
       ids,
       containsAll([
         'tom_pdf_editor/third_party/pdfium',
         'tom_pdf_editor/third_party/pdfjs',
+        'tom_office_editor/assets/zetaoffice',
       ]),
     );
     final pdfjs = components.firstWhere((c) => c.folder == 'third_party/pdfjs');
     expect(pdfjs.licences.length, greaterThan(5));
+    final notice = File(p.join(appRoot, 'THIRD_PARTY.md'));
     final problems = _problems(
       components,
-      _noticedComponents(File(p.join(appRoot, 'THIRD_PARTY.md'))),
+      _noticedComponents(notice),
+      rowOf: (id) => _rowNaming(notice, '`$id`'),
     );
     expect(problems, isEmpty, reason: problems.join('\n'));
   });
 
   test('QIMN1-6: a component without a row, one under the GPL, one without '
-      'a licence and a row for nothing each fail by name', () {
+      'a licence, an MPL-2.0 one without its source and a row for nothing '
+      'each fail by name', () {
     final scratch = tomWorkspaceZtmp().createTempSync('qim_none1_vendored_');
     addTearDown(() => scratch.deleteSync(recursive: true));
     void file(String path, String text) => (File(
@@ -343,6 +379,11 @@ void main() {
     file('third_party/gpl/LICENSE', 'Apache License Version 2.0');
     file('third_party/gpl/fonts/LICENSE', 'GNU General Public License');
     file('third_party/bare/README', 'no licence');
+    const mpl = 'Mozilla Public License Version 2.0';
+    file('third_party/mpl/LICENSE', mpl);
+    file('third_party/mplsourced/LICENSE', mpl);
+    file('third_party/mplsourced/SOURCE.md', 'from upstream');
+    file('third_party/mplrow/LICENSE', mpl);
     file('assets/icons/LICENSE', 'CC0 1.0 Universal');
     file(
       'assets/unlisted/LICENSE',
@@ -353,24 +394,40 @@ void main() {
       'third_party/bare',
       'third_party/fine',
       'third_party/gpl',
+      'third_party/mpl',
+      'third_party/mplrow',
+      'third_party/mplsourced',
       'assets/icons',
       'assets/unlisted',
     ]);
-    final problems = _problems(components, {
-      'tom_x/third_party/fine',
-      'tom_x/third_party/gpl',
-      'tom_x/third_party/bare',
-      'tom_x/assets/icons',
-      'tom_x/third_party/gone',
-    });
-    expect(problems, hasLength(4), reason: problems.join('\n'));
+    final problems = _problems(
+      components,
+      {
+        'tom_x/third_party/fine',
+        'tom_x/third_party/gpl',
+        'tom_x/third_party/bare',
+        'tom_x/third_party/mpl',
+        'tom_x/third_party/mplrow',
+        'tom_x/third_party/mplsourced',
+        'tom_x/assets/icons',
+        'tom_x/third_party/gone',
+      },
+      rowOf: (id) => id == 'tom_x/third_party/mplrow'
+          ? '| headers | `$id` | MPL-2.0, source https://example.org/x |'
+          : null,
+    );
+    expect(problems, hasLength(5), reason: problems.join('\n'));
     expect(problems[0], contains('third_party/bare carries no licence'));
     expect(
       problems[1],
       allOf(contains('third_party/gpl'), contains('not a licence')),
     );
-    expect(problems[2], contains('assets/unlisted is vendored but'));
-    expect(problems[3], contains('third_party/gone, but no linked package'));
+    expect(
+      problems[2],
+      allOf(contains('third_party/mpl '), contains('names no source')),
+    );
+    expect(problems[3], contains('assets/unlisted is vendored but'));
+    expect(problems[4], contains('third_party/gone, but no linked package'));
   });
 
   test('QIMN1-7: every binary of the binaries layer names its package, and '

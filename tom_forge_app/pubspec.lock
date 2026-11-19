@@ -761,7 +761,7 @@ packages:
     source: hosted
     version: "0.2.1"
   shared_preferences:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: shared_preferences
       sha256: "1e85e0dccf5b4a016077fea7dfbb4a7cb39c759ac1596fcf60c06deadb7da91f"
@@ -961,6 +961,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_office_editors:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_office_editors"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_pdf_editors:
     dependency: "direct main"
     description:
@@ -1031,6 +1038,20 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_office_editor:
+    dependency: "direct main"
+    description:
+      path: "../../tom_ai/modules/tom_office_editor"
+      relative: true
+    source: path
+    version: "0.4.0"
+  tom_office_protocol:
+    dependency: transitive
+    description:
+      path: "../../tom_ai/modules/tom_office_protocol"
+      relative: true
+    source: path
+    version: "0.4.0"
   tom_pdf_editor:
     dependency: "direct main"
     description:
