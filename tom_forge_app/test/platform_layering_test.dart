@@ -37,6 +37,7 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_terminal': 4,
   'tom_forge_code_editors': 4,
   'tom_forge_platform_secrets': 4,
+  'tom_forge_desktop_host': 4,
   // 4 Test support (see _testSupport).
   'tom_forge_ui_testing': 4,
   // 5 The shell with its parts (the umbrella).

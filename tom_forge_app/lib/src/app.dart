@@ -43,7 +43,7 @@ class ForgeApp extends StatelessWidget {
               statusBarController: shell.statusBar,
               notificationManager:
                   shell.notifications as DefaultNotificationManager,
-              onOpenFolder: onWorkspaceSelected,
+              onOpenFolder: (path) => onWorkspaceSelected(Directory(path)),
             )
           : WorkspaceWelcomePage(onFolderSelected: onWorkspaceSelected),
     );

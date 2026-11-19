@@ -940,6 +940,13 @@ packages:
       relative: true
     source: path
     version: "2.0.0"
+  tom_forge_desktop_host:
+    dependency: transitive
+    description:
+      path: "../tom_forge_desktop_host"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_file_editors:
     dependency: "direct main"
     description:
