@@ -31,23 +31,29 @@ const Map<String, int> _layers = <String, int>{
   'tom_yaml_editor': 2,
   'tom_dart_editor': 2,
   'tom_flow_editor': 2,
-  // 3 Shell.
-  'tom_forge_ui': 3,
-  // 4 Shell services.
-  'tom_forge_agentic': 4,
+  // 3 Shell core.
+  'tom_forge_shell': 3,
+  // 4 Shell parts: what plugs into the core (ForgeShellComponents).
+  'tom_forge_terminal': 4,
+  'tom_forge_code_editors': 4,
+  'tom_forge_platform_secrets': 4,
   // 4 Test support (see _testSupport).
   'tom_forge_ui_testing': 4,
-  // 5 Modules.
-  'tom_forge_file_editors': 5,
-  'tom_forge_pdf_editors': 5,
-  'tom_forge_quests': 5,
-  'tom_website_editor': 5,
-  'tom_specs_editor': 5,
-  // 6 Module test support (see _testSupport).
-  'tom_forge_file_editors_testing': 6,
-  'tom_forge_pdf_editors_testing': 6,
-  // 7 Apps.
-  'tom_forge_app': 7,
+  // 5 The shell with its parts (the umbrella).
+  'tom_forge_ui': 5,
+  // 6 Shell services.
+  'tom_forge_agentic': 6,
+  // 7 Modules.
+  'tom_forge_file_editors': 7,
+  'tom_forge_pdf_editors': 7,
+  'tom_forge_quests': 7,
+  'tom_website_editor': 7,
+  'tom_specs_editor': 7,
+  // 8 Module test support (see _testSupport).
+  'tom_forge_file_editors_testing': 8,
+  'tom_forge_pdf_editors_testing': 8,
+  // 9 Apps.
+  'tom_forge_app': 9,
 };
 
 /// Test support: packages built on `flutter_test` for other packages'
@@ -210,7 +216,7 @@ void main() {
           if (_harness.contains(to)) {
             offenders.add('$from has a $kind on the harness package $to');
           } else if (_harness.contains(from)) {
-            if (_layers[to] == 7) {
+            if (_layers[to] == 9) {
               offenders.add('harness $from has a $kind on the app $to');
             }
           } else if (_layers[to]! >= _layers[from]!) {

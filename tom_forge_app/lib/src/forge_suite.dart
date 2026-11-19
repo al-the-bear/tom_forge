@@ -379,6 +379,7 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
     fileSystemSeed: const {},
     appName: widget.appName,
     navigatorKey: _navigatorKey,
+    components: forgeDesktopComponents,
   );
   DefaultShellApi? _shell;
 
@@ -402,6 +403,8 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
       navigatorKey: _navigatorKey,
       workspaceState: state,
       storage: await PersistentModuleStorage.open(fileSystem),
+      // The terminal, the code editors and the keychain.
+      components: forgeDesktopComponents,
     );
     final suite = await composeForgeSuite(
       shell: shell,

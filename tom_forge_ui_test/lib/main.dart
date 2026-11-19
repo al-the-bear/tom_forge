@@ -65,6 +65,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       navigatorKey: _navigatorKey,
       workspaceState: wsManager,
       storage: persistentStorage,
+      components: forgeDesktopComponents,
     );
 
     // Register modules
@@ -188,6 +189,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       fileSystemSeed: {},
       appName: 'Forge Test IDE',
       navigatorKey: _navigatorKey,
+      components: forgeDesktopComponents,
     );
   }
 }
