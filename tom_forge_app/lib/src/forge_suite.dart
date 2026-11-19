@@ -127,6 +127,11 @@ final ForgeDartSummaryAssets forgeSuiteDartSummaries =
 /// [dartSummaryAssets] is where the Dart editor reads its summaries: Tom
 /// Forge's own app carries them ([ForgeDartSummaryAssets.root]), an app built
 /// on this library reads this package's ([forgeSuiteDartSummaries]).
+///
+/// [officeModule] is the office editors module; by default the desktop's,
+/// which detects LibreOffice at activation with short processes. A widget
+/// test gives one whose `detect` starts no process: their timeouts would
+/// stay pending on the test's clock.
 Future<ForgeSuite> composeForgeSuite({
   required DefaultShellApi shell,
   required String workspaceRoot,
@@ -134,6 +139,7 @@ Future<ForgeSuite> composeForgeSuite({
   List<ForgeSuiteExtension> extensions = const [],
   ForgeDartSummaryAssets dartSummaryAssets = ForgeDartSummaryAssets.root,
   bool restoreApplications = true,
+  ForgeOfficeEditorsModule? officeModule,
 }) async {
   // The root is set before the modules activate: the website module
   // resolves its config file against it.
@@ -148,7 +154,7 @@ Future<ForgeSuite> composeForgeSuite({
     appModule: ForgeAppModule(workspaceRootUri: Directory(workspaceRoot).uri),
     websiteModule: WebsiteEditorModule(),
     questsModule: ForgeQuestsModule(),
-    officeModule: ForgeOfficeEditorsModule(),
+    officeModule: officeModule ?? ForgeOfficeEditorsModule(),
     pdfModule: ForgePdfEditorsModule(),
   );
   suite
