@@ -81,6 +81,13 @@ class ForgeLaunch {
         suite.shell.setFileTypeDefault(e.key, e.value);
       }
     }
+    if (trails.isNotEmpty) {
+      debugPrint(
+        '[launch] ${documents.length} file(s); preferences '
+        '${prefs.isLoaded ? 'loaded' : 'not loaded'}, file-type defaults '
+        '${prefs.fileTypeDefaultEditors}',
+      );
+    }
     for (final path in documents) {
       final uri = FileSystemEntity.isDirectorySync(path)
           ? Uri.directory(path)

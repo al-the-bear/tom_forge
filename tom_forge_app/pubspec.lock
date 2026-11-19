@@ -1044,7 +1044,7 @@ packages:
       path: "../../tom_ai/modules/tom_office_editor"
       relative: true
     source: path
-    version: "0.4.0"
+    version: "0.4.1"
   tom_office_protocol:
     dependency: transitive
     description:
