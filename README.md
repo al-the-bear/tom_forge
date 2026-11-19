@@ -8,7 +8,7 @@ open quest included; other apps compose them through `composeForgeSuite` and
 its extension points.
 
 The packages, their layers and the contracts between them:
-`_copilot_guidelines/platform_architecture.md` (development guidelines).
+`_agent_guidelines/platform_architecture.md` (development guidelines).
 
 ## License
 

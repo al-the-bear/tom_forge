@@ -2,7 +2,7 @@
 // layer of the platform architecture and depends only downwards.
 //
 // The layers, their contracts and the rules are
-// `tom_forge/_copilot_guidelines/platform_architecture.md` §1 and §3; the
+// `tom_forge/_agent_guidelines/platform_architecture.md` §1 and §3; the
 // table below is that document's table. A package the table does not know
 // fails PL-1, so a new package is placed on purpose, not by accident.
 //
