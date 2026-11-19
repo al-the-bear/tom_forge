@@ -71,7 +71,11 @@ resolved graph. `test/qim_none1_vendored_components_test.dart` covers what
 the Dart graph does not show: every `third_party/` folder and asset licence
 file of the Tom packages this app links (PDFium's headers, pdf.js) needs a row
 in `THIRD_PARTY.md` § Vendored and shipped components and licence files of
-the permissive families, OFL-1.1 or CC0-1.0. Run `flutter pub get` first: the
+the permissive families, OFL-1.1 or CC0-1.0. A second group reads `tom_binaries/LICENSE`: every
+binary the apps start as a process names its package, and each component
+that package vendors has a row in its `THIRD_PARTY.md` (MPL-2.0 admitted
+there with its source location: the LibreOfficeKit headers of
+`tom_office_host`). Run `flutter pub get` first: the
 package configuration is what both read.
 
 ## Website module layout

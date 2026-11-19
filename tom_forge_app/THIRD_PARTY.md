@@ -58,6 +58,14 @@ component; each Tom package's own `THIRD_PARTY.md` describes what it vendors.
 The vendored folders of pub.dev packages travel under the package's own
 `LICENSE` and the `NOTICES` asset.
 
+Programs the application starts as processes from the binaries layer (the
+office editors' LibreOfficeKit helper `tom_office_host`, for one) are no
+packages the application links. The same test checks them from
+`tom_binaries/LICENSE`: every binary names its package, and every component
+that package vendors has a row in the package's own `THIRD_PARTY.md` and an
+admitted licence. For these, MPL-2.0 is admitted too (file-level copyleft
+that a BSD-3 binary may carry), when the component says where its source is.
+
 | Component | Where | Licence | How it reaches a user |
 | --- | --- | --- | --- |
 | PDFium — its public headers (pdfium-binaries `chromium/8152`) | `tom_pdf_editor/third_party/pdfium` | BSD-3-Clause | read at build time into the FFI bindings; not shipped as files |

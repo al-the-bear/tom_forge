@@ -12,6 +12,19 @@
 /// data the SIL Open Font License 1.1 and CC0-1.0. A component is a direct
 /// child of a package's `third_party/` folder, or the folder of a licence file
 /// under its `assets/` or `fonts/`. Run `flutter pub get` first.
+///
+/// **The binaries layer** (QIMN1-7, QIMN1-8). A program the app starts as a
+/// process (`tom_office_host`, the LibreOfficeKit helper) is no Dart package
+/// the app links, so the walk above never reaches it, and Webwork's lock test
+/// reads only `pubspec.lock`. The second group reads `tom_binaries/LICENSE`:
+/// every binary row names its package, the package is in the workspace, and
+/// every vendored component of it has a row in that package's
+/// `THIRD_PARTY.md` and an admitted licence. For these the admitted families
+/// include MPL-2.0 (file-level copyleft, which a BSD-3 binary may carry as a
+/// Larger Work) when the component says where its Source Code Form is, a
+/// `SOURCE.md` beside it or a URL in its row (MPL-2.0 §3.2(a)). It lives here
+/// rather than in tom_binaries, which has no test runner: Forge's suite runs
+/// it on every `testkit :test`, with the component logic of the first group.
 library;
 
 import 'dart:io';
@@ -137,6 +150,153 @@ List<String> _problems(List<_Component> components, Set<String> noticed) {
   return problems;
 }
 
+// ------------------------------------------------------- binaries layer
+
+/// One binary row of `tom_binaries/LICENSE`: the binaries, the package and
+/// the source repository column.
+typedef _BinaryRow = ({String binaries, String package, String source});
+
+/// The rows of the binaries table (the first table, `| Binary ... |`) of
+/// [licence].
+List<_BinaryRow> _binaryRows(File licence) {
+  final rows = <_BinaryRow>[];
+  var inTable = false;
+  for (final line in licence.readAsLinesSync()) {
+    if (line.startsWith('| Binary')) {
+      inTable = true;
+      continue;
+    }
+    if (!inTable) continue;
+    if (!line.startsWith('|')) break;
+    if (line.startsWith('| ---') || line.startsWith('|---')) continue;
+    final cells = line.split('|').map((c) => c.trim()).toList();
+    if (cells.length < 5) continue;
+    rows.add((binaries: cells[1], package: cells[2], source: cells[3]));
+  }
+  return rows;
+}
+
+/// Folders [packageIndex] does not descend into.
+const _skipped = {
+  'build',
+  '.dart_tool',
+  '.git',
+  'ztmp',
+  'node_modules',
+  'testlog',
+  '_ai',
+  'release',
+};
+
+/// Every Dart package of [workspace] by its pubspec `name:`, down to six
+/// levels (a package's folder need not be its name: `tsm` is
+/// `tom_secrets_tsm`).
+Map<String, Directory> _packageIndex(Directory workspace) {
+  final index = <String, Directory>{};
+  void visit(Directory dir, int depth) {
+    final pubspec = File(p.join(dir.path, 'pubspec.yaml'));
+    if (pubspec.existsSync()) {
+      final m = RegExp(
+        r'^name:\s*(\S+)',
+        multiLine: true,
+      ).firstMatch(pubspec.readAsStringSync());
+      if (m != null) index.putIfAbsent(m.group(1)!, () => dir);
+    }
+    if (depth == 6) return;
+    final List<FileSystemEntity> children;
+    try {
+      children = dir.listSync(followLinks: false);
+    } on FileSystemException {
+      return;
+    }
+    for (final child in children) {
+      final name = p.basename(child.path);
+      if (child is! Directory ||
+          _skipped.contains(name) ||
+          name.startsWith('zom_') ||
+          (name.startsWith('.') && name != '.')) {
+        continue;
+      }
+      visit(child, depth + 1);
+    }
+  }
+
+  visit(workspace, 0);
+  return index;
+}
+
+/// The row of [notice] (a package's `THIRD_PARTY.md`) that names [folder],
+/// or null.
+String? _rowNaming(File notice, String folder) {
+  if (!notice.existsSync()) return null;
+  for (final line in notice.readAsLinesSync()) {
+    if (line.startsWith('|') && line.contains(folder)) return line;
+  }
+  return null;
+}
+
+/// What is wrong with the binaries layer's [rows] against the packages of
+/// [index]: a row without a package, a package not in the workspace, a
+/// vendored component without a row in its package's `THIRD_PARTY.md`,
+/// without a licence file, with a licence outside the admitted families, or
+/// MPL-2.0 without its source location.
+List<String> _binaryProblems(
+  List<_BinaryRow> rows,
+  Map<String, Directory> index,
+) {
+  final problems = <String>[];
+  for (final row in rows) {
+    final package = row.package;
+    if (package.isEmpty ||
+        (package == '-' && !row.source.contains('this repository'))) {
+      problems.add('tom_binaries/LICENSE: "${row.binaries}" names no package.');
+      continue;
+    }
+    if (package == '-') continue; // a script of the binaries repository
+    final root = index[package];
+    if (root == null) {
+      problems.add(
+        'tom_binaries/LICENSE: $package (${row.binaries}) is not a package '
+        'of this workspace, so what it vendors cannot be checked.',
+      );
+      continue;
+    }
+    final notice = File(p.join(root.path, 'THIRD_PARTY.md'));
+    for (final c in _componentsOf(package, root)) {
+      final id = '$package/${c.folder}';
+      final line = _rowNaming(notice, c.folder);
+      if (line == null) {
+        problems.add(
+          '$id ships in ${row.binaries} but $package/THIRD_PARTY.md has no '
+          'row for it.',
+        );
+      }
+      if (c.licences.isEmpty) problems.add('$id carries no licence file.');
+      for (final file in c.licences) {
+        final text = file.readAsStringSync();
+        if (_admittedFamily(text) != null) continue;
+        if (tomClassifyLicence(text) == TomLicence.mpl2) {
+          final sourced =
+              File(p.join(root.path, c.folder, 'SOURCE.md')).existsSync() ||
+              (line?.contains(RegExp(r'https?://')) ?? false);
+          if (!sourced) {
+            problems.add(
+              '$id is MPL-2.0 but names no source location (a SOURCE.md '
+              'beside it or a URL in its THIRD_PARTY row; MPL-2.0 §3.2(a)).',
+            );
+          }
+          continue;
+        }
+        problems.add(
+          '$id: ${p.basename(file.path)} is not a licence of the admitted '
+          'families (permissive, OFL-1.1, CC0-1.0, MPL-2.0 with its source).',
+        );
+      }
+    }
+  }
+  return problems;
+}
+
 void main() {
   final appRoot = p.join(tomFindRepositoryRoot().path, 'tom_forge_app');
 
@@ -211,5 +371,82 @@ void main() {
     );
     expect(problems[2], contains('assets/unlisted is vendored but'));
     expect(problems[3], contains('third_party/gone, but no linked package'));
+  });
+
+  test('QIMN1-7: every binary of the binaries layer names its package, and '
+      'every component that package vendors has a THIRD_PARTY row and an '
+      'admitted licence (MPL-2.0 with its source)', () {
+    final workspace = tomWorkspaceZtmp().parent;
+    final licence = File(p.join(workspace.path, 'tom_binaries', 'LICENSE'));
+    expect(
+      licence.existsSync(),
+      isTrue,
+      reason: 'the binaries layer (tom_binaries) is cloned beside the code',
+    );
+    final rows = _binaryRows(licence);
+    final index = _packageIndex(workspace);
+    // Anti-vacuity: the office helper is a row, its package is found, and
+    // its vendored MPL headers are among the components checked.
+    expect(rows.map((r) => r.package), contains('tom_office_host'));
+    final host = index['tom_office_host'];
+    expect(host, isNotNull);
+    expect(
+      _componentsOf('tom_office_host', host!).map((c) => c.folder),
+      contains('third_party/libreofficekit'),
+    );
+    final problems = _binaryProblems(rows, index);
+    expect(problems, isEmpty, reason: problems.join('\n'));
+  });
+
+  test('QIMN1-8: a binary row without a package, a package not in the '
+      'workspace, an unlisted component, a GPL one and an MPL-2.0 one without '
+      'its source each fail by name', () {
+    final scratch = tomWorkspaceZtmp().createTempSync('qim_none1_binaries_');
+    addTearDown(() => scratch.deleteSync(recursive: true));
+    void file(String path, String text) => (File(
+      p.join(scratch.path, path),
+    )..createSync(recursive: true)).writeAsStringSync(text);
+    const mpl = 'Mozilla Public License Version 2.0';
+    file('tom_ok/pubspec.yaml', 'name: tom_ok\n');
+    file('tom_ok/third_party/headers/LICENSE', mpl);
+    file('tom_ok/third_party/headers/SOURCE.md', 'from upstream');
+    file('tom_ok/third_party/lib/LICENSE', 'Apache License Version 2.0');
+    file(
+      'tom_ok/THIRD_PARTY.md',
+      '| x | third_party/headers | MPL-2.0 |\n'
+          '| y | third_party/lib | Apache-2.0 |\n',
+    );
+    file('folder/tom_bad/pubspec.yaml', 'name: tom_bad\n');
+    file(
+      'folder/tom_bad/third_party/unlisted/LICENSE',
+      'Apache License Version 2.0',
+    );
+    file(
+      'folder/tom_bad/third_party/gpl/LICENSE',
+      'GNU General Public License',
+    );
+    file('folder/tom_bad/third_party/mpl/LICENSE', mpl);
+    file(
+      'folder/tom_bad/THIRD_PARTY.md',
+      '| a | third_party/gpl | GPL |\n| b | third_party/mpl | MPL-2.0 |\n',
+    );
+    final rows = <_BinaryRow>[
+      (binaries: 'ok', package: 'tom_ok', source: 'x'),
+      (binaries: 'bad', package: 'tom_bad', source: 'x'),
+      (binaries: 'gone', package: 'tom_gone', source: 'x'),
+      (binaries: 'nameless', package: '', source: 'x'),
+      (binaries: 'script', package: '-', source: 'this repository'),
+    ];
+    final index = _packageIndex(scratch);
+    expect(index.keys, unorderedEquals(['tom_ok', 'tom_bad']));
+    final problems = _binaryProblems(rows, index);
+    expect(problems, hasLength(5), reason: problems.join('\n'));
+    expect(problems, [
+      contains('tom_bad/third_party/gpl: LICENSE is not a licence'),
+      contains('tom_bad/third_party/mpl is MPL-2.0 but names no source'),
+      contains('tom_bad/third_party/unlisted ships in bad but'),
+      contains('tom_gone (gone) is not a package of this workspace'),
+      contains('"nameless" names no package'),
+    ]);
   });
 }
