@@ -46,12 +46,14 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_agentic': 6,
   // 7 Modules.
   'tom_forge_file_editors': 7,
+  'tom_forge_office_editors': 7,
   'tom_forge_pdf_editors': 7,
   'tom_forge_quests': 7,
   'tom_website_editor': 7,
   'tom_specs_editor': 7,
   // 8 Module test support (see _testSupport).
   'tom_forge_file_editors_testing': 8,
+  'tom_forge_office_editors_testing': 8,
   'tom_forge_pdf_editors_testing': 8,
   // 9 Apps.
   'tom_forge_app': 9,
@@ -64,6 +66,7 @@ const Map<String, int> _layers = <String, int>{
 const Set<String> _testSupport = <String>{
   'tom_forge_ui_testing',
   'tom_forge_file_editors_testing',
+  'tom_forge_office_editors_testing',
   'tom_forge_pdf_editors_testing',
 };
 
