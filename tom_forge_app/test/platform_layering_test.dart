@@ -43,15 +43,22 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_quests': 5,
   'tom_website_editor': 5,
   'tom_specs_editor': 5,
-  // 6 Apps.
-  'tom_forge_app': 6,
+  // 6 Module test support (see _testSupport).
+  'tom_forge_file_editors_testing': 6,
+  'tom_forge_pdf_editors_testing': 6,
+  // 7 Apps.
+  'tom_forge_app': 7,
 };
 
 /// Test support: packages built on `flutter_test` for other packages'
 /// suites. Any package may take one as a dev_dependency, also a lower one
 /// (`tom_forge_ui`'s suites run the harness built on `tom_forge_ui`); as a
 /// dependency they follow the layers like every other package.
-const Set<String> _testSupport = <String>{'tom_forge_ui_testing'};
+const Set<String> _testSupport = <String>{
+  'tom_forge_ui_testing',
+  'tom_forge_file_editors_testing',
+  'tom_forge_pdf_editors_testing',
+};
 
 /// Companion apps and test beds: they depend on anything below the apps, and
 /// nothing depends on them.
@@ -203,7 +210,7 @@ void main() {
           if (_harness.contains(to)) {
             offenders.add('$from has a $kind on the harness package $to');
           } else if (_harness.contains(from)) {
-            if (_layers[to] == 6) {
+            if (_layers[to] == 7) {
               offenders.add('harness $from has a $kind on the app $to');
             }
           } else if (_layers[to]! >= _layers[from]!) {

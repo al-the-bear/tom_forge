@@ -43,6 +43,9 @@ dev_dependencies:
   # The undo conformance harness and the shell test doubles.
   tom_forge_ui_testing:
     path: ../tom_forge_ui_testing
+  # The file editors' undo subjects (qim_none5_file_editors_test).
+  tom_forge_file_editors_testing:
+    path: ../tom_forge_file_editors_testing
   flutter_lints: ^6.0.0
   # Joining the paths the licence audit test reads and writes.
   path: ^1.9.0
