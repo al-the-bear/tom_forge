@@ -1079,7 +1079,7 @@ packages:
       path: "../../tom_ai/basics/tom_test_support"
       relative: true
     source: path
-    version: "0.8.1"
+    version: "0.8.2"
   tom_todo_model:
     dependency: transitive
     description:
