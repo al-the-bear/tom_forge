@@ -963,15 +963,15 @@ packages:
       path: "../../tom_ai/ai_build/tom_som_dart_runtime"
       relative: true
     source: path
-    version: "1.12.1"
+    version: "1.12.2"
   tom_todo_model:
     dependency: transitive
     description:
       name: tom_todo_model
-      sha256: "36ea003628cc586009d05690ac21a021d5b82cad1b0530bb8934e077aad1e637"
+      sha256: e739d1700d0c1ce6f7e90165e0ca30e0d72e637938f1a2f15bcbbde401e4c94b
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "4.1.0"
   tom_ui_controls:
     dependency: transitive
     description:
