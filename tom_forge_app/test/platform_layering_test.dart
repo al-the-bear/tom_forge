@@ -26,7 +26,9 @@ const Map<String, int> _layers = <String, int>{
   // 1 Editor kit and the shared look.
   'tom_editors_shared': 1,
   'tom_forge_shared_ui': 1,
-  // 2 Editors: usable without the shell.
+  // 2 Editors: usable without the shell; the Forge kit (layout-free, no
+  // widgets): what a component sees in any application.
+  'tom_forge_kit': 2,
   'tom_md_editor': 2,
   'tom_yaml_editor': 2,
   'tom_dart_editor': 2,

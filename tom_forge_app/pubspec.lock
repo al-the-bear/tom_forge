@@ -961,6 +961,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_kit:
+    dependency: transitive
+    description:
+      path: "../tom_forge_kit"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_office_editors:
     dependency: "direct main"
     description:
