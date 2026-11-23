@@ -331,8 +331,8 @@ void main() {
       );
     });
 
-    test('PL-6: the shared look takes Flutter, tom_ui_support, tom_forge_core '
-        'and tom_forge_kit only', () {
+    test('PL-6: the shared look takes Flutter, tom_ui_support, tom_forge_core, '
+        'tom_forge_kit and tom_file_session_ui only', () {
       if (!reachable()) return;
       final shared = packages['tom_forge_shared_ui'];
       expect(shared, isNotNull);
@@ -341,6 +341,9 @@ void main() {
         'tom_ui_support',
         'tom_forge_core',
         'tom_forge_kit',
+        // The session file's frame (one implementation with
+        // tom_file_editors): Flutter and tom_file_session only.
+        'tom_file_session_ui',
       };
       // Its tests run on a bare kit: an in-memory file system and an editor
       // of the editor kit's contract.
