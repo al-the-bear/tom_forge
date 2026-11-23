@@ -19,12 +19,13 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgeModule,
         ForgeOutlineView,
         ForgeOutputView,
-        ForgePlainTextEditor,
         ForgeProblemsView,
         ForgeRevisionView,
         ForgeSearchView,
         ForgeShellApi,
         StatusBarItem;
+import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
+    show ForgePlainTextEditor;
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
 import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';

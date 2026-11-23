@@ -18,11 +18,9 @@ import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
 import 'package:tom_forge_ui_testing/tom_forge_ui_testing.dart';
 import 'package:tom_forge_kit/tom_forge_kit.dart';
 import 'package:tom_forge_shell/tom_forge_shell.dart'
-    show
-        DefaultModuleRegistry,
-        DefaultShellApi,
-        ForgePlainTextEditor,
-        TomForgeShellModule;
+    show DefaultModuleRegistry, DefaultShellApi, TomForgeShellModule;
+import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
+    show ForgePlainTextEditor;
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
 import 'package:tom_forge_md_editor_testing/tom_forge_md_editor_testing.dart';
 import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
@@ -50,6 +48,8 @@ const _files = {
   '/ws/plan.todo.yaml': _todos,
   '/ws/.env': 'API_KEY=secret\n',
   '/ws/readme.txt': 'plain text\n',
+  '/ws/data.xyz': 'an unknown kind\n',
+  '/ws/Makefile': 'all:\n',
   '/ws/main.dart': 'void main() {}\n',
   '/ws/tom.website-editor.yaml': _websiteConfig,
 };
@@ -123,6 +123,47 @@ void main() {
         suite.shell.systemState.openEditors.where((e) => e.uri == markdown.uri),
         hasLength(1),
       );
+    });
+
+    test('QIMN5-1b: a .txt file, a file of an unknown extension and one '
+        'without an extension open in the plain-text adapter '
+        '(tom_forge_plain_text_editor), over a file session, in the suite and '
+        'in the shell\'s own fallback', () async {
+      final suite = await _suite();
+      for (final name in ['readme.txt', 'data.xyz', 'Makefile']) {
+        final editor = await _open(suite, name);
+        expect(editor, isA<ForgePlainTextEditor>(), reason: name);
+        expect(
+          (editor as ForgePlainTextEditor).editorTypeId,
+          ForgePlainTextEditor.typeId,
+        );
+        expect(editor.session.path, suite.shell.fileSystem.pathOf(_uri(name)));
+      }
+
+      // The shell alone (no file editors module): its fallback is the same
+      // adapter, reading the file through its own session.
+      final shell = DefaultShellApi.withDefaults(
+        fileSystemSeed: _files,
+        appName: 'qim_none-5 shell',
+        navigatorKey: GlobalKey<NavigatorState>(),
+      );
+      addTearDown(shell.dispose);
+      final shellModule = TomForgeShellModule()..activate(shell);
+      (shell.modules as DefaultModuleRegistry).register(shellModule);
+      for (final name in ['readme.txt', 'data.xyz']) {
+        shell.layout.openFile(_uri(name));
+        ForgeEditor? open;
+        for (var i = 0; i < 100 && open == null; i++) {
+          open = shell.systemState.openEditors
+              .where((e) => e.uri == _uri(name))
+              .firstOrNull;
+          if (open == null) {
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+        }
+        expect(open, isA<ForgePlainTextEditor>(), reason: name);
+        expect((open as ForgePlainTextEditor).kitApi, same(shell));
+      }
     });
 
     // One open per test, the test ending with it: the website config editor

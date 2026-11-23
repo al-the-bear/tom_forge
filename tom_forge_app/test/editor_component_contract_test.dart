@@ -22,7 +22,7 @@ const Map<String, String> _documentEditors = <String, String>{
   'ForgeYamlEditor':
       'tom_forge_ui/test/undo/adapters_undo_conformance_test.dart',
   'ForgePlainTextEditor':
-      'tom_forge_ui/test/undo/adapters_undo_conformance_test.dart',
+      'tom_forge_plain_text_editor/test/undo_conformance_test.dart',
   'ForgeMarkdownFileEditor':
       'tom_forge_md_editor/test/undo_conformance_test.dart',
   'ForgeYamlFileEditor':

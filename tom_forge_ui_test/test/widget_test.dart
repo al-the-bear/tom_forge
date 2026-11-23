@@ -6,8 +6,9 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         DefaultModuleRegistry,
         DefaultShellApi,
         ForgeApplication,
-        ForgePlainTextEditor,
         TomForgeShellModule;
+import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
+    show ForgePlainTextEditor;
 
 import 'package:tom_forge_ui_test/src/app.dart';
 import 'package:tom_forge_ui_test/src/test_app_module.dart';

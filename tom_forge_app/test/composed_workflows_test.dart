@@ -16,7 +16,9 @@ import 'package:tom_forge_md_editor/tom_forge_md_editor.dart'
 import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart'
     show ForgeYamlFileEditor;
 import 'package:tom_forge_shell/tom_forge_shell.dart'
-    show DefaultShellApi, ForgePlainTextEditor, ForgeQuitObjection;
+    show DefaultShellApi, ForgeQuitObjection;
+import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
+    show ForgePlainTextEditor;
 
 const _files = {
   '/ws/notes.md': '# Notes\n',

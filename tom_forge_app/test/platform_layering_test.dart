@@ -50,6 +50,9 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_md_editor': 3,
   'tom_forge_dart_editor': 3,
   'tom_forge_yaml_editor': 3,
+  // The plain-text editor: tom_file_editors' text file editor (a tom_modules
+  // package) as a Forge editor over the kit; the shell falls back to it.
+  'tom_forge_plain_text_editor': 3,
   // 4 Shell core.
   'tom_forge_shell': 4,
   // 5 Shell parts: what plugs into the core (ForgeShellComponents). The
@@ -116,12 +119,24 @@ const Map<String, String> _componentPlugins = <String, String>{
 
 /// The editor adapters (layer 3), each with the one editor it makes a Forge
 /// editor (PL-8). Within layer 3 an adapter may take the shared look
-/// (PL-2).
+/// (PL-2). The plain-text adapter's editor is a tom_modules package.
 const Map<String, String> _editorAdapters = <String, String>{
   'tom_forge_md_editor': 'tom_md_editor',
   'tom_forge_dart_editor': 'tom_dart_editor',
   'tom_forge_yaml_editor': 'tom_yaml_editor',
+  'tom_forge_plain_text_editor': 'tom_file_editors',
 };
+
+/// What one adapter takes beyond its editor, the kit and the light shared
+/// packages (PL-8), each with why.
+const Map<String, Map<String, String>> _adapterExtras =
+    <String, Map<String, String>>{
+      'tom_forge_plain_text_editor': {
+        'tom_file_system':
+            'the file system its forFile and fromContent factories open the '
+            'session in (an in-memory one for text without a file)',
+      },
+    };
 
 /// Companion apps and test beds: they depend on anything below the apps, and
 /// nothing depends on them.
@@ -424,7 +439,8 @@ void main() {
               ? allowedDev.contains(d.name) || _testSupport.contains(d.name)
               : d.name == editor ||
                     _componentPlugins[d.name] == editor ||
-                    shared.contains(d.name);
+                    shared.contains(d.name) ||
+                    (_adapterExtras[name]?.containsKey(d.name) ?? false);
           if (!ok) offenders.add('$name: ${d.name}${d.dev ? ' (dev)' : ''}');
         }
       }
