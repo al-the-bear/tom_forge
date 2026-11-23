@@ -29,6 +29,12 @@ const Map<String, int> _layers = <String, int>{
   // widgets): what a component sees in any application.
   'tom_forge_kit': 2,
   'tom_md_editor': 2,
+  // The Markdown editor's plugin packages (see _componentPlugins).
+  'tom_md_mermaid': 2,
+  'tom_md_math': 2,
+  'tom_md_docspecs': 2,
+  'tom_md_review': 2,
+  'tom_md_http': 2,
   'tom_yaml_editor': 2,
   'tom_dart_editor': 2,
   'tom_flow_editor': 2,
@@ -87,6 +93,18 @@ const Set<String> _testSupport = <String>{
   'tom_forge_yaml_editor_testing',
   'tom_forge_office_editors_testing',
   'tom_forge_pdf_editors_testing',
+};
+
+/// The plugin packages of a layer-2 component, each with its component: a
+/// plugin sits in the component's layer and is the one package of that layer
+/// that may depend on it (PL-2), never the other way. An adapter may take its
+/// editor's plugins (PL-8).
+const Map<String, String> _componentPlugins = <String, String>{
+  'tom_md_mermaid': 'tom_md_editor',
+  'tom_md_math': 'tom_md_editor',
+  'tom_md_docspecs': 'tom_md_editor',
+  'tom_md_review': 'tom_md_editor',
+  'tom_md_http': 'tom_md_editor',
 };
 
 /// The editor adapters (layer 3), each with the one editor it makes a Forge
@@ -251,6 +269,9 @@ void main() {
               to == 'tom_forge_shared_ui') {
             continue;
           }
+          // Within its component's layer a plugin package takes its
+          // component, never the other way.
+          if (_componentPlugins[from] == to) continue;
           if (_harness.contains(to)) {
             offenders.add('$from has a $kind on the harness package $to');
           } else if (_harness.contains(from)) {
@@ -368,8 +389,8 @@ void main() {
       );
     });
 
-    test('PL-8: an editor adapter takes its editor, the kit and light '
-        'shared packages only, never the shell', () {
+    test('PL-8: an editor adapter takes its editor, its editor\'s plugins, '
+        'the kit and light shared packages only, never the shell', () {
       if (!reachable()) return;
       // R9: a component or adapter depends on tom_forge_kit (and
       // tom_forge_shared_ui when it shows kit UI), never on tom_forge_shell.
@@ -394,7 +415,9 @@ void main() {
         for (final d in package.dependencies) {
           final ok = d.dev
               ? allowedDev.contains(d.name) || _testSupport.contains(d.name)
-              : d.name == editor || shared.contains(d.name);
+              : d.name == editor ||
+                    _componentPlugins[d.name] == editor ||
+                    shared.contains(d.name);
           if (!ok) offenders.add('$name: ${d.name}${d.dev ? ' (dev)' : ''}');
         }
       }
@@ -403,7 +426,8 @@ void main() {
         isEmpty,
         reason:
             'An editor adapter is its editor made a Forge editor over the '
-            'kit: one editor, the kit and light shared packages, so an '
+            'kit: one editor with its plugin packages, the kit and light '
+            'shared packages, so an '
             'application takes one adapter without the others\' editors '
             '(platform_architecture.md §1).\n${offenders.join('\n')}',
       );
@@ -416,6 +440,11 @@ void main() {
       expect(fileEditors, isNotNull);
       const heavy = {
         'tom_md_editor',
+        'tom_md_mermaid',
+        'tom_md_math',
+        'tom_md_docspecs',
+        'tom_md_review',
+        'tom_md_http',
         'tom_yaml_editor',
         'tom_forge_md_editor',
         'tom_forge_yaml_editor',
