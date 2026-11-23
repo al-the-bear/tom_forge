@@ -10,8 +10,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tom_editors_shared/tom_editors_shared.dart'
     show StandardEditingActions, forgeTypingPause;
 import 'package:tom_forge_app/forge_suite.dart';
-import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
 import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_md_editor/tom_forge_md_editor.dart'
+    show ForgeMarkdownFileEditor;
+import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart'
+    show ForgeYamlFileEditor;
 import 'package:tom_forge_shell/tom_forge_shell.dart'
     show DefaultShellApi, ForgePlainTextEditor, ForgeQuitObjection;
 
@@ -126,11 +129,9 @@ void main() {
     await tester.pump();
     expect(yaml.controller.yamlText, 'name: garden\n');
     expect(md.controller.markdown, '# Notes\n');
-    expect(
-      shell.systemState.dirtyEditors,
-      [text],
-      reason: 'only the document still edited is unsaved',
-    );
+    expect(shell.systemState.dirtyEditors, [
+      text,
+    ], reason: 'only the document still edited is unsaved');
     await tester.pump(forgeTypingPause);
   });
 

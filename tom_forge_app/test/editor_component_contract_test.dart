@@ -24,9 +24,9 @@ const Map<String, String> _documentEditors = <String, String>{
   'ForgePlainTextEditor':
       'tom_forge_ui/test/undo/adapters_undo_conformance_test.dart',
   'ForgeMarkdownFileEditor':
-      'tom_forge_file_editors/test/undo_conformance_test.dart',
+      'tom_forge_md_editor/test/undo_conformance_test.dart',
   'ForgeYamlFileEditor':
-      'tom_forge_file_editors/test/undo_conformance_test.dart',
+      'tom_forge_yaml_editor/test/undo_conformance_test.dart',
   'ForgeEnvFileEditor':
       'tom_forge_file_editors/test/undo_conformance_test.dart',
   'ForgeTodoFileEditor':

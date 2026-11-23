@@ -61,8 +61,11 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_quests': 8,
   'tom_website_editor': 8,
   'tom_specs_editor': 8,
-  // 9 Module test support (see _testSupport).
+  // 9 Module and adapter test support (see _testSupport): above the harness
+  // they build on (tom_forge_ui_testing, layer 5).
   'tom_forge_file_editors_testing': 9,
+  'tom_forge_md_editor_testing': 9,
+  'tom_forge_yaml_editor_testing': 9,
   'tom_forge_office_editors_testing': 9,
   'tom_forge_pdf_editors_testing': 9,
   // 10 Apps.
@@ -80,8 +83,19 @@ const int _appsLayer = 10;
 const Set<String> _testSupport = <String>{
   'tom_forge_ui_testing',
   'tom_forge_file_editors_testing',
+  'tom_forge_md_editor_testing',
+  'tom_forge_yaml_editor_testing',
   'tom_forge_office_editors_testing',
   'tom_forge_pdf_editors_testing',
+};
+
+/// The editor adapters (layer 3), each with the one editor it makes a Forge
+/// editor (PL-8). Within layer 3 an adapter may take the shared look
+/// (PL-2).
+const Map<String, String> _editorAdapters = <String, String>{
+  'tom_forge_md_editor': 'tom_md_editor',
+  'tom_forge_dart_editor': 'tom_dart_editor',
+  'tom_forge_yaml_editor': 'tom_yaml_editor',
 };
 
 /// Companion apps and test beds: they depend on anything below the apps, and
@@ -231,6 +245,12 @@ void main() {
           if (!placed(from) || !placed(to)) continue;
           final kind = dep.dev ? 'dev_dependency' : 'dependency';
           if (dep.dev && _testSupport.contains(to)) continue;
+          // Layer 3 holds the shared look and the editor adapters; an
+          // adapter may take the shared look (PL-8), never the other way.
+          if (_editorAdapters.containsKey(from) &&
+              to == 'tom_forge_shared_ui') {
+            continue;
+          }
           if (_harness.contains(to)) {
             offenders.add('$from has a $kind on the harness package $to');
           } else if (_harness.contains(from)) {
@@ -350,11 +370,7 @@ void main() {
       if (!reachable()) return;
       // R9: a component or adapter depends on tom_forge_kit (and
       // tom_forge_shared_ui when it shows kit UI), never on tom_forge_shell.
-      const adapters = <String, String>{
-        'tom_forge_md_editor': 'tom_md_editor',
-        'tom_forge_dart_editor': 'tom_dart_editor',
-        'tom_forge_yaml_editor': 'tom_yaml_editor',
-      };
+      const adapters = _editorAdapters;
       const shared = {
         'flutter',
         'tom_forge_kit',
@@ -362,6 +378,8 @@ void main() {
         'tom_forge_core',
         'tom_editors_shared',
       };
+      // Its suites may take test support (the undo harness, its file kind's
+      // undo subject); that never reaches the adapter itself.
       const allowedDev = {'flutter_test', 'flutter_lints'};
       final offenders = <String>[];
       for (final MapEntry(key: name, value: editor) in adapters.entries) {
@@ -372,7 +390,7 @@ void main() {
         }
         for (final d in package.dependencies) {
           final ok = d.dev
-              ? allowedDev.contains(d.name)
+              ? allowedDev.contains(d.name) || _testSupport.contains(d.name)
               : d.name == editor || shared.contains(d.name);
           if (!ok) offenders.add('$name: ${d.name}${d.dev ? ' (dev)' : ''}');
         }
@@ -385,6 +403,32 @@ void main() {
             'kit: one editor, the kit and light shared packages, so an '
             'application takes one adapter without the others\' editors '
             '(platform_architecture.md §1).\n${offenders.join('\n')}',
+      );
+    });
+
+    test('PL-9: the file editors take neither the Markdown nor the YAML '
+        'editor; they learn those kinds from the registry', () {
+      if (!reachable()) return;
+      final fileEditors = packages['tom_forge_file_editors'];
+      expect(fileEditors, isNotNull);
+      const heavy = {
+        'tom_md_editor',
+        'tom_yaml_editor',
+        'tom_forge_md_editor',
+        'tom_forge_yaml_editor',
+      };
+      expect(
+        {
+          for (final d in fileEditors!.dependencies)
+            if (!d.dev && heavy.contains(d.name)) d.name,
+        },
+        isEmpty,
+        reason:
+            'tom_forge_file_editors keeps .env, plain text and todo files; '
+            'the Markdown and YAML file kinds are their adapters\' and reach '
+            'the module through the ForgeFileKindRegistry the application '
+            'fills, so an application that only wants .env files takes no '
+            'webview and no math library (platform_architecture.md §1).',
       );
     });
 

@@ -24,6 +24,9 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgePlainTextEditor,
         TomForgeShellModule;
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
+import 'package:tom_forge_md_editor_testing/tom_forge_md_editor_testing.dart';
+import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
+import 'package:tom_forge_yaml_editor_testing/tom_forge_yaml_editor_testing.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 const _websiteConfig = '''
@@ -169,7 +172,7 @@ void main() {
           extensions: [
             ForgeSuiteExtension(
               fileEditorBuilders: (_) => {
-                ForgeFileKind.markdown: (session, _, shellModule) {
+                forgeMarkdownFileKind.id: (session, _, shellModule) {
                   built = ForgeFileSessionProbe(session.path);
                   return ForgePlainTextEditor(
                     session: session,
@@ -203,7 +206,9 @@ void main() {
     );
     final shellModule = TomForgeShellModule()..activate(shell);
     (shell.modules as DefaultModuleRegistry).register(shellModule);
-    final module = ForgeFileEditorsModule()..activate(shell);
+    final module = ForgeFileEditorsModule(
+      fileKinds: ForgeFileKindRegistry(forgeSuiteFileKinds),
+    )..activate(shell);
     final editor = module.editorFor(_uri(name))! as T;
     if (editor case final ForgeMarkdownFileEditor e) {
       e.session.adoptText(saved);

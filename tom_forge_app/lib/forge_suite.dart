@@ -24,7 +24,15 @@ export 'package:tom_forge_file_editors/tom_forge_file_editors.dart'
         ForgeFileEditorAlternative,
         ForgeFileEditorBuilder,
         ForgeFileEditorsModule,
-        ForgeFileKind;
+        ForgeFileKind,
+        ForgeFileKindRegistry,
+        ForgeKitFileKind;
+// The Markdown and YAML file kinds the suite registers
+// ([forgeSuiteFileKinds]).
+export 'package:tom_forge_md_editor/tom_forge_md_editor.dart'
+    show forgeMarkdownFileKind;
+export 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart'
+    show forgeYamlFileKind;
 // The quest applications every app built on Forge has (`suite.questsModule`).
 export 'package:tom_forge_quests/tom_forge_quests.dart'
     show

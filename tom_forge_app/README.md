@@ -20,13 +20,14 @@ Forge's setup:
 - **The file editors.** `suite.fileEditorsModule` (`tom_forge_file_editors`)
   opens Markdown, YAML, todo files, `.env` and other text in the editor of
   their kind, each over a `ForgeFileSession` that keeps the file's bytes and
-  saves it. It is registered after the extensions' modules, so a module that
+  saves it; the Markdown and YAML kinds are the adapters' file kinds the
+  suite registers with it (`forgeSuiteFileKinds`). It is registered after the extensions' modules, so a module that
   opens its own files (a Webwork document) is asked first, and it leaves a
   file to another module's editor that takes it (`tom.website-editor.yaml`),
   Dart files to the shell's Dart editor and an extension the user gave a
   default editor to that editor. An extension replaces Forge's editor of a
-  kind through `ForgeSuiteExtension.fileEditorBuilders` (Webforge's rich
-  Markdown editor), and offers another beside it for some files through
+  kind through `ForgeSuiteExtension.fileEditorBuilders`, keyed by the kind's
+  id (Webforge's rich Markdown editor under `forgeMarkdownFileKind.id`), and offers another beside it for some files through
   `ForgeSuiteExtension.fileEditorAlternatives` — Open With lists both
   (Webforge's TomSpecs editor for spec documents).
 - **The office editors.** `suite.officeModule` (`tom_forge_office_editors`)

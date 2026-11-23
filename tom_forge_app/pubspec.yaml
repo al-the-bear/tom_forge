@@ -41,8 +41,9 @@ dependencies:
     path: ../tom_forge_core
   tom_website_editor:
     path: ../tom_website_editor
-  # The file editors: Markdown, YAML, todo files, .env and text, each over a
-  # ForgeFileSession.
+  # The file editors: todo files, .env and text, each over a ForgeFileSession,
+  # and the Markdown and YAML file kinds the suite registers with them
+  # (forgeSuiteFileKinds, from tom_forge_md_editor and tom_forge_yaml_editor).
   tom_forge_file_editors:
     path: ../tom_forge_file_editors
   # The quest applications: one per open quest, the picker, the frame.
@@ -75,6 +76,11 @@ dev_dependencies:
   # The file editors' undo subjects (qim_none5_file_editors_test).
   tom_forge_file_editors_testing:
     path: ../tom_forge_file_editors_testing
+  # The Markdown and YAML file kinds' undo subjects (the same suite).
+  tom_forge_md_editor_testing:
+    path: ../tom_forge_md_editor_testing
+  tom_forge_yaml_editor_testing:
+    path: ../tom_forge_yaml_editor_testing
   flutter_lints: ^6.0.0
   # Joining the paths the licence audit test reads and writes.
   path: ^1.9.0

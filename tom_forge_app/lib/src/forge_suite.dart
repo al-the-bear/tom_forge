@@ -52,9 +52,11 @@ class ForgeSuiteExtension {
   final List<ForgeModule> Function(ForgeSuite suite)? modules;
 
   /// Editors the extension puts in place of Forge's for a kind of file
-  /// (Webwork's rich Markdown editor, say), made once its modules are
-  /// registered; a later extension's builder of a kind wins.
-  final Map<ForgeFileKind, ForgeFileEditorBuilder> Function(ForgeSuite suite)?
+  /// (Webwork's rich Markdown editor, say), by the kind's id
+  /// ([ForgeKitFileKind.id] of a kind in [forgeSuiteFileKinds], or
+  /// [ForgeFileKind.name] of the file editors' own), made once its modules
+  /// are registered; a later extension's builder of a kind wins.
+  final Map<String, ForgeFileEditorBuilder> Function(ForgeSuite suite)?
   fileEditorBuilders;
 
   /// Other editors the extension offers for some files beside Forge's editor
@@ -147,6 +149,15 @@ final ForgeShellComponents _desktopComponents = forgeTerminalComponents
     .mergedWith(forgePlatformSecretComponents)
     .mergedWith(forgeDesktopHostComponents);
 
+/// The file kinds Tom Forge hands its file editors module, beside the
+/// module's own `.env`, todo-file and plain-text kinds: the Markdown and YAML
+/// adapters' ([forgeMarkdownFileKind], [forgeYamlFileKind]), asked in this
+/// order.
+final List<ForgeKitFileKind> forgeSuiteFileKinds = List.unmodifiable([
+  forgeMarkdownFileKind,
+  forgeYamlFileKind,
+]);
+
 /// The Dart editor's summaries in an app built on this library: the two files
 /// `tom_forge_app` carries, under its package prefix.
 final ForgeDartSummaryAssets forgeSuiteDartSummaries =
@@ -156,7 +167,8 @@ final ForgeDartSummaryAssets forgeSuiteDartSummaries =
 /// app module, the website editor module, the quests module, the office
 /// editors module and the PDF editors module, the
 /// tom_forge application, each extension's modules, the file editors module
-/// (with the extensions' [ForgeSuiteExtension.fileEditorBuilders]), then each
+/// (with the file kinds of [forgeSuiteFileKinds] and the extensions'
+/// [ForgeSuiteExtension.fileEditorBuilders]), then each
 /// extension's applications. Applications open at the last
 /// exit come back through their factories ([ForgeShellApi.restoreApplications])
 /// once everything is registered.
@@ -226,6 +238,7 @@ Future<ForgeSuite> composeForgeSuite({
   // After the extensions' modules, so a module that opens its own files (a
   // Webwork document) is asked first.
   suite.fileEditorsModule = ForgeFileEditorsModule(
+    fileKinds: ForgeFileKindRegistry(forgeSuiteFileKinds),
     builders: {
       for (final extension in extensions)
         ...?extension.fileEditorBuilders?.call(suite),
