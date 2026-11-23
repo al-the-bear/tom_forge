@@ -9,7 +9,23 @@ import 'package:tom_forge_core/tom_forge_core.dart'
     show DefaultNotificationManager, ForgePanelLocation, ForgeSeverity;
 import 'package:tom_editors_shared/tom_editors_shared.dart'
     show StandardEditingActions;
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultLayoutController,
+        DefaultShellApi,
+        DefaultSystemState,
+        ForgeFileExplorerView,
+        ForgeModule,
+        ForgeOutlineView,
+        ForgeOutputView,
+        ForgePlainTextEditor,
+        ForgeProblemsView,
+        ForgeRevisionView,
+        ForgeSearchView,
+        ForgeShellApi,
+        StatusBarItem;
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
 
 /// Production IDE module providing views, actions, shortcuts, and status bar items.
 ///

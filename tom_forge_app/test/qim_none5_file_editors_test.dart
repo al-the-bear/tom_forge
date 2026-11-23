@@ -16,7 +16,14 @@ import 'package:tom_forge_app/forge_suite.dart';
 import 'package:tom_forge_file_editors_testing/tom_forge_file_editors_testing.dart';
 import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
 import 'package:tom_forge_ui_testing/tom_forge_ui_testing.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultModuleRegistry,
+        DefaultShellApi,
+        ForgePlainTextEditor,
+        TomForgeShellModule;
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 const _websiteConfig = '''

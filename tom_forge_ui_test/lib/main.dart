@@ -1,11 +1,35 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultModuleRegistry,
+        DefaultShellApi,
+        ForgeApplication,
+        ForgePreferencesService,
+        ForgeShellComponents,
+        MiddlePanelConfig,
+        PanelConfig,
+        PanelLayout,
+        PanelTabConfig,
+        TomForgeShellModule;
+import 'package:tom_forge_terminal/tom_forge_terminal.dart';
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_platform_secrets/tom_forge_platform_secrets.dart';
+import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_file_system/io.dart';
 
 import 'src/app.dart';
 import 'src/test_app_module.dart';
+
+/// The desktop components the test IDE hands its shells: the terminal, the
+/// code editors, the platform keychain and the desktop host, composed from
+/// the shell parts.
+final ForgeShellComponents _desktopComponents = forgeTerminalComponents
+    .mergedWith(forgeCodeEditorComponents)
+    .mergedWith(forgePlatformSecretComponents)
+    .mergedWith(forgeDesktopHostComponents);
 
 void main(List<String> args) {
   // CLI bypass: pass workspace path as first argument to skip welcome dialog.
@@ -41,8 +65,9 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     // Walk-up detection: check if a parent directory has `.forge/`
     final wsManager = DefaultWorkspaceStateManager();
     final detectedRoot = await detectForgeWorkspaceRoot(workspaceDir.path);
-    final effectiveDir =
-        detectedRoot != null ? Directory(detectedRoot) : workspaceDir;
+    final effectiveDir = detectedRoot != null
+        ? Directory(detectedRoot)
+        : workspaceDir;
 
     // The local file system over the selected directory: the shell's, and
     // the workspace state's (.forge/) and module storage's.
@@ -65,7 +90,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       navigatorKey: _navigatorKey,
       workspaceState: wsManager,
       storage: persistentStorage,
-      components: forgeDesktopComponents,
+      components: _desktopComponents,
     );
 
     // Register modules
@@ -75,9 +100,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     shellModule.activate(shell);
     registry.register(shellModule);
 
-    final appModule = TestAppModule(
-      workspaceRootUri: effectiveDir.uri,
-    );
+    final appModule = TestAppModule(workspaceRootUri: effectiveDir.uri);
     appModule.activate(shell);
     registry.register(appModule);
 
@@ -131,11 +154,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
               icon: Icons.terminal,
               sections: [viewById('Output')],
             ),
-            PanelTabConfig(
-              title: 'Terminal',
-              icon: Icons.code,
-              sections: [],
-            ),
+            PanelTabConfig(title: 'Terminal', icon: Icons.code, sections: []),
           ],
         ),
         middlePanels: [const MiddlePanelConfig()],
@@ -189,7 +208,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
       fileSystemSeed: {},
       appName: 'Forge Test IDE',
       navigatorKey: _navigatorKey,
-      components: forgeDesktopComponents,
+      components: _desktopComponents,
     );
   }
 }

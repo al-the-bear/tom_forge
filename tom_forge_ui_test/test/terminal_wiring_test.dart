@@ -4,7 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tom_forge_core/tom_forge_core.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show DefaultEnvironment, DefaultShellApi, DefaultSystemState;
+import 'package:tom_forge_terminal/tom_forge_terminal.dart';
 
 import 'package:tom_forge_ui_test/src/test_app_module.dart';
 

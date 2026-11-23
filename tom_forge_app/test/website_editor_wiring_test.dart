@@ -9,7 +9,14 @@
 //      must settle into an error issue, never an unhandled zone error.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultModuleRegistry,
+        DefaultShellApi,
+        DefaultSystemState,
+        TomForgeShellModule;
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 void main() {

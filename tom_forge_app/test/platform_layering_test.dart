@@ -337,5 +337,61 @@ void main() {
             'webview.',
       );
     });
+
+    test('PL-7: no Forge package takes the umbrella tom_forge_ui', () {
+      if (!reachable()) return;
+      final offenders = <String>[
+        for (final package in packages.values)
+          if (package.name != 'tom_forge_ui')
+            for (final dep in package.dependencies)
+              if (dep.name == 'tom_forge_ui')
+                '${package.name} has a ${dep.dev ? 'dev_dependency' : 'dependency'} '
+                    'on tom_forge_ui',
+      ];
+      // An import compiles through a dependency of a dependency as well: no
+      // Dart file of another package imports or exports the umbrella.
+      // (`[/]`, so the repository-wide grep for the umbrella's package URI
+      // does not find this guard itself.)
+      final directive = RegExp(
+        r'''^\s*(import|export)\s+['"]package:tom_forge_ui[/]''',
+        multiLine: true,
+      );
+      for (final package in packages.values) {
+        if (package.name == 'tom_forge_ui') continue;
+        for (final folder in const [
+          'lib',
+          'test',
+          'integration_test',
+          'tool',
+          'example',
+        ]) {
+          final dir = Directory('${package.dir.path}/$folder');
+          if (!dir.existsSync()) continue;
+          for (final file in dir.listSync(recursive: true).whereType<File>()) {
+            final path = file.path.replaceAll(r'\', '/');
+            if (!path.endsWith('.dart') ||
+                path.contains('/.dart_tool/') ||
+                path.contains('/build/')) {
+              continue;
+            }
+            if (directive.hasMatch(file.readAsStringSync())) {
+              offenders.add(
+                '${package.name}: ${file.path.substring(root!.path.length + 1)} '
+                'imports tom_forge_ui',
+              );
+            }
+          }
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            'tom_forge_ui is the full-desktop umbrella for consumers outside '
+            'tom_forge (platform_architecture.md §3): a Forge package takes '
+            'the kit and the parts it uses, and the shell only for the panel '
+            'shell\'s extras.\n${offenders.join('\n')}',
+      );
+    });
   });
 }

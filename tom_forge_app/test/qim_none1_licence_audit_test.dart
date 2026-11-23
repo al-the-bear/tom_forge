@@ -82,7 +82,7 @@ void main() {
       expect(
         names,
         containsAll([
-          'tom_forge_ui',
+          'tom_forge_shell',
           'tom_website_editor',
           'tom_website_editor_core',
           'tom_dart_editor',

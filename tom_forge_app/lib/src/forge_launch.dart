@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart' show ForgePreferencesService;
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show ForgePreferencesService;
 
 import 'forge_suite.dart';
 

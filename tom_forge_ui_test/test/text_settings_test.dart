@@ -4,7 +4,16 @@ import 'package:tom_forge_core/tom_forge_core.dart';
 import 'package:tom_editors_shared/tom_editors_shared.dart';
 import 'package:tom_md_editor/tom_md_editor.dart';
 import 'package:tom_dart_editor/tom_dart_editor.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        ForgeConfigPanel,
+        ForgeEditorChoice,
+        ForgeExternalTool,
+        ForgeModule,
+        ForgeShellApi,
+        StatusBarItem;
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
 
 void main() {
   group('S20: Text Settings and Configuration', () {

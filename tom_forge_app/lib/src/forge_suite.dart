@@ -8,7 +8,26 @@ import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
 import 'package:tom_forge_office_editors/tom_forge_office_editors.dart';
 import 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart';
 import 'package:tom_forge_quests/tom_forge_quests.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultLayoutController,
+        DefaultModuleRegistry,
+        DefaultShellApi,
+        DefaultSystemState,
+        ForgeApplication,
+        ForgeModule,
+        ForgePreferencesService,
+        ForgeShellComponents,
+        MiddlePanelConfig,
+        PanelConfig,
+        PanelLayout,
+        PanelTabConfig,
+        TomForgeShellModule;
+import 'package:tom_forge_terminal/tom_forge_terminal.dart';
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_platform_secrets/tom_forge_platform_secrets.dart';
+import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 import 'app.dart';
@@ -109,6 +128,14 @@ class ForgeSuite {
 
 /// The id of the tom_forge application.
 const forgeApplicationId = 'tom-forge';
+
+/// What Tom Forge hands its shells on the desktop: the terminal, the code
+/// editors, the platform keychain and the desktop host (file dialogs, shells,
+/// folders), composed from the shell parts.
+final ForgeShellComponents _desktopComponents = forgeTerminalComponents
+    .mergedWith(forgeCodeEditorComponents)
+    .mergedWith(forgePlatformSecretComponents)
+    .mergedWith(forgeDesktopHostComponents);
 
 /// The Dart editor's summaries in an app built on this library: the two files
 /// `tom_forge_app` carries, under its package prefix.
@@ -403,7 +430,7 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
     fileSystemSeed: const {},
     appName: widget.appName,
     navigatorKey: _navigatorKey,
-    components: forgeDesktopComponents,
+    components: _desktopComponents,
   );
   DefaultShellApi? _shell;
 
@@ -428,7 +455,7 @@ class _ForgeSuiteLauncherState extends State<ForgeSuiteLauncher> {
       workspaceState: state,
       storage: await PersistentModuleStorage.open(fileSystem),
       // The terminal, the code editors and the keychain.
-      components: forgeDesktopComponents,
+      components: _desktopComponents,
     );
     final suite = await composeForgeSuite(
       shell: shell,

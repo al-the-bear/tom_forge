@@ -16,7 +16,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tom_forge_app/forge_suite.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_kit/tom_forge_kit.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultLayoutController,
+        DefaultShellApi,
+        ForgeApplication,
+        ForgeModule,
+        ForgeShellApi,
+        FullScreenLayout,
+        PanelLayout;
+import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 class _StandInView extends ForgeView {

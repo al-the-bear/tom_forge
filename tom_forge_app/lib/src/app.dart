@@ -1,7 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_shared_ui/tom_forge_shared_ui.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show
+        DefaultLayoutController,
+        DefaultShellApi,
+        DefaultSystemState,
+        ForgePreferencesService,
+        ForgeShellScaffold;
+import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 
 /// Root widget for the Tom Forge IDE.
 class ForgeApp extends StatelessWidget {

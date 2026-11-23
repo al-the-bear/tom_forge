@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tom_forge_app/forge_suite.dart';
-import 'package:tom_forge_ui/tom_forge_ui.dart';
+import 'package:tom_forge_shell/tom_forge_shell.dart'
+    show DefaultLayoutController, DefaultShellApi, ForgePreferencesService;
 
 void main() {
   test('FL-1: --workspace, files and --trail are read; without a folder the '
