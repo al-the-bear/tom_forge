@@ -32,12 +32,19 @@ const Map<String, int> _layers = <String, int>{
   'tom_yaml_editor': 2,
   'tom_dart_editor': 2,
   'tom_flow_editor': 2,
-  // 3 The shared look: one rendering of the kit's models, no layout.
+  // 3 The shared look: one rendering of the kit's models, no layout; the
+  // editor adapters: the layer-2 editors as Forge editors over the kit, with
+  // their editor types (see PL-8).
   'tom_forge_shared_ui': 3,
+  'tom_forge_md_editor': 3,
+  'tom_forge_dart_editor': 3,
+  'tom_forge_yaml_editor': 3,
   // 4 Shell core.
   'tom_forge_shell': 4,
   // 5 Shell parts: what plugs into the core (ForgeShellComponents).
   'tom_forge_terminal': 5,
+  // The three editor adapters re-exported, with the shell-typed helpers,
+  // for one release.
   'tom_forge_code_editors': 5,
   'tom_forge_platform_secrets': 5,
   'tom_forge_desktop_host': 5,
@@ -335,6 +342,49 @@ void main() {
             'that Webwork and any application take for Forge\'s look: the '
             'kit and its tokens, no shell, no terminal, no editors, no '
             'webview.',
+      );
+    });
+
+    test('PL-8: an editor adapter takes its editor, the kit and light '
+        'shared packages only, never the shell', () {
+      if (!reachable()) return;
+      // R9: a component or adapter depends on tom_forge_kit (and
+      // tom_forge_shared_ui when it shows kit UI), never on tom_forge_shell.
+      const adapters = <String, String>{
+        'tom_forge_md_editor': 'tom_md_editor',
+        'tom_forge_dart_editor': 'tom_dart_editor',
+        'tom_forge_yaml_editor': 'tom_yaml_editor',
+      };
+      const shared = {
+        'flutter',
+        'tom_forge_kit',
+        'tom_forge_shared_ui',
+        'tom_forge_core',
+        'tom_editors_shared',
+      };
+      const allowedDev = {'flutter_test', 'flutter_lints'};
+      final offenders = <String>[];
+      for (final MapEntry(key: name, value: editor) in adapters.entries) {
+        final package = packages[name];
+        if (package == null) {
+          offenders.add('$name is missing');
+          continue;
+        }
+        for (final d in package.dependencies) {
+          final ok = d.dev
+              ? allowedDev.contains(d.name)
+              : d.name == editor || shared.contains(d.name);
+          if (!ok) offenders.add('$name: ${d.name}${d.dev ? ' (dev)' : ''}');
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            'An editor adapter is its editor made a Forge editor over the '
+            'kit: one editor, the kit and light shared packages, so an '
+            'application takes one adapter without the others\' editors '
+            '(platform_architecture.md §1).\n${offenders.join('\n')}',
       );
     });
 

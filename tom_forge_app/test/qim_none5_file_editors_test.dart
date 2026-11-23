@@ -23,7 +23,7 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         DefaultShellApi,
         ForgePlainTextEditor,
         TomForgeShellModule;
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 const _websiteConfig = '''

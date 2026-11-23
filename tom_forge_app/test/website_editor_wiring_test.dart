@@ -16,7 +16,7 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         DefaultShellApi,
         DefaultSystemState,
         TomForgeShellModule;
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
 void main() {

@@ -19,7 +19,7 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgeShellApi,
         StatusBarItem,
         TomForgeShellModule;
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
 class TestAppModule extends ForgeModule {

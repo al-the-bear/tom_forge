@@ -25,7 +25,9 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         PanelTabConfig,
         TomForgeShellModule;
 import 'package:tom_forge_terminal/tom_forge_terminal.dart';
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
+import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
+import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 import 'package:tom_forge_platform_secrets/tom_forge_platform_secrets.dart';
 import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
@@ -133,7 +135,15 @@ const forgeApplicationId = 'tom-forge';
 /// editors, the platform keychain and the desktop host (file dialogs, shells,
 /// folders), composed from the shell parts.
 final ForgeShellComponents _desktopComponents = forgeTerminalComponents
-    .mergedWith(forgeCodeEditorComponents)
+    .mergedWith(
+      ForgeShellComponents(
+        editorTypes: [
+          forgeMarkdownEditorType,
+          forgeDartEditorType,
+          forgeYamlEditorType,
+        ],
+      ),
+    )
     .mergedWith(forgePlatformSecretComponents)
     .mergedWith(forgeDesktopHostComponents);
 
@@ -171,8 +181,7 @@ Future<ForgeSuite> composeForgeSuite({
   // The root is set before the modules activate: the website module
   // resolves its config file against it.
   (shell.systemState as DefaultSystemState).setWorkspaceRootPath(workspaceRoot);
-  (shell.layout as DefaultLayoutController).dartSummaryAssets =
-      dartSummaryAssets;
+  ForgeDartSummariesByHost.set(shell.layout, dartSummaryAssets);
   final suite = ForgeSuite._(
     shell: shell,
     navigatorKey: navigatorKey,

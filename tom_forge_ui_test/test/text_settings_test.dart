@@ -13,7 +13,8 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgeModule,
         ForgeShellApi,
         StatusBarItem;
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
+import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
 
 void main() {
   group('S20: Text Settings and Configuration', () {

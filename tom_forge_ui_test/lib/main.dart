@@ -15,7 +15,9 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         PanelTabConfig,
         TomForgeShellModule;
 import 'package:tom_forge_terminal/tom_forge_terminal.dart';
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
+import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
+import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 import 'package:tom_forge_platform_secrets/tom_forge_platform_secrets.dart';
 import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_file_system/io.dart';
@@ -27,7 +29,15 @@ import 'src/test_app_module.dart';
 /// code editors, the platform keychain and the desktop host, composed from
 /// the shell parts.
 final ForgeShellComponents _desktopComponents = forgeTerminalComponents
-    .mergedWith(forgeCodeEditorComponents)
+    .mergedWith(
+      ForgeShellComponents(
+        editorTypes: [
+          forgeMarkdownEditorType,
+          forgeDartEditorType,
+          forgeYamlEditorType,
+        ],
+      ),
+    )
     .mergedWith(forgePlatformSecretComponents)
     .mergedWith(forgeDesktopHostComponents);
 

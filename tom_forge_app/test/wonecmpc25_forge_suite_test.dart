@@ -19,14 +19,13 @@ import 'package:tom_forge_app/forge_suite.dart';
 import 'package:tom_forge_kit/tom_forge_kit.dart';
 import 'package:tom_forge_shell/tom_forge_shell.dart'
     show
-        DefaultLayoutController,
         DefaultShellApi,
         ForgeApplication,
         ForgeModule,
         ForgeShellApi,
         FullScreenLayout,
         PanelLayout;
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
 
@@ -231,8 +230,7 @@ void main() {
         restoreApplications: false,
       );
       expect(suite.navigatorKey, same(navigatorKey));
-      final assets =
-          (shell.layout as DefaultLayoutController).dartSummaryAssets;
+      final assets = ForgeDartSummariesByHost.of(shell.layout);
       expect(
         assets.sdkSummary,
         'packages/tom_forge_app/assets/summaries/sdk_summary.sum',
@@ -250,7 +248,7 @@ void main() {
         restoreApplications: false,
       );
       expect(
-        (own.layout as DefaultLayoutController).dartSummaryAssets,
+        ForgeDartSummariesByHost.of(own.layout),
         same(ForgeDartSummaryAssets.root),
         reason: 'Tom Forge\'s own app reads the summaries it carries',
       );

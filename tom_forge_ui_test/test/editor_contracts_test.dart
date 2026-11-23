@@ -4,7 +4,9 @@ import 'package:tom_forge_core/tom_forge_core.dart';
 import 'package:tom_forge_kit/tom_forge_kit.dart';
 import 'package:tom_forge_shell/tom_forge_shell.dart'
     show DefaultSystemState, ForgeModule, ForgeShellApi;
-import 'package:tom_forge_code_editors/tom_forge_code_editors.dart';
+import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
+import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
+import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 import 'package:tom_md_editor/tom_md_editor.dart';
 import 'package:tom_dart_editor/tom_dart_editor.dart';
 import 'package:tom_yaml_editor/tom_yaml_editor.dart';
