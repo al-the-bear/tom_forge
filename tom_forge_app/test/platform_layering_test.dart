@@ -23,9 +23,8 @@ const Map<String, int> _layers = <String, int>{
   'tom_website_editor_core': 0,
   'tom_dart_editor_bundler': 0,
   'tom_web_build_probe': 0,
-  // 1 Editor kit and the shared look.
+  // 1 Editor kit.
   'tom_editors_shared': 1,
-  'tom_forge_shared_ui': 1,
   // 2 Editors: usable without the shell; the Forge kit (layout-free, no
   // widgets): what a component sees in any application.
   'tom_forge_kit': 2,
@@ -33,33 +32,39 @@ const Map<String, int> _layers = <String, int>{
   'tom_yaml_editor': 2,
   'tom_dart_editor': 2,
   'tom_flow_editor': 2,
-  // 3 Shell core.
-  'tom_forge_shell': 3,
-  // 4 Shell parts: what plugs into the core (ForgeShellComponents).
-  'tom_forge_terminal': 4,
-  'tom_forge_code_editors': 4,
-  'tom_forge_platform_secrets': 4,
-  'tom_forge_desktop_host': 4,
-  // 4 Test support (see _testSupport).
-  'tom_forge_ui_testing': 4,
-  // 5 The shell with its parts (the umbrella).
-  'tom_forge_ui': 5,
-  // 6 Shell services.
-  'tom_forge_agentic': 6,
-  // 7 Modules.
-  'tom_forge_file_editors': 7,
-  'tom_forge_office_editors': 7,
-  'tom_forge_pdf_editors': 7,
-  'tom_forge_quests': 7,
-  'tom_website_editor': 7,
-  'tom_specs_editor': 7,
-  // 8 Module test support (see _testSupport).
-  'tom_forge_file_editors_testing': 8,
-  'tom_forge_office_editors_testing': 8,
-  'tom_forge_pdf_editors_testing': 8,
-  // 9 Apps.
-  'tom_forge_app': 9,
+  // 3 The shared look: one rendering of the kit's models, no layout.
+  'tom_forge_shared_ui': 3,
+  // 4 Shell core.
+  'tom_forge_shell': 4,
+  // 5 Shell parts: what plugs into the core (ForgeShellComponents).
+  'tom_forge_terminal': 5,
+  'tom_forge_code_editors': 5,
+  'tom_forge_platform_secrets': 5,
+  'tom_forge_desktop_host': 5,
+  // 5 Test support (see _testSupport).
+  'tom_forge_ui_testing': 5,
+  // 6 The shell with its parts (the umbrella).
+  'tom_forge_ui': 6,
+  // 7 Shell services.
+  'tom_forge_agentic': 7,
+  // 8 Modules.
+  'tom_forge_file_editors': 8,
+  'tom_forge_office_editors': 8,
+  'tom_forge_pdf_editors': 8,
+  'tom_forge_quests': 8,
+  'tom_website_editor': 8,
+  'tom_specs_editor': 8,
+  // 9 Module test support (see _testSupport).
+  'tom_forge_file_editors_testing': 9,
+  'tom_forge_office_editors_testing': 9,
+  'tom_forge_pdf_editors_testing': 9,
+  // 10 Apps.
+  'tom_forge_app': 10,
 };
+
+/// The layer of the applications: a harness package may depend on anything
+/// below it.
+const int _appsLayer = 10;
 
 /// Test support: packages built on `flutter_test` for other packages'
 /// suites. Any package may take one as a dev_dependency, also a lower one
@@ -222,7 +227,7 @@ void main() {
           if (_harness.contains(to)) {
             offenders.add('$from has a $kind on the harness package $to');
           } else if (_harness.contains(from)) {
-            if (_layers[to] == 9) {
+            if (_layers[to] == _appsLayer) {
               offenders.add('harness $from has a $kind on the app $to');
             }
           } else if (_layers[to]! >= _layers[from]!) {
@@ -299,8 +304,8 @@ void main() {
       );
     });
 
-    test('PL-6: the shared look takes Flutter, tom_ui_support and at most '
-        'tom_forge_core', () {
+    test('PL-6: the shared look takes Flutter, tom_ui_support, tom_forge_core '
+        'and tom_forge_kit only', () {
       if (!reachable()) return;
       final shared = packages['tom_forge_shared_ui'];
       expect(shared, isNotNull);
@@ -308,15 +313,28 @@ void main() {
         'flutter',
         'tom_ui_support',
         'tom_forge_core',
+        'tom_forge_kit',
+      };
+      // Its tests run on a bare kit: an in-memory file system and an editor
+      // of the editor kit's contract.
+      const allowedDev = {
         'flutter_test',
         'flutter_lints',
+        'tom_file_system',
+        'tom_editors_shared',
       };
       expect(
-        shared!.dependencies.map((d) => d.name).toSet().difference(allowed),
+        {
+          for (final d in shared!.dependencies)
+            if (!(d.dev ? allowedDev : allowed).contains(d.name))
+              '${d.name}${d.dev ? ' (dev)' : ''}',
+        },
         isEmpty,
         reason:
-            'tom_forge_shared_ui is what Webwork takes for Forge\'s look: no '
-            'terminal, no editors, no webview, no native plugin.',
+            'tom_forge_shared_ui is one rendering of the Forge kit\'s models '
+            'that Webwork and any application take for Forge\'s look: the '
+            'kit and its tokens, no shell, no terminal, no editors, no '
+            'webview.',
       );
     });
   });
