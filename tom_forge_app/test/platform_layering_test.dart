@@ -37,6 +37,8 @@ const Map<String, int> _layers = <String, int>{
   'tom_md_http': 2,
   'tom_yaml_editor': 2,
   'tom_dart_editor': 2,
+  // The Dart editor's analysis plugin (see _componentPlugins).
+  'tom_dart_analysis': 2,
   'tom_flow_editor': 2,
   // 3 The shared look: one rendering of the kit's models, no layout; the
   // editor adapters: the layer-2 editors as Forge editors over the kit, with
@@ -105,6 +107,7 @@ const Map<String, String> _componentPlugins = <String, String>{
   'tom_md_docspecs': 'tom_md_editor',
   'tom_md_review': 'tom_md_editor',
   'tom_md_http': 'tom_md_editor',
+  'tom_dart_analysis': 'tom_dart_editor',
 };
 
 /// The editor adapters (layer 3), each with the one editor it makes a Forge
