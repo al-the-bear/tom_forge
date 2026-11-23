@@ -40,6 +40,9 @@ const Map<String, int> _layers = <String, int>{
   // The Dart editor's analysis plugin (see _componentPlugins).
   'tom_dart_analysis': 2,
   'tom_flow_editor': 2,
+  // The terminal without Forge: a shell in a pseudo-terminal and the xterm
+  // widget (see PL-10); tom_forge_terminal is its adapter.
+  'tom_terminal_view': 2,
   // 3 The shared look: one rendering of the kit's models, no layout; the
   // editor adapters: the layer-2 editors as Forge editors over the kit, with
   // their editor types (see PL-8).
@@ -49,7 +52,8 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_yaml_editor': 3,
   // 4 Shell core.
   'tom_forge_shell': 4,
-  // 5 Shell parts: what plugs into the core (ForgeShellComponents).
+  // 5 Shell parts: what plugs into the core (ForgeShellComponents). The
+  // terminal is the adapter of tom_terminal_view against the kit.
   'tom_forge_terminal': 5,
   // The three editor adapters re-exported, with the shell-typed helpers,
   // for one release.
@@ -464,6 +468,25 @@ void main() {
             'the module through the ForgeFileKindRegistry the application '
             'fills, so an application that only wants .env files takes no '
             'webview and no math library (platform_architecture.md §1).',
+      );
+    });
+
+    test('PL-10: the terminal view takes no Forge package', () {
+      if (!reachable()) return;
+      final view = packages['tom_terminal_view'];
+      expect(view, isNotNull);
+      expect(
+        {
+          for (final d in view!.dependencies)
+            if (packages.containsKey(d.name))
+              '${d.name}${d.dev ? ' (dev)' : ''}',
+        },
+        isEmpty,
+        reason:
+            'tom_terminal_view is a terminal for any Flutter UI (the shell in '
+            'a pseudo-terminal and the xterm widget); Forge\'s Terminal view, '
+            'the terminal managers and their registration are its adapter\'s, '
+            'tom_forge_terminal (platform_architecture.md §1).',
       );
     });
 
