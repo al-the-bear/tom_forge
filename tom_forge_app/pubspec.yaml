@@ -25,6 +25,11 @@ dependencies:
     path: ../tom_forge_terminal
   tom_forge_md_editor:
     path: ../tom_forge_md_editor
+  # Code blocks in every highlight.js language (useForgeCodeHighlighting).
+  tom_highlight_js:
+    path: ../../tom_ai/modules/tom_highlight_js
+  tom_text_highlight:
+    path: ../../tom_ai/modules/tom_text_highlight
   tom_forge_dart_editor:
     path: ../tom_forge_dart_editor
   tom_forge_yaml_editor:

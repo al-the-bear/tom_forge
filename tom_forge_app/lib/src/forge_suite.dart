@@ -31,6 +31,8 @@ import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 import 'package:tom_forge_platform_secrets/tom_forge_platform_secrets.dart';
 import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
+import 'package:tom_highlight_js/tom_highlight_js.dart'
+    show registerHighlightJsLanguages;
 
 import 'app.dart';
 import 'forge_app_module.dart';
@@ -162,6 +164,13 @@ final List<ForgeKitFileKind> forgeSuiteFileKinds = List.unmodifiable([
 /// `tom_forge_app` carries, under its package prefix.
 final ForgeDartSummaryAssets forgeSuiteDartSummaries =
     ForgeDartSummaryAssets.ofPackage('tom_forge_app');
+
+/// Highlights code blocks in every highlight.js language (`tom_highlight_js`)
+/// beyond the ones `tom_text_highlight` has of its own, as Tom Forge always
+/// has: the Markdown editor's preview and code-block overlay and the file
+/// editors' Markdown renderer ask `highlighterForLanguage`. Tom Forge's
+/// `main` calls it once; an application composed differently decides itself.
+void useForgeCodeHighlighting() => registerHighlightJsLanguages();
 
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
 /// app module, the website editor module, the quests module, the office

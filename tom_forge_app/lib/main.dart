@@ -22,6 +22,7 @@ void main(List<String> arguments) {
       'Set FLUTTER_INAPPWEBVIEW_LINUX_FORCE_GL=1 to force hardware mode for diagnostics.',
     );
   }
+  useForgeCodeHighlighting();
   final launch = ForgeLaunch.parse(arguments);
   if (launch.trails.contains('pdf')) {
     kForgePdfDebug = true;
