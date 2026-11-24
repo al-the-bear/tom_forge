@@ -431,6 +431,13 @@ class _TestModule implements ForgeModule {
   List<ForgeEditorChoice> editorChoicesFor(Uri uri) => const [];
 
   @override
+  List<ForgeKitEditorChoice> get contentTypeEditorChoices => const [];
+
+  @override
+  List<ForgeKitEditorChoice> editorChoicesForContent(ForgeContentItem item) =>
+      const [];
+
+  @override
   void activate(ForgeShellApi api) {}
 
   @override
