@@ -13,14 +13,10 @@ import 'package:tom_forge_kit/tom_forge_kit.dart';
 import 'package:tom_forge_shell/tom_forge_shell.dart'
     show
         DefaultLayoutController,
-        DefaultShellApi,
         DefaultSystemState,
         ForgeFileExplorerView,
         ForgeModule,
-        ForgeOutlineView,
-        ForgeOutputView,
         ForgeProblemsView,
-        ForgeRevisionView,
         ForgeSearchView,
         ForgeShellApi,
         StatusBarItem;
@@ -30,10 +26,23 @@ import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
 import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 
+/// The id of the Explorer view ([ForgeViewPlacementHint.id]).
+const String forgeExplorerViewId = 'forge.view.explorer';
+
+/// The id of the Search view.
+const String forgeSearchViewId = 'forge.view.search';
+
+/// The id of the Problems view.
+const String forgeProblemsViewId = 'forge.view.problems';
+
 /// Production IDE module providing views, actions, shortcuts, and status bar items.
 ///
 /// Promoted from TestAppModule in tom_forge_ui_test with identical behavior.
-class ForgeAppModule extends ForgeModule {
+/// Its views — Explorer, Problems, Search — carry placement hints
+/// ([ForgeViewContributionsExtra]) like the view packages' (Outline, Output,
+/// Revisions, which `composeForgeSuite` registers as modules of their own),
+/// so Tom Forge's panels are laid out from the module registry.
+class ForgeAppModule extends ForgeModule implements ForgeModuleExtrasProvider {
   ForgeAppModule({required Uri workspaceRootUri})
     : _workspaceRootUri = workspaceRootUri;
 
@@ -114,6 +123,7 @@ class ForgeAppModule extends ForgeModule {
     }
     _subscriptions.clear();
     _views.clear();
+    _viewContributions.clear();
     _actions.clear();
     _shortcuts.clear();
     _statusBarItems.clear();
@@ -124,6 +134,14 @@ class ForgeAppModule extends ForgeModule {
 
   @override
   List<ForgeView> get views => List.unmodifiable(_views);
+
+  final List<ForgeViewContribution> _viewContributions = [];
+
+  @override
+  List<ForgeModuleExtra> get ownExtras => [
+    if (_viewContributions.isNotEmpty)
+      ForgeViewContributionsExtra(List.unmodifiable(_viewContributions)),
+  ];
 
   @override
   List<ForgeAction> get actions => List.unmodifiable(_actions);
@@ -168,34 +186,51 @@ class ForgeAppModule extends ForgeModule {
   // ── Views ──
 
   void _buildViews() {
-    _views.addAll([
-      ForgeFileExplorerView(
-        fileSystem: _shell.fileSystem,
-        layoutController: _shell.layout,
-        rootUri: _workspaceRootUri,
-        contextMenus: _shell.contextMenus,
+    final explorer = ForgeFileExplorerView(
+      fileSystem: _shell.fileSystem,
+      layoutController: _shell.layout,
+      rootUri: _workspaceRootUri,
+      contextMenus: _shell.contextMenus,
+    );
+    final problems = ForgeProblemsView(
+      diagnosticManager: _shell.diagnostics,
+      layoutController: _shell.layout,
+    );
+    final search = ForgeSearchView(
+      searchManager: _shell.search,
+      layoutController: _shell.layout,
+      systemState: _shell.systemState as DefaultSystemState,
+      workspaceRoot: _workspaceRootUri.toFilePath(),
+    );
+    _views.addAll([explorer, problems, search]);
+    _viewContributions.addAll([
+      ForgeViewContribution(
+        view: explorer,
+        hint: const ForgeViewPlacementHint(
+          id: forgeExplorerViewId,
+          role: ForgeViewRole.navigation,
+          group: 'Explorer',
+          groupIcon: Icons.folder_outlined,
+        ),
       ),
-      ForgeOutlineView(
-        outlineManager: _shell.outline as DefaultOutlineManager,
-        systemState: _shell.systemState,
+      ForgeViewContribution(
+        view: search,
+        hint: const ForgeViewPlacementHint(
+          id: forgeSearchViewId,
+          role: ForgeViewRole.navigation,
+          group: 'Search',
+          groupIcon: Icons.search,
+          order: 10,
+        ),
       ),
-      ForgeProblemsView(
-        diagnosticManager: _shell.diagnostics,
-        layoutController: _shell.layout,
-      ),
-      ForgeOutputView(channelManager: _shell.output),
-      ForgeSearchView(
-        searchManager: _shell.search,
-        layoutController: _shell.layout,
-        systemState: _shell.systemState as DefaultSystemState,
-        workspaceRoot: _workspaceRootUri.toFilePath(),
-      ),
-      ForgeRevisionView(
-        workspaceState: _shell.workspaceState,
-        systemState: _shell.systemState as DefaultSystemState,
-        layoutController: _shell.layout,
-        shellApi: _shell is DefaultShellApi ? _shell as DefaultShellApi : null,
-        onDidSave: _shell.fileSystem.onDidSave,
+      ForgeViewContribution(
+        view: problems,
+        hint: const ForgeViewPlacementHint(
+          id: forgeProblemsViewId,
+          role: ForgeViewRole.messages,
+          group: 'Problems',
+          groupIcon: Icons.error_outline,
+        ),
       ),
     ]);
   }
@@ -633,9 +668,7 @@ class ForgeAppModule extends ForgeModule {
     _subscriptions.add(
       _shell.systemState.onDiagnosticsChanged.listen((_) {
         _updateDiagnosticText();
-        _shellOutputChannel?.appendLine(
-          '[Diagnostics] $_diagnosticText',
-        );
+        _shellOutputChannel?.appendLine('[Diagnostics] $_diagnosticText');
       }),
     );
 
@@ -645,6 +678,7 @@ class ForgeAppModule extends ForgeModule {
       void onHistoryChanged() {
         _updateNotificationText(nm);
       }
+
       nm.history.addListener(onHistoryChanged);
       _notificationHistoryListener = onHistoryChanged;
     }
@@ -794,7 +828,9 @@ class ForgeAppModule extends ForgeModule {
   void _logActiveEditor(String reason) {
     final active = _shell.systemState.activeEditor;
     if (active == null) {
-      _shellOutputChannel?.appendLine('[Forge Shell] $reason: no active editor');
+      _shellOutputChannel?.appendLine(
+        '[Forge Shell] $reason: no active editor',
+      );
       return;
     }
 
@@ -802,7 +838,9 @@ class ForgeAppModule extends ForgeModule {
     _shellOutputChannel?.appendLine(
       '[Forge Shell] $reason: ${active.uri.path}',
     );
-    _editorChannels[ext]?.appendLine('[Editor] Active file: ${active.uri.path}');
+    _editorChannels[ext]?.appendLine(
+      '[Editor] Active file: ${active.uri.path}',
+    );
   }
 
   // ── Module-scoped persistence (Row 10) ──

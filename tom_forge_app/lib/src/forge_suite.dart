@@ -3,7 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:tom_file_system/io.dart';
-import 'package:tom_forge_core/tom_forge_core.dart' show FileHandlingResult;
+import 'package:tom_forge_core/tom_forge_core.dart'
+    show FileHandlingResult, ForgePanelLocation;
 import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
 import 'package:tom_forge_office_editors/tom_forge_office_editors.dart';
 import 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart';
@@ -20,10 +21,14 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgePreferencesService,
         ForgeShellComponents,
         MiddlePanelConfig,
+        forgeContributedPanelTabs,
         PanelConfig,
         PanelLayout,
         PanelTabConfig,
         TomForgeShellModule;
+import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
+import 'package:tom_forge_output_view/tom_forge_output_view.dart';
+import 'package:tom_forge_revision_view/tom_forge_revision_view.dart';
 import 'package:tom_forge_terminal/tom_forge_terminal.dart';
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
@@ -97,6 +102,13 @@ class ForgeSuite {
 
   final TomForgeShellModule shellModule;
   final ForgeAppModule appModule;
+
+  /// The views that are packages of their own, each a kit module placed by
+  /// its hint: Outline, Output, Revisions (after the app module, whose views
+  /// they sit beside).
+  final ForgeOutlineViewModule outlineViewModule = forgeOutlineViewModule();
+  final ForgeOutputViewModule outputViewModule = forgeOutputViewModule();
+  final ForgeRevisionViewModule revisionViewModule = forgeRevisionViewModule();
   final WebsiteEditorModule websiteModule;
 
   /// The quest applications: their factory and the Open Quest picker, in the
@@ -130,6 +142,11 @@ class ForgeSuite {
     module.activate(shell);
     (shell.modules as DefaultModuleRegistry).register(module);
   }
+
+  /// Registers a module written against the kit alone (activated with the
+  /// shell's API).
+  void _registerKitModule(ForgeKitModule module) =>
+      shell.registerModule(module);
 }
 
 /// The id of the tom_forge application.
@@ -217,6 +234,11 @@ Future<ForgeSuite> composeForgeSuite({
   suite
     .._register(suite.shellModule)
     .._register(suite.appModule)
+    // The views that are packages of their own (CMP-2): placed by their
+    // hints beside the app module's.
+    .._registerKitModule(suite.outlineViewModule)
+    .._registerKitModule(suite.outputViewModule)
+    .._registerKitModule(suite.revisionViewModule)
     // The website editor (§9): the site preview, the dev-server / generator
     // panel and the content catalog. It disables itself when the workspace
     // has no tom.website-editor.yaml.
@@ -299,9 +321,13 @@ bool _fileEditorsClaim(DefaultShellApi shell, Uri uri) {
   return layout.getFileTypeDefaultEditor(extension) == null;
 }
 
+/// The tom_forge application: its side and bottom panels laid out from the
+/// views the registered modules contribute, by their placement hints
+/// ([forgeContributedPanelTabs]: Explorer with Revisions and Search on the
+/// left, Outline on the right, Problems and Output at the bottom), with the
+/// website editor's tabs and the Terminal tab added.
 ForgeApplication _forgeApplication(ForgeSuite suite) {
-  ForgeView view(String title) =>
-      suite.appModule.views.firstWhere((v) => v.title.value == title);
+  final modules = suite.shell.modules;
   final website = suite.websiteModule;
   return ForgeApplication(
     id: forgeApplicationId,
@@ -311,16 +337,7 @@ ForgeApplication _forgeApplication(ForgeSuite suite) {
       leftPanel: PanelConfig(
         initialSize: 250,
         tabs: [
-          PanelTabConfig(
-            title: 'Explorer',
-            icon: Icons.folder_outlined,
-            sections: [view('Explorer'), view('Revisions')],
-          ),
-          PanelTabConfig(
-            title: 'Search',
-            icon: Icons.search,
-            sections: [view('Search')],
-          ),
+          ...forgeContributedPanelTabs(modules, ForgePanelLocation.left),
           PanelTabConfig(
             title: 'Website',
             icon: Icons.public,
@@ -334,27 +351,12 @@ ForgeApplication _forgeApplication(ForgeSuite suite) {
       ),
       rightPanel: PanelConfig(
         initialSize: 220,
-        tabs: [
-          PanelTabConfig(
-            title: 'Outline',
-            icon: Icons.account_tree,
-            sections: [view('Outline')],
-          ),
-        ],
+        tabs: forgeContributedPanelTabs(modules, ForgePanelLocation.right),
       ),
       bottomPanel: PanelConfig(
         initialSize: 180,
         tabs: [
-          PanelTabConfig(
-            title: 'Problems',
-            icon: Icons.error_outline,
-            sections: [view('Problems')],
-          ),
-          PanelTabConfig(
-            title: 'Output',
-            icon: Icons.terminal,
-            sections: [view('Output')],
-          ),
+          ...forgeContributedPanelTabs(modules, ForgePanelLocation.bottom),
           PanelTabConfig(
             title: 'Web Preview',
             icon: Icons.web,

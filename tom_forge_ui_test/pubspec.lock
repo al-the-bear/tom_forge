@@ -960,6 +960,20 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_outline_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_outline_view"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_output_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_output_view"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_plain_text_editor:
     dependency: "direct main"
     description:

@@ -20,6 +20,12 @@ dependencies:
     path: ../tom_forge_shared_ui
   tom_forge_shell:
     path: ../tom_forge_shell
+  # The views that are packages of their own (the test app module shows the
+  # Outline and Output views).
+  tom_forge_outline_view:
+    path: ../tom_forge_outline_view
+  tom_forge_output_view:
+    path: ../tom_forge_output_view
   # The plain-text editor (ForgePlainTextEditor).
   tom_forge_plain_text_editor:
     path: ../tom_forge_plain_text_editor

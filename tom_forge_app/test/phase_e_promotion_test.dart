@@ -5,9 +5,13 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         DefaultModuleRegistry,
         DefaultShellApi,
         ForgeApplication,
+        ForgeKitModule,
         TomForgeShellModule;
 import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
     show ForgePlainTextEditor;
+import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
+import 'package:tom_forge_output_view/tom_forge_output_view.dart';
+import 'package:tom_forge_revision_view/tom_forge_revision_view.dart';
 
 import 'package:tom_forge_app/src/app.dart';
 import 'package:tom_forge_app/src/forge_app_module.dart';
@@ -154,14 +158,28 @@ void main() {
 
       final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
+      // Outline, Output and Revisions are view packages' modules of their
+      // own, registered beside the app module.
+      final viewModules = <ForgeKitModule>[
+        forgeOutlineViewModule(),
+        forgeOutputViewModule(),
+        forgeRevisionViewModule(),
+      ];
+      for (final module in viewModules) {
+        module.activate(shell);
+      }
 
-      final viewTitles = appModule.views.map((v) => v.title.value).toSet();
+      final viewTitles = {
+        for (final module in <ForgeKitModule>[appModule, ...viewModules])
+          for (final view in module.views) view.title.value,
+      };
 
       expect(viewTitles, contains('Explorer'));
       expect(viewTitles, contains('Outline'));
       expect(viewTitles, contains('Search'));
       expect(viewTitles, contains('Problems'));
       expect(viewTitles, contains('Output'));
+      expect(viewTitles, contains('Revisions'));
     });
 
     test('module status bar items include cursor and language indicators', () {

@@ -1004,6 +1004,20 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_outline_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_outline_view"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_output_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_output_view"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_pdf_editors:
     dependency: "direct main"
     description:
@@ -1029,6 +1043,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../tom_forge_quests"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_revision_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_revision_view"
       relative: true
     source: path
     version: "0.1.0"

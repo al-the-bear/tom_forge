@@ -12,14 +12,14 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         DefaultSystemState,
         ForgeFileExplorerView,
         ForgeModule,
-        ForgeOutlineView,
-        ForgeOutputView,
         ForgeProblemsView,
         ForgeSearchView,
         ForgeShellApi,
         StatusBarItem,
         TomForgeShellModule;
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
+import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
+import 'package:tom_forge_output_view/tom_forge_output_view.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
 class TestAppModule extends ForgeModule {

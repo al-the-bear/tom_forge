@@ -53,6 +53,12 @@ const Map<String, int> _layers = <String, int>{
   // The plain-text editor: tom_file_editors' text file editor (a tom_modules
   // package) as a Forge editor over the kit; the shell falls back to it.
   'tom_forge_plain_text_editor': 3,
+  // The views as kit components, one package each (see _views): usable in
+  // any layout, contributed through the module registry and placed by their
+  // hints; the shell takes none of them (PL-11).
+  'tom_forge_outline_view': 3,
+  'tom_forge_output_view': 3,
+  'tom_forge_revision_view': 3,
   // 4 Shell core.
   'tom_forge_shell': 4,
   // 5 Shell parts: what plugs into the core (ForgeShellComponents). The
@@ -125,6 +131,17 @@ const Map<String, String> _editorAdapters = <String, String>{
   'tom_forge_dart_editor': 'tom_dart_editor',
   'tom_forge_yaml_editor': 'tom_yaml_editor',
   'tom_forge_plain_text_editor': 'tom_file_editors',
+};
+
+/// The views (layer 3): kit components in a package each (CMP-2, R5), each
+/// contributing its view through the module registry with a layout-free
+/// placement hint. Within layer 3 a view may take the shared look (PL-2);
+/// a view takes the kit and the light shared packages only, and the panel
+/// shell takes no view (PL-11).
+const Set<String> _views = <String>{
+  'tom_forge_outline_view',
+  'tom_forge_output_view',
+  'tom_forge_revision_view',
 };
 
 /// What one adapter takes beyond its editor, the kit and the light shared
@@ -287,7 +304,7 @@ void main() {
           if (dep.dev && _testSupport.contains(to)) continue;
           // Layer 3 holds the shared look and the editor adapters; an
           // adapter may take the shared look (PL-8), never the other way.
-          if (_editorAdapters.containsKey(from) &&
+          if ((_editorAdapters.containsKey(from) || _views.contains(from)) &&
               to == 'tom_forge_shared_ui') {
             continue;
           }
@@ -503,6 +520,59 @@ void main() {
             'a pseudo-terminal and the xterm widget); Forge\'s Terminal view, '
             'the terminal managers and their registration are its adapter\'s, '
             'tom_forge_terminal (platform_architecture.md §1).',
+      );
+    });
+
+    test('PL-11: a view takes the kit and light shared packages only, and '
+        'the panel shell takes no view', () {
+      if (!reachable()) return;
+      // R5 and R9: a view is a kit component its package contributes through
+      // the module registry; neither the kit nor the shell names it.
+      const shared = {
+        'flutter',
+        'tom_forge_kit',
+        'tom_forge_shared_ui',
+        'tom_forge_core',
+        'tom_editors_shared',
+      };
+      const allowedDev = {
+        'flutter_test',
+        'flutter_lints',
+        // The bare kit's tests run over an in-memory file system.
+        'tom_file_system',
+        'tom_forge_core',
+      };
+      final offenders = <String>[];
+      for (final name in _views) {
+        final package = packages[name];
+        if (package == null) {
+          offenders.add('$name is missing');
+          continue;
+        }
+        for (final d in package.dependencies) {
+          final ok = d.dev
+              ? allowedDev.contains(d.name) || _testSupport.contains(d.name)
+              : shared.contains(d.name);
+          if (!ok) offenders.add('$name: ${d.name}${d.dev ? ' (dev)' : ''}');
+        }
+      }
+      for (final d in packages['tom_forge_shell']?.dependencies ?? const []) {
+        if (_views.contains(d.name)) {
+          offenders.add(
+            'tom_forge_shell has a ${d.dev ? 'dev_dependency' : 'dependency'} '
+            'on the view ${d.name}',
+          );
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            'A view is a kit component usable in any layout: it takes the '
+            'kit (and the shared look when it shows kit UI), never the shell, '
+            'and the shell builds without it; an application registers the '
+            'view\'s module (platform_architecture.md §1).\n'
+            '${offenders.join('\n')}',
       );
     });
 
