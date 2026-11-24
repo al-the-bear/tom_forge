@@ -217,6 +217,9 @@ const Map<String, Map<String, String>> _adapterExtras =
       'tom_forge_office_lok': {
         'tom_file_session':
             'the binary save rules the host hands the editor (TomBinaryFiles)',
+        'crypto':
+            'the install runner\'s SHA-256 check of a managed LibreOffice '
+            'download against its published hash',
       },
       'tom_forge_office_zetaoffice': {
         'tom_office_editor':
