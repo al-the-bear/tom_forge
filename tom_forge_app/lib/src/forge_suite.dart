@@ -22,6 +22,7 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgeShellComponents,
         MiddlePanelConfig,
         forgeContributedPanelTabs,
+        forgeContributedTerminalTab,
         PanelConfig,
         PanelLayout,
         PanelTabConfig,
@@ -29,7 +30,9 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
 import 'package:tom_forge_file_explorer/tom_forge_file_explorer.dart';
 import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
 import 'package:tom_forge_output_view/tom_forge_output_view.dart';
+import 'package:tom_forge_command_palette/tom_forge_command_palette.dart';
 import 'package:tom_forge_problems_view/tom_forge_problems_view.dart';
+import 'package:tom_forge_quick_open/tom_forge_quick_open.dart';
 import 'package:tom_forge_revision_view/tom_forge_revision_view.dart';
 import 'package:tom_forge_search_view/tom_forge_search_view.dart';
 import 'package:tom_forge_terminal/tom_forge_terminal.dart';
@@ -119,6 +122,16 @@ class ForgeSuite {
   final ForgeOutlineViewModule outlineViewModule = forgeOutlineViewModule();
   final ForgeOutputViewModule outputViewModule = forgeOutputViewModule();
   final ForgeRevisionViewModule revisionViewModule = forgeRevisionViewModule();
+
+  /// Quick open and the command palette, packages of their own: the overlay
+  /// the shell shows when the user opens them (quick open wins; the palette
+  /// is what a shell without quick open shows).
+  final ForgeQuickOpenModule quickOpenModule = forgeQuickOpenModule();
+  final ForgeCommandPaletteModule commandPaletteModule =
+      forgeCommandPaletteModule();
+
+  /// Where the terminals go: the bottom panel's Terminal tab.
+  final ForgeTerminalModule terminalModule = forgeTerminalModule();
   final WebsiteEditorModule websiteModule;
 
   /// The quest applications: their factory and the Open Quest picker, in the
@@ -251,6 +264,10 @@ Future<ForgeSuite> composeForgeSuite({
     .._registerKitModule(suite.outlineViewModule)
     .._registerKitModule(suite.outputViewModule)
     .._registerKitModule(suite.revisionViewModule)
+    // Quick open, the command palette and the terminals' placement.
+    .._registerKitModule(suite.quickOpenModule)
+    .._registerKitModule(suite.commandPaletteModule)
+    .._registerKitModule(suite.terminalModule)
     // The website editor (§9): the site preview, the dev-server / generator
     // panel and the content catalog. It disables itself when the workspace
     // has no tom.website-editor.yaml.
@@ -337,7 +354,8 @@ bool _fileEditorsClaim(DefaultShellApi shell, Uri uri) {
 /// views the registered modules contribute, by their placement hints
 /// ([forgeContributedPanelTabs]: Explorer with Revisions and Search on the
 /// left, Outline on the right, Problems and Output at the bottom), with the
-/// website editor's tabs and the Terminal tab added.
+/// website editor's tabs and the terminal tab its terminal module places
+/// ([forgeContributedTerminalTab]) added.
 ForgeApplication _forgeApplication(ForgeSuite suite) {
   final modules = suite.shell.modules;
   final website = suite.websiteModule;
@@ -374,11 +392,7 @@ ForgeApplication _forgeApplication(ForgeSuite suite) {
             icon: Icons.web,
             sections: [website.previewView!],
           ),
-          const PanelTabConfig(
-            title: 'Terminal',
-            icon: Icons.code,
-            sections: [],
-          ),
+          ?forgeContributedTerminalTab(modules),
         ],
       ),
       middlePanels: [const MiddlePanelConfig()],

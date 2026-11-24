@@ -32,6 +32,12 @@ dependencies:
     path: ../tom_forge_outline_view
   tom_forge_output_view:
     path: ../tom_forge_output_view
+  # Quick open and the command palette, packages of their own: the overlay
+  # the shell shows.
+  tom_forge_quick_open:
+    path: ../tom_forge_quick_open
+  tom_forge_command_palette:
+    path: ../tom_forge_command_palette
   # The plain-text editor (ForgePlainTextEditor).
   tom_forge_plain_text_editor:
     path: ../tom_forge_plain_text_editor

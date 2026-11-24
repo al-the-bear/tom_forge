@@ -62,6 +62,10 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_outline_view': 3,
   'tom_forge_output_view': 3,
   'tom_forge_revision_view': 3,
+  // Quick open and the command palette: the overlay a module contributes
+  // (ForgeQuickOpenExtra), which the shell asks the registry for.
+  'tom_forge_quick_open': 3,
+  'tom_forge_command_palette': 3,
   // 4 Shell core.
   'tom_forge_shell': 4,
   // 5 Shell parts: what plugs into the core (ForgeShellComponents). The
@@ -148,6 +152,8 @@ const Set<String> _views = <String>{
   'tom_forge_outline_view',
   'tom_forge_output_view',
   'tom_forge_revision_view',
+  'tom_forge_quick_open',
+  'tom_forge_command_palette',
 };
 
 /// What one view takes beyond the kit and the light shared packages
@@ -158,6 +164,11 @@ const Map<String, Map<String, String>> _viewExtras =
         'tom_file_system':
             'the file tree it lists and changes (TomFileSystem, '
             'TomFileEntry), which the kit does not re-export',
+      },
+      'tom_forge_quick_open': {
+        'tom_file_system':
+            'the workspace files it searches (TomFileEntry), which the kit '
+            'does not re-export',
       },
     };
 
@@ -580,6 +591,25 @@ void main() {
             'tom_forge_shell has a ${d.dev ? 'dev_dependency' : 'dependency'} '
             'on the view ${d.name}',
           );
+        }
+      }
+      // Nor does its library name one: no import, export or mention of a
+      // view package anywhere under lib/.
+      final shell = packages['tom_forge_shell'];
+      final shellLib = shell == null
+          ? null
+          : Directory('${shell.dir.path}/lib');
+      if (shellLib != null && shellLib.existsSync()) {
+        for (final file
+            in shellLib.listSync(recursive: true).whereType<File>()) {
+          if (!file.path.endsWith('.dart')) continue;
+          final text = file.readAsStringSync();
+          for (final view in _views) {
+            if (text.contains(view)) {
+              final relative = file.path.substring(shell!.dir.path.length + 1);
+              offenders.add('tom_forge_shell/$relative names the view $view');
+            }
+          }
         }
       }
       expect(

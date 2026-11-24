@@ -13,7 +13,10 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         PanelConfig,
         PanelLayout,
         PanelTabConfig,
+        forgeContributedTerminalTab,
         TomForgeShellModule;
+import 'package:tom_forge_command_palette/tom_forge_command_palette.dart';
+import 'package:tom_forge_quick_open/tom_forge_quick_open.dart';
 import 'package:tom_forge_terminal/tom_forge_terminal.dart';
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
@@ -114,6 +117,13 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
     appModule.activate(shell);
     registry.register(appModule);
 
+    // Quick open, the command palette and the terminals' placement,
+    // packages of their own.
+    shell
+      ..registerModule(forgeQuickOpenModule())
+      ..registerModule(forgeCommandPaletteModule())
+      ..registerModule(forgeTerminalModule());
+
     // Build application layout from module views
     ForgeView viewById(String title) =>
         appModule.views.firstWhere((v) => v.title.value == title);
@@ -164,7 +174,7 @@ class _ForgeTestLauncherState extends State<ForgeTestLauncher> {
               icon: Icons.terminal,
               sections: [viewById('Output')],
             ),
-            PanelTabConfig(title: 'Terminal', icon: Icons.code, sections: []),
+            ?forgeContributedTerminalTab(shell.modules),
           ],
         ),
         middlePanels: [const MiddlePanelConfig()],

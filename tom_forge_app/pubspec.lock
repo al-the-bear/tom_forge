@@ -941,6 +941,13 @@ packages:
       relative: true
     source: path
     version: "0.2.1"
+  tom_forge_command_palette:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_command_palette"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_core:
     dependency: "direct main"
     description:
@@ -1057,6 +1064,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../tom_forge_quests"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_quick_open:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_quick_open"
       relative: true
     source: path
     version: "0.1.0"
