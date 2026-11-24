@@ -9,9 +9,12 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         TomForgeShellModule;
 import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
     show ForgePlainTextEditor;
+import 'package:tom_forge_file_explorer/tom_forge_file_explorer.dart';
 import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
 import 'package:tom_forge_output_view/tom_forge_output_view.dart';
+import 'package:tom_forge_problems_view/tom_forge_problems_view.dart';
 import 'package:tom_forge_revision_view/tom_forge_revision_view.dart';
+import 'package:tom_forge_search_view/tom_forge_search_view.dart';
 
 import 'package:tom_forge_app/src/app.dart';
 import 'package:tom_forge_app/src/forge_app_module.dart';
@@ -158,9 +161,12 @@ void main() {
 
       final appModule = ForgeAppModule(workspaceRootUri: Uri.parse('file:///'));
       appModule.activate(shell);
-      // Outline, Output and Revisions are view packages' modules of their
-      // own, registered beside the app module.
+      // The views are view packages' modules of their own, registered
+      // beside the app module.
       final viewModules = <ForgeKitModule>[
+        forgeFileExplorerModule(rootUri: appModule.workspaceRootUri),
+        forgeProblemsViewModule(),
+        forgeSearchViewModule(),
         forgeOutlineViewModule(),
         forgeOutputViewModule(),
         forgeRevisionViewModule(),

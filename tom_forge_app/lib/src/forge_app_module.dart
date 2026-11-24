@@ -11,44 +11,30 @@ import 'package:tom_editors_shared/tom_editors_shared.dart'
     show StandardEditingActions;
 import 'package:tom_forge_kit/tom_forge_kit.dart';
 import 'package:tom_forge_shell/tom_forge_shell.dart'
-    show
-        DefaultLayoutController,
-        DefaultSystemState,
-        ForgeFileExplorerView,
-        ForgeModule,
-        ForgeProblemsView,
-        ForgeSearchView,
-        ForgeShellApi,
-        StatusBarItem;
+    show DefaultLayoutController, ForgeModule, ForgeShellApi, StatusBarItem;
 import 'package:tom_forge_plain_text_editor/tom_forge_plain_text_editor.dart'
     show ForgePlainTextEditor;
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
 import 'package:tom_forge_yaml_editor/tom_forge_yaml_editor.dart';
 
-/// The id of the Explorer view ([ForgeViewPlacementHint.id]).
-const String forgeExplorerViewId = 'forge.view.explorer';
-
-/// The id of the Search view.
-const String forgeSearchViewId = 'forge.view.search';
-
-/// The id of the Problems view.
-const String forgeProblemsViewId = 'forge.view.problems';
-
-/// Production IDE module providing views, actions, shortcuts, and status bar items.
+/// Production IDE module providing actions, shortcut menus and status bar
+/// items.
 ///
 /// Promoted from TestAppModule in tom_forge_ui_test with identical behavior.
-/// Its views — Explorer, Problems, Search — carry placement hints
-/// ([ForgeViewContributionsExtra]) like the view packages' (Outline, Output,
-/// Revisions, which `composeForgeSuite` registers as modules of their own),
-/// so Tom Forge's panels are laid out from the module registry.
-class ForgeAppModule extends ForgeModule implements ForgeModuleExtrasProvider {
-  ForgeAppModule({required Uri workspaceRootUri})
-    : _workspaceRootUri = workspaceRootUri;
+/// It has no views of its own: Tom Forge's views are packages of their own
+/// (Explorer, Search, Problems, Outline, Output, Revisions), which
+/// `composeForgeSuite` registers as modules placed by their hints; the
+/// actions that show them (`view.toggleExplorer`, `view.toggleProblems`,
+/// `edit.findInFiles`) are this module's, since they toggle the shell's
+/// panels.
+class ForgeAppModule extends ForgeModule {
+  ForgeAppModule({required this.workspaceRootUri});
 
-  final Uri _workspaceRootUri;
+  /// The workspace folder Tom Forge edits; `composeForgeSuite` shows it in
+  /// the file explorer and the Search view.
+  final Uri workspaceRootUri;
   late ForgeShellApi _shell;
-  final List<ForgeView> _views = [];
   final List<ForgeAction> _actions = [];
   final List<ForgeShortcutBinding> _shortcuts = [];
   final List<StatusBarItem> _statusBarItems = [];
@@ -82,7 +68,6 @@ class ForgeAppModule extends ForgeModule implements ForgeModuleExtrasProvider {
   void activate(ForgeShellApi shell) {
     _shell = shell;
     _setupOutputChannels();
-    _buildViews();
     _buildActions();
     _buildShortcuts();
     _buildStatusBarItems();
@@ -122,8 +107,6 @@ class ForgeAppModule extends ForgeModule implements ForgeModuleExtrasProvider {
       sub.cancel();
     }
     _subscriptions.clear();
-    _views.clear();
-    _viewContributions.clear();
     _actions.clear();
     _shortcuts.clear();
     _statusBarItems.clear();
@@ -133,15 +116,7 @@ class ForgeAppModule extends ForgeModule implements ForgeModuleExtrasProvider {
   List<ForgeEditor> get editors => const [];
 
   @override
-  List<ForgeView> get views => List.unmodifiable(_views);
-
-  final List<ForgeViewContribution> _viewContributions = [];
-
-  @override
-  List<ForgeModuleExtra> get ownExtras => [
-    if (_viewContributions.isNotEmpty)
-      ForgeViewContributionsExtra(List.unmodifiable(_viewContributions)),
-  ];
+  List<ForgeView> get views => const [];
 
   @override
   List<ForgeAction> get actions => List.unmodifiable(_actions);
@@ -181,58 +156,6 @@ class ForgeAppModule extends ForgeModule implements ForgeModuleExtrasProvider {
         ],
       ),
     ];
-  }
-
-  // ── Views ──
-
-  void _buildViews() {
-    final explorer = ForgeFileExplorerView(
-      fileSystem: _shell.fileSystem,
-      layoutController: _shell.layout,
-      rootUri: _workspaceRootUri,
-      contextMenus: _shell.contextMenus,
-    );
-    final problems = ForgeProblemsView(
-      diagnosticManager: _shell.diagnostics,
-      layoutController: _shell.layout,
-    );
-    final search = ForgeSearchView(
-      searchManager: _shell.search,
-      layoutController: _shell.layout,
-      systemState: _shell.systemState as DefaultSystemState,
-      workspaceRoot: _workspaceRootUri.toFilePath(),
-    );
-    _views.addAll([explorer, problems, search]);
-    _viewContributions.addAll([
-      ForgeViewContribution(
-        view: explorer,
-        hint: const ForgeViewPlacementHint(
-          id: forgeExplorerViewId,
-          role: ForgeViewRole.navigation,
-          group: 'Explorer',
-          groupIcon: Icons.folder_outlined,
-        ),
-      ),
-      ForgeViewContribution(
-        view: search,
-        hint: const ForgeViewPlacementHint(
-          id: forgeSearchViewId,
-          role: ForgeViewRole.navigation,
-          group: 'Search',
-          groupIcon: Icons.search,
-          order: 10,
-        ),
-      ),
-      ForgeViewContribution(
-        view: problems,
-        hint: const ForgeViewPlacementHint(
-          id: forgeProblemsViewId,
-          role: ForgeViewRole.messages,
-          group: 'Problems',
-          groupIcon: Icons.error_outline,
-        ),
-      ),
-    ]);
   }
 
   // ── Actions ──

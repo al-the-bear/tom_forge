@@ -26,9 +26,12 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         PanelLayout,
         PanelTabConfig,
         TomForgeShellModule;
+import 'package:tom_forge_file_explorer/tom_forge_file_explorer.dart';
 import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
 import 'package:tom_forge_output_view/tom_forge_output_view.dart';
+import 'package:tom_forge_problems_view/tom_forge_problems_view.dart';
 import 'package:tom_forge_revision_view/tom_forge_revision_view.dart';
+import 'package:tom_forge_search_view/tom_forge_search_view.dart';
 import 'package:tom_forge_terminal/tom_forge_terminal.dart';
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_md_editor/tom_forge_md_editor.dart';
@@ -103,9 +106,16 @@ class ForgeSuite {
   final TomForgeShellModule shellModule;
   final ForgeAppModule appModule;
 
-  /// The views that are packages of their own, each a kit module placed by
-  /// its hint: Outline, Output, Revisions (after the app module, whose views
-  /// they sit beside).
+  /// The views, packages of their own, each a kit module placed by its hint:
+  /// the file explorer and the Search view over the app module's workspace
+  /// folder, Problems, Outline, Output, Revisions (registered after the app
+  /// module, in this order).
+  late final ForgeFileExplorerModule fileExplorerModule =
+      forgeFileExplorerModule(rootUri: appModule.workspaceRootUri);
+  final ForgeProblemsViewModule problemsViewModule = forgeProblemsViewModule();
+  late final ForgeSearchViewModule searchViewModule = forgeSearchViewModule(
+    workspaceRoot: appModule.workspaceRootUri.toFilePath(),
+  );
   final ForgeOutlineViewModule outlineViewModule = forgeOutlineViewModule();
   final ForgeOutputViewModule outputViewModule = forgeOutputViewModule();
   final ForgeRevisionViewModule revisionViewModule = forgeRevisionViewModule();
@@ -234,8 +244,10 @@ Future<ForgeSuite> composeForgeSuite({
   suite
     .._register(suite.shellModule)
     .._register(suite.appModule)
-    // The views that are packages of their own (CMP-2): placed by their
-    // hints beside the app module's.
+    // The views, packages of their own (CMP-2): placed by their hints.
+    .._registerKitModule(suite.fileExplorerModule)
+    .._registerKitModule(suite.problemsViewModule)
+    .._registerKitModule(suite.searchViewModule)
     .._registerKitModule(suite.outlineViewModule)
     .._registerKitModule(suite.outputViewModule)
     .._registerKitModule(suite.revisionViewModule)

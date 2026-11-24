@@ -56,6 +56,9 @@ const Map<String, int> _layers = <String, int>{
   // The views as kit components, one package each (see _views): usable in
   // any layout, contributed through the module registry and placed by their
   // hints; the shell takes none of them (PL-11).
+  'tom_forge_file_explorer': 3,
+  'tom_forge_search_view': 3,
+  'tom_forge_problems_view': 3,
   'tom_forge_outline_view': 3,
   'tom_forge_output_view': 3,
   'tom_forge_revision_view': 3,
@@ -139,10 +142,24 @@ const Map<String, String> _editorAdapters = <String, String>{
 /// a view takes the kit and the light shared packages only, and the panel
 /// shell takes no view (PL-11).
 const Set<String> _views = <String>{
+  'tom_forge_file_explorer',
+  'tom_forge_search_view',
+  'tom_forge_problems_view',
   'tom_forge_outline_view',
   'tom_forge_output_view',
   'tom_forge_revision_view',
 };
+
+/// What one view takes beyond the kit and the light shared packages
+/// (PL-11), each with why.
+const Map<String, Map<String, String>> _viewExtras =
+    <String, Map<String, String>>{
+      'tom_forge_file_explorer': {
+        'tom_file_system':
+            'the file tree it lists and changes (TomFileSystem, '
+            'TomFileEntry), which the kit does not re-export',
+      },
+    };
 
 /// What one adapter takes beyond its editor, the kit and the light shared
 /// packages (PL-8), each with why.
@@ -552,7 +569,8 @@ void main() {
         for (final d in package.dependencies) {
           final ok = d.dev
               ? allowedDev.contains(d.name) || _testSupport.contains(d.name)
-              : shared.contains(d.name);
+              : shared.contains(d.name) ||
+                    (_viewExtras[name]?.containsKey(d.name) ?? false);
           if (!ok) offenders.add('$name: ${d.name}${d.dev ? ' (dev)' : ''}');
         }
       }

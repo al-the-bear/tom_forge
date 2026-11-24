@@ -49,10 +49,11 @@ void main() {
     test('ForgeAppModule activates with views, actions, shortcuts, status bar', () {
       final module = activateModule();
 
-      // Outline, Output and Revisions are view packages' modules of their
-      // own (composeForgeSuite registers them).
-      expect(module.views.length, greaterThanOrEqualTo(3),
-          reason: 'Should have Explorer, Problems, Search views');
+      // The views are view packages' modules of their own
+      // (composeForgeSuite registers them).
+      expect(module.views, isEmpty,
+          reason: 'Explorer, Search, Problems, Outline, Output and Revisions '
+              'are view packages');
       expect(module.actions.length, greaterThanOrEqualTo(12),
           reason: 'Should have file/edit/view/help actions');
       // Shortcut bindings are owned by TomForgeShellModule, not the app module
@@ -71,7 +72,7 @@ void main() {
     test('ForgeAppModule deactivate clears all lists', () {
       final module = activateModule();
 
-      expect(module.views, isNotEmpty);
+      expect(module.actions, isNotEmpty);
       module.deactivate();
 
       expect(module.views, isEmpty);

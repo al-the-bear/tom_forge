@@ -10,16 +10,16 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
     show
         DefaultLayoutController,
         DefaultSystemState,
-        ForgeFileExplorerView,
         ForgeModule,
-        ForgeProblemsView,
-        ForgeSearchView,
         ForgeShellApi,
         StatusBarItem,
         TomForgeShellModule;
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
+import 'package:tom_forge_file_explorer/tom_forge_file_explorer.dart';
 import 'package:tom_forge_outline_view/tom_forge_outline_view.dart';
 import 'package:tom_forge_output_view/tom_forge_output_view.dart';
+import 'package:tom_forge_problems_view/tom_forge_problems_view.dart';
+import 'package:tom_forge_search_view/tom_forge_search_view.dart';
 
 /// Test IDE module providing views, actions, shortcuts, and status bar items.
 class TestAppModule extends ForgeModule {
@@ -158,10 +158,10 @@ class TestAppModule extends ForgeModule {
     _views.addAll([
       ForgeFileExplorerView(
         fileSystem: _shell.fileSystem,
-        layoutController: _shell.layout,
+        openFile: forgeOpenFileAtOf(_shell),
         rootUri: _workspaceRootUri,
         contextMenus: _shell.contextMenus,
-        systemState: _shell.systemState as DefaultSystemState,
+        selection: _shell.systemState as DefaultSystemState,
         fileDecorationManager:
             _shell.fileDecorations as DefaultFileDecorationManager,
       ),
@@ -171,13 +171,13 @@ class TestAppModule extends ForgeModule {
       ),
       ForgeProblemsView(
         diagnosticManager: _shell.diagnostics,
-        layoutController: _shell.layout,
+        openFile: forgeOpenFileAtOf(_shell),
       ),
       ForgeOutputView(channelManager: _shell.output),
       ForgeSearchView(
         searchManager: _shell.search,
-        layoutController: _shell.layout,
-        systemState: _shell.systemState as DefaultSystemState,
+        openFile: forgeOpenFileAtOf(_shell),
+        searchState: _shell.systemState as DefaultSystemState,
       ),
     ]);
   }

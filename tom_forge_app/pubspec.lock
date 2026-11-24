@@ -976,6 +976,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_file_explorer:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_file_explorer"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_kit:
     dependency: "direct main"
     description:
@@ -1039,6 +1046,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  tom_forge_problems_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_problems_view"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_forge_quests:
     dependency: "direct main"
     description:
@@ -1050,6 +1064,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../tom_forge_revision_view"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_search_view:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_search_view"
       relative: true
     source: path
     version: "0.1.0"

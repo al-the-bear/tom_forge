@@ -21,9 +21,16 @@ dependencies:
     path: ../tom_forge_shared_ui
   tom_forge_shell:
     path: ../tom_forge_shell
-  # The views that are packages of their own on the kit, registered as
-  # modules and placed by their hints (forgeOutlineViewModule,
-  # forgeOutputViewModule, forgeRevisionViewModule).
+  # The views, packages of their own on the kit, registered as modules and
+  # placed by their hints (forgeFileExplorerModule, forgeSearchViewModule,
+  # forgeProblemsViewModule, forgeOutlineViewModule, forgeOutputViewModule,
+  # forgeRevisionViewModule).
+  tom_forge_file_explorer:
+    path: ../tom_forge_file_explorer
+  tom_forge_search_view:
+    path: ../tom_forge_search_view
+  tom_forge_problems_view:
+    path: ../tom_forge_problems_view
   tom_forge_outline_view:
     path: ../tom_forge_outline_view
   tom_forge_output_view:
