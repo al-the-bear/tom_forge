@@ -53,6 +53,12 @@ const Map<String, int> _layers = <String, int>{
   // The plain-text editor: tom_file_editors' text file editor (a tom_modules
   // package) as a Forge editor over the kit; the shell falls back to it.
   'tom_forge_plain_text_editor': 3,
+  // The PDF and office editor adapters, one per engine or route (R6), each
+  // with its kit module: PDFium and pdf.js, LibreOfficeKit and ZetaOffice.
+  'tom_forge_pdf_pdfium': 3,
+  'tom_forge_pdf_pdfjs': 3,
+  'tom_forge_office_lok': 3,
+  'tom_forge_office_zetaoffice': 3,
   // The views as kit components, one package each (see _views): usable in
   // any layout, contributed through the module registry and placed by their
   // hints; the shell takes none of them (PL-11).
@@ -84,8 +90,6 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_agentic': 7,
   // 8 Modules.
   'tom_forge_file_editors': 8,
-  'tom_forge_office_editors': 8,
-  'tom_forge_pdf_editors': 8,
   'tom_forge_quests': 8,
   'tom_website_editor': 8,
   'tom_specs_editor': 8,
@@ -94,8 +98,10 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_file_editors_testing': 9,
   'tom_forge_md_editor_testing': 9,
   'tom_forge_yaml_editor_testing': 9,
-  'tom_forge_office_editors_testing': 9,
-  'tom_forge_pdf_editors_testing': 9,
+  'tom_forge_office_lok_testing': 9,
+  'tom_forge_office_zetaoffice_testing': 9,
+  'tom_forge_pdf_pdfium_testing': 9,
+  'tom_forge_pdf_pdfjs_testing': 9,
   // 10 Apps.
   'tom_forge_app': 10,
 };
@@ -113,8 +119,10 @@ const Set<String> _testSupport = <String>{
   'tom_forge_file_editors_testing',
   'tom_forge_md_editor_testing',
   'tom_forge_yaml_editor_testing',
-  'tom_forge_office_editors_testing',
-  'tom_forge_pdf_editors_testing',
+  'tom_forge_office_lok_testing',
+  'tom_forge_office_zetaoffice_testing',
+  'tom_forge_pdf_pdfium_testing',
+  'tom_forge_pdf_pdfjs_testing',
 };
 
 /// The plugin packages of a layer-2 component, each with its component: a
@@ -132,12 +140,17 @@ const Map<String, String> _componentPlugins = <String, String>{
 
 /// The editor adapters (layer 3), each with the one editor it makes a Forge
 /// editor (PL-8). Within layer 3 an adapter may take the shared look
-/// (PL-2). The plain-text adapter's editor is a tom_modules package.
+/// (PL-2). The plain-text, PDF and office adapters' editors are tom_modules
+/// packages, one engine or route each (R6).
 const Map<String, String> _editorAdapters = <String, String>{
   'tom_forge_md_editor': 'tom_md_editor',
   'tom_forge_dart_editor': 'tom_dart_editor',
   'tom_forge_yaml_editor': 'tom_yaml_editor',
   'tom_forge_plain_text_editor': 'tom_file_editors',
+  'tom_forge_pdf_pdfium': 'tom_pdf_editor',
+  'tom_forge_pdf_pdfjs': 'tom_pdf_pdfjs',
+  'tom_forge_office_lok': 'tom_office_editor',
+  'tom_forge_office_zetaoffice': 'tom_office_zetaoffice',
 };
 
 /// The views (layer 3): kit components in a package each (CMP-2, R5), each
@@ -180,6 +193,38 @@ const Map<String, Map<String, String>> _adapterExtras =
         'tom_file_system':
             'the file system its forFile and fromContent factories open the '
             'session in (an in-memory one for text without a file)',
+      },
+      'tom_forge_pdf_pdfium': {
+        'tom_pdf_pdfium':
+            'the PDFium engine the editor runs on (its one engine: no pdf.js, '
+            'no webview)',
+        'tom_file_session':
+            'the binary save rules (TomBinaryFileAccess, '
+            'TomFileSystemBinaryFiles)',
+        'tom_file_system':
+            'the application\'s file system, for files without a local path',
+      },
+      'tom_forge_pdf_pdfjs': {
+        'tom_pdf_editor':
+            'the view host every PDF view shares (TomPdfViewHost), never '
+            'the PDFium engine',
+        'tom_file_session':
+            'the binary save rules and the content server '
+            '(TomBinaryFileAccess, TomLocalContentServer)',
+        'tom_file_system':
+            'the application\'s file system, for files without a local path',
+      },
+      'tom_forge_office_lok': {
+        'tom_file_session':
+            'the binary save rules the host hands the editor (TomBinaryFiles)',
+      },
+      'tom_forge_office_zetaoffice': {
+        'tom_office_editor':
+            'the host interface the ZetaOffice route runs on '
+            '(TomOfficeEditorHost), shared with the native route',
+        'tom_file_session':
+            'the binary save rules the host hands the editor (TomBinaryFiles, '
+            'TomBinaryFileAccess)',
       },
     };
 

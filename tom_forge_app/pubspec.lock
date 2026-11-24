@@ -1011,10 +1011,17 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
-  tom_forge_office_editors:
+  tom_forge_office_lok:
     dependency: "direct main"
     description:
-      path: "../tom_forge_office_editors"
+      path: "../tom_forge_office_lok"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_office_zetaoffice:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_office_zetaoffice"
       relative: true
     source: path
     version: "0.1.0"
@@ -1032,10 +1039,17 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
-  tom_forge_pdf_editors:
+  tom_forge_pdf_pdfium:
     dependency: "direct main"
     description:
-      path: "../tom_forge_pdf_editors"
+      path: "../tom_forge_pdf_pdfium"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_forge_pdf_pdfjs:
+    dependency: "direct main"
+    description:
+      path: "../tom_forge_pdf_pdfjs"
       relative: true
     source: path
     version: "0.1.0"
@@ -1192,7 +1206,7 @@ packages:
       path: "../../tom_ai/modules/tom_office_editor"
       relative: true
     source: path
-    version: "0.5.0"
+    version: "0.6.0"
   tom_office_protocol:
     dependency: transitive
     description:
@@ -1200,10 +1214,31 @@ packages:
       relative: true
     source: path
     version: "0.5.0"
+  tom_office_zetaoffice:
+    dependency: "direct main"
+    description:
+      path: "../../tom_ai/modules/tom_office_zetaoffice"
+      relative: true
+    source: path
+    version: "0.1.0"
   tom_pdf_editor:
     dependency: "direct main"
     description:
       path: "../../tom_ai/modules/tom_pdf_editor"
+      relative: true
+    source: path
+    version: "0.2.0"
+  tom_pdf_pdfium:
+    dependency: transitive
+    description:
+      path: "../../tom_ai/modules/tom_pdf_pdfium"
+      relative: true
+    source: path
+    version: "0.1.0"
+  tom_pdf_pdfjs:
+    dependency: transitive
+    description:
+      path: "../../tom_ai/modules/tom_pdf_pdfjs"
       relative: true
     source: path
     version: "0.1.0"

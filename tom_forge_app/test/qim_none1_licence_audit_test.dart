@@ -88,13 +88,20 @@ void main() {
           'tom_dart_editor',
           'flutter_inappwebview',
           'file_picker',
-          // The PDF editors and the FFI they reach PDFium through.
-          'tom_forge_pdf_editors',
+          // The PDF editors, one adapter per engine, the engines and the FFI
+          // they reach PDFium through.
+          'tom_forge_pdf_pdfium',
+          'tom_forge_pdf_pdfjs',
           'tom_pdf_editor',
+          'tom_pdf_pdfium',
+          'tom_pdf_pdfjs',
           'ffi',
-          // The office editors and the office editor they compose.
-          'tom_forge_office_editors',
+          // The office editors, one adapter per route, and the routes they
+          // compose.
+          'tom_forge_office_lok',
+          'tom_forge_office_zetaoffice',
           'tom_office_editor',
+          'tom_office_zetaoffice',
         ]),
       );
       final audit = _forgeAudit(

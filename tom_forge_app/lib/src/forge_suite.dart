@@ -6,8 +6,10 @@ import 'package:tom_file_system/io.dart';
 import 'package:tom_forge_core/tom_forge_core.dart'
     show FileHandlingResult, ForgePanelLocation;
 import 'package:tom_forge_file_editors/tom_forge_file_editors.dart';
-import 'package:tom_forge_office_editors/tom_forge_office_editors.dart';
-import 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart';
+import 'package:tom_forge_office_lok/tom_forge_office_lok.dart';
+import 'package:tom_forge_office_zetaoffice/tom_forge_office_zetaoffice.dart';
+import 'package:tom_forge_pdf_pdfium/tom_forge_pdf_pdfium.dart';
+import 'package:tom_forge_pdf_pdfjs/tom_forge_pdf_pdfjs.dart';
 import 'package:tom_forge_quests/tom_forge_quests.dart';
 import 'package:tom_forge_kit/tom_forge_kit.dart';
 import 'package:tom_forge_shell/tom_forge_shell.dart'
@@ -93,8 +95,10 @@ class ForgeSuite {
     required this.appModule,
     required this.websiteModule,
     required this.questsModule,
-    required this.officeModule,
-    required this.pdfModule,
+    required this.officeLokModule,
+    required this.officeZetaOfficeModule,
+    required this.pdfiumModule,
+    required this.pdfJsModule,
   });
 
   final DefaultShellApi shell;
@@ -138,15 +142,26 @@ class ForgeSuite {
   /// tom_forge application and every quest application.
   final ForgeQuestsModule questsModule;
 
-  /// The office editors: LibreOfficeKit (the default for the office kinds)
-  /// and ZetaOffice, under *Open With*; LibreOffice's External Tools row.
-  /// Asked before the PDF editors, the extensions' modules and the file
-  /// editors.
-  final ForgeOfficeEditorsModule officeModule;
+  /// The LibreOfficeKit office editor (`tom_forge_office_lok`): the default
+  /// for the office kinds, under *Open With*, and LibreOffice's External
+  /// Tools row; ZetaOffice ([officeZetaOfficeModule]) is its alternative
+  /// route. Asked before ZetaOffice, the PDF editors, the extensions' modules
+  /// and the file editors.
+  final ForgeOfficeLokModule officeLokModule;
 
-  /// The PDF editors: PDFium (the default for `.pdf`) and pdf.js, under
-  /// *Open With*. Asked before the extensions' modules and the file editors.
-  final ForgePdfEditorsModule pdfModule;
+  /// The ZetaOffice office editor (`tom_forge_office_zetaoffice`): offered
+  /// under *Open With* for the office kinds, and the route the
+  /// missing-LibreOffice panel offers.
+  final ForgeZetaOfficeModule officeZetaOfficeModule;
+
+  /// The PDFium editor (`tom_forge_pdf_pdfium`): the default for `.pdf`,
+  /// under *Open With*. Asked before pdf.js, the extensions' modules and the
+  /// file editors.
+  final ForgePdfiumModule pdfiumModule;
+
+  /// The pdf.js view (`tom_forge_pdf_pdfjs`), offered under *Open With* for
+  /// `.pdf`.
+  final ForgePdfJsModule pdfJsModule;
 
   /// The tom_forge application (Forge's own panel layout).
   late final ForgeApplication forgeApplication;
@@ -214,7 +229,8 @@ void useForgeCodeHighlighting() => registerHighlightJsLanguages();
 
 /// Composes Tom Forge on [shell] for [workspaceRoot]: the shell module, the
 /// app module, the website editor module, the quests module, the office
-/// editors module and the PDF editors module, the
+/// editors (LibreOfficeKit, then ZetaOffice) and the PDF editors (PDFium,
+/// then pdf.js), the
 /// tom_forge application, each extension's modules, the file editors module
 /// (with the file kinds of [forgeSuiteFileKinds] and the extensions'
 /// [ForgeSuiteExtension.fileEditorBuilders]), then each
@@ -226,10 +242,12 @@ void useForgeCodeHighlighting() => registerHighlightJsLanguages();
 /// Forge's own app carries them ([ForgeDartSummaryAssets.root]), an app built
 /// on this library reads this package's ([forgeSuiteDartSummaries]).
 ///
-/// [officeModule] is the office editors module; by default the desktop's,
-/// which detects LibreOffice at activation with short processes. A widget
-/// test gives one whose `detect` starts no process: their timeouts would
-/// stay pending on the test's clock.
+/// [officeLokModule] is the LibreOfficeKit office module; by default the
+/// desktop's, which detects LibreOffice at activation with short processes
+/// and offers [officeZetaOfficeModule] (by default the desktop's) as its
+/// alternative route. A widget test gives one whose `detect` starts no
+/// process: their timeouts would stay pending on the test's clock. A given
+/// module is used as it is: it has the alternative route it was made with.
 Future<ForgeSuite> composeForgeSuite({
   required DefaultShellApi shell,
   required String workspaceRoot,
@@ -237,12 +255,40 @@ Future<ForgeSuite> composeForgeSuite({
   List<ForgeSuiteExtension> extensions = const [],
   ForgeDartSummaryAssets dartSummaryAssets = ForgeDartSummaryAssets.root,
   bool restoreApplications = true,
-  ForgeOfficeEditorsModule? officeModule,
+  ForgeOfficeLokModule? officeLokModule,
+  ForgeZetaOfficeModule? officeZetaOfficeModule,
 }) async {
   // The root is set before the modules activate: the website module
   // resolves its config file against it.
   (shell.systemState as DefaultSystemState).setWorkspaceRootPath(workspaceRoot);
   ForgeDartSummariesByHost.set(shell.layout, dartSummaryAssets);
+  final openExternal = shell.environment.openExternal;
+  final windowFocus = shell.systemState.onWindowFocusChanged.map(
+    (e) => e.focused,
+  );
+  final zeta =
+      officeZetaOfficeModule ??
+      ForgeZetaOfficeModule(
+        openExternal: openExternal,
+        windowFocus: windowFocus,
+      );
+  final lok =
+      officeLokModule ??
+      ForgeOfficeLokModule(
+        preferences: ForgePreferencesService.instance,
+        openExternal: openExternal,
+        filePickers: () => ForgeShellComponents.of(shell).pickers,
+        windowFocus: windowFocus,
+        alternative: ForgeOfficeAlternativeRoute(
+          choiceId: ForgeZetaOfficeModule.choiceId,
+          label: ForgeZetaOfficeModule.openLabel,
+          open: zeta.open,
+          editors: () => zeta.editors,
+          available: zeta.available,
+          check: zeta.checkAvailable,
+        ),
+      );
+  final focusRegained = windowFocus.where((focused) => focused);
   final suite = ForgeSuite._(
     shell: shell,
     navigatorKey: navigatorKey,
@@ -251,8 +297,16 @@ Future<ForgeSuite> composeForgeSuite({
     appModule: ForgeAppModule(workspaceRootUri: Directory(workspaceRoot).uri),
     websiteModule: WebsiteEditorModule(),
     questsModule: ForgeQuestsModule(),
-    officeModule: officeModule ?? ForgeOfficeEditorsModule(),
-    pdfModule: ForgePdfEditorsModule(),
+    officeLokModule: lok,
+    officeZetaOfficeModule: zeta,
+    pdfiumModule: ForgePdfiumModule(
+      openExternal: openExternal,
+      windowFocusRegained: focusRegained,
+    ),
+    pdfJsModule: ForgePdfJsModule(
+      openExternal: openExternal,
+      windowFocusRegained: focusRegained,
+    ),
   );
   suite
     .._register(suite.shellModule)
@@ -275,15 +329,20 @@ Future<ForgeSuite> composeForgeSuite({
     // The quest applications (one per open quest): registered before the
     // restore below, which recreates the ones open at the last exit.
     .._register(suite.questsModule)
-    // The office editors, Forge's own: after the quests module, before the
-    // PDF editors and the extensions' modules (an extension's office editor
-    // adds a choice, it does not replace the default) and so before the
-    // file editors.
-    .._register(suite.officeModule)
-    // The PDF editors, Forge's own: after the quests module, before the
-    // extensions' modules (an extension's PDF editor adds a choice, it does
-    // not replace the default) and so before the file editors.
-    .._register(suite.pdfModule);
+    // The office editors, Forge's own, kit modules (one per route):
+    // LibreOfficeKit first (the default; it leaves a file to ZetaOffice
+    // when the file-type default names it), then ZetaOffice; after the
+    // quests module, before the PDF editors and the extensions' modules (an
+    // extension's office editor adds a choice, it does not replace the
+    // default) and so before the file editors.
+    .._registerKitModule(suite.officeLokModule)
+    .._registerKitModule(suite.officeZetaOfficeModule)
+    // The PDF editors, Forge's own, kit modules (one per engine): PDFium
+    // first (the default), then pdf.js; before the extensions' modules (an
+    // extension's PDF editor adds a choice, it does not replace the default)
+    // and so before the file editors.
+    .._registerKitModule(suite.pdfiumModule)
+    .._registerKitModule(suite.pdfJsModule);
 
   suite.forgeApplication = _forgeApplication(suite);
   shell.applications.add(suite.forgeApplication);
@@ -328,11 +387,13 @@ Future<ForgeSuite> composeForgeSuite({
 /// (the shell's Dart editor), and not a file whose extension the user gave a
 /// default editor of the shell's.
 bool _fileEditorsClaim(DefaultShellApi shell, Uri uri) {
-  for (final module in shell.modules.allModules) {
-    if (module is ForgeOfficeEditorsModule && module.handles(uri)) {
-      return false;
-    }
-    if (module is ForgePdfEditorsModule && module.handles(uri)) return false;
+  // Every module, the kit modules (the office and PDF editors, the views)
+  // with the shell's own.
+  for (final module in shell.modules.allKitModules) {
+    if (module is ForgeOfficeLokModule && module.handles(uri)) return false;
+    if (module is ForgeZetaOfficeModule && module.handles(uri)) return false;
+    if (module is ForgePdfiumModule && module.handles(uri)) return false;
+    if (module is ForgePdfJsModule && module.handles(uri)) return false;
     // The shell module lists the shell's own open editors, and the file
     // editors module its own: neither takes a file away.
     if (module is TomForgeShellModule || module is ForgeFileEditorsModule) {

@@ -7,9 +7,11 @@
 /// its extension modules route dialogs through the suite's navigator
 /// (wonecmpc33). Every app built on it has the quest applications
 /// (qim_none-4): the tom_forge application offers the quest picker; the
-/// office editors (officeprotooffice1): the office kinds are the office
-/// module's, never the file editors'; and the PDF editors (officeproto21): a
-/// `.pdf` is the PDF module's, never the file editors'.
+/// office editors (officeprotooffice1), one kit module per route
+/// (forgerestruct14): the office kinds are the LibreOfficeKit module's,
+/// never the file editors'; and the PDF editors (officeproto21), one kit
+/// module per engine: a `.pdf` is the PDFium module's, never the file
+/// editors'.
 library;
 
 import 'package:flutter/foundation.dart';
@@ -24,7 +26,8 @@ import 'package:tom_forge_shell/tom_forge_shell.dart'
         ForgeModule,
         ForgeShellApi,
         FullScreenLayout,
-        PanelLayout;
+        PanelLayout,
+        forgeModuleExternalTools;
 import 'package:tom_forge_dart_editor/tom_forge_dart_editor.dart';
 import 'package:tom_forge_desktop_host/tom_forge_desktop_host.dart';
 import 'package:tom_website_editor/tom_website_editor.dart';
@@ -71,7 +74,7 @@ DefaultShellApi _shell() => DefaultShellApi.withDefaults(
 );
 
 void main() {
-  test('FS-1: Tom Forge alone — its six modules and its application', () async {
+  test('FS-1: Tom Forge alone — its modules and its application', () async {
     final shell = _shell();
     addTearDown(shell.dispose);
     final suite = await composeForgeSuite(
@@ -86,11 +89,22 @@ void main() {
         suite.appModule,
         suite.websiteModule,
         suite.questsModule,
-        suite.officeModule,
-        suite.pdfModule,
       ]),
     );
-    expect(suite.officeModule, isA<ForgeOfficeEditorsModule>());
+    // The office and PDF editors: kit modules, one per route or engine.
+    expect(
+      shell.modules.allKitModules,
+      containsAll(<ForgeKitModule>[
+        suite.officeLokModule,
+        suite.officeZetaOfficeModule,
+        suite.pdfiumModule,
+        suite.pdfJsModule,
+      ]),
+    );
+    expect(suite.officeLokModule, isA<ForgeOfficeLokModule>());
+    expect(suite.officeZetaOfficeModule, isA<ForgeZetaOfficeModule>());
+    expect(suite.pdfiumModule, isA<ForgePdfiumModule>());
+    expect(suite.pdfJsModule, isA<ForgePdfJsModule>());
     expect(suite.websiteModule, isA<WebsiteEditorModule>());
     expect(shell.applications.hasFactory(questApplicationKind), isTrue);
     expect(shell.applications.all.map((a) => a.id), [forgeApplicationId]);
@@ -129,32 +143,27 @@ void main() {
       expect(module.shell, same(shell), reason: 'activated on the shell');
       // Forge's own modules, the extension's, then the file editors — so a
       // module that opens its own files is asked before them.
-      final modules = shell.modules.allModules.toList();
+      final modules = shell.modules.allKitModules.toList();
       expect(
         modules.indexOf(module),
         greaterThan(modules.indexOf(suite.questsModule)),
       );
       expect(modules.last, same(suite.fileEditorsModule));
       expect(modules[modules.length - 2], same(module));
-      // Forge's office editors: after the quests module, before the PDF
-      // editors and so before an extension's modules.
-      expect(
-        modules.indexOf(suite.officeModule),
-        greaterThan(modules.indexOf(suite.questsModule)),
-      );
-      expect(
-        modules.indexOf(suite.officeModule),
-        lessThan(modules.indexOf(suite.pdfModule)),
-      );
-      // Forge's PDF editors come before an extension's modules.
-      expect(
-        modules.indexOf(suite.pdfModule),
-        greaterThan(modules.indexOf(suite.questsModule)),
-      );
-      expect(
-        modules.indexOf(suite.pdfModule),
-        lessThan(modules.indexOf(module)),
-      );
+      // Forge's office editors: after the quests module, LibreOfficeKit
+      // (the default) before ZetaOffice, both before the PDF editors and so
+      // before an extension's modules.
+      final lok = modules.indexOf(suite.officeLokModule);
+      final zeta = modules.indexOf(suite.officeZetaOfficeModule);
+      final pdfium = modules.indexOf(suite.pdfiumModule);
+      final pdfJs = modules.indexOf(suite.pdfJsModule);
+      expect(lok, greaterThan(modules.indexOf(suite.questsModule)));
+      expect(lok, lessThan(zeta));
+      expect(zeta, lessThan(pdfium));
+      // Forge's PDF editors, PDFium (the default) before pdf.js, come
+      // before an extension's modules.
+      expect(pdfium, lessThan(pdfJs));
+      expect(pdfJs, lessThan(modules.indexOf(module)));
       expect(suite.extensionModules, [module]);
       expect(shell.applications.all.map((a) => a.id), [
         forgeApplicationId,
@@ -256,7 +265,8 @@ void main() {
   );
 
   test('FS-6: a PDF opens in the PDF editors, with PDFium the default and '
-      'pdf.js under Open With; the file editors leave it alone', () async {
+      'pdf.js under Open With, one module each; the file editors leave it '
+      'alone', () async {
     final shell = _shell();
     addTearDown(shell.dispose);
     final suite = await composeForgeSuite(
@@ -265,14 +275,24 @@ void main() {
       restoreApplications: false,
     );
     final pdf = Uri.file('/docs/Report.PDF');
-    expect(suite.pdfModule, isA<ForgePdfEditorsModule>());
-    expect(suite.pdfModule.handles(pdf), isTrue);
+    expect(suite.pdfiumModule.handles(pdf), isTrue);
+    expect(suite.pdfJsModule.handles(pdf), isTrue);
     expect(suite.fileEditorsModule.editorFor(pdf), isNull);
     expect(suite.fileEditorsModule.openUri(pdf), isFalse);
-    expect(suite.pdfModule.editorChoicesFor(pdf).map((c) => c.id), [
-      ForgePdfEditorsModule.pdfiumChoiceId,
-      ForgePdfEditorsModule.pdfJsChoiceId,
+    expect(suite.pdfiumModule.editorChoicesFor(pdf).map((c) => c.id), [
+      ForgePdfiumModule.pdfiumChoiceId,
     ]);
+    expect(suite.pdfJsModule.editorChoicesFor(pdf).map((c) => c.id), [
+      ForgePdfJsModule.pdfJsChoiceId,
+    ]);
+    // Open With lists both, PDFium first (the modules' registration order).
+    expect(
+      [
+        for (final module in shell.modules.allKitModules)
+          ...module.editorChoicesFor(pdf).map((c) => c.id),
+      ],
+      [ForgePdfiumModule.pdfiumChoiceId, ForgePdfJsModule.pdfJsChoiceId],
+    );
     expect(
       suite.fileEditorsModule.editorFor(Uri.file('/docs/notes.txt')),
       isNotNull,
@@ -280,8 +300,8 @@ void main() {
   });
 
   test('FS-6b: the office kinds open in the office editors, with '
-      'LibreOfficeKit the default and ZetaOffice under Open With; the file '
-      'editors leave them alone, .csv stays theirs', () async {
+      'LibreOfficeKit the default and ZetaOffice under Open With, one module '
+      'each; the file editors leave them alone, .csv stays theirs', () async {
     final shell = _shell();
     addTearDown(shell.dispose);
     final suite = await composeForgeSuite(
@@ -302,31 +322,42 @@ void main() {
       'note.rtf',
     ]) {
       final uri = Uri.file('/docs/$name');
-      expect(suite.officeModule.handles(uri), isTrue, reason: name);
+      expect(suite.officeLokModule.handles(uri), isTrue, reason: name);
       expect(suite.fileEditorsModule.editorFor(uri), isNull, reason: name);
       expect(suite.fileEditorsModule.openUri(uri), isFalse, reason: name);
     }
     final docx = Uri.file('/docs/report.docx');
-    expect(suite.officeModule.editorChoicesFor(docx).map((c) => c.id), [
-      ForgeOfficeEditorsModule.lokChoiceId,
-      ForgeOfficeEditorsModule.zetaOfficeChoiceId,
+    expect(suite.officeLokModule.editorChoicesFor(docx).map((c) => c.id), [
+      ForgeOfficeLokModule.lokChoiceId,
     ]);
     expect(
-      suite.officeModule.externalTools.single.id,
+      suite.officeZetaOfficeModule.editorChoicesFor(docx).map((c) => c.id),
+      [ForgeZetaOfficeModule.choiceId],
+    );
+    // ZetaOffice is wired into the LibreOfficeKit module as its alternative
+    // route (the missing-LibreOffice panel, a ZetaOffice default).
+    final route = suite.officeLokModule.alternative!;
+    expect(route.choiceId, ForgeZetaOfficeModule.choiceId);
+    expect(route.label, ForgeZetaOfficeModule.openLabel);
+    expect(route.available, same(suite.officeZetaOfficeModule.available));
+    expect(route.editors!(), isEmpty);
+    expect(
+      forgeModuleExternalTools(suite.officeLokModule).single.id,
       'libreoffice',
       reason: 'LibreOffice\'s External Tools row',
     );
     final csv = Uri.file('/docs/data.csv');
-    expect(suite.officeModule.handles(csv), isFalse);
+    expect(suite.officeLokModule.handles(csv), isFalse);
+    expect(suite.officeZetaOfficeModule.handles(csv), isFalse);
     expect(suite.fileEditorsModule.editorFor(csv), isNotNull);
   });
 
-  test('FS-7: a given office module is the suite\'s: its detection runs at '
-      'activation instead of the desktop\'s', () async {
+  test('FS-7: a given LibreOfficeKit module is the suite\'s: its detection '
+      'runs at activation instead of the desktop\'s', () async {
     final shell = _shell();
     addTearDown(shell.dispose);
     final asked = <String>[];
-    final office = ForgeOfficeEditorsModule(
+    final office = ForgeOfficeLokModule(
       detect: (path) async {
         asked.add(path);
         return const LibreOfficeInstallation(state: LibreOfficeState.missing);
@@ -338,10 +369,10 @@ void main() {
       shell: shell,
       workspaceRoot: '/',
       restoreApplications: false,
-      officeModule: office,
+      officeLokModule: office,
     );
-    expect(suite.officeModule, same(office));
-    expect(shell.modules.allModules, contains(office));
+    expect(suite.officeLokModule, same(office));
+    expect(shell.modules.allKitModules, contains(office));
     await office.detection;
     expect(asked, ['']);
     expect(office.installation?.state, LibreOfficeState.missing);

@@ -11,7 +11,8 @@ Forge's setup:
 - `composeForgeSuite(shell:, workspaceRoot:, navigatorKey:, extensions:,
   dartSummaryAssets:)` registers Forge's modules (the shell module,
   `ForgeAppModule`, `WebsiteEditorModule`, `ForgeQuestsModule` — the quest
-  applications, from `tom_forge_quests` — and `ForgePdfEditorsModule`), adds the tom_forge application
+  applications, from `tom_forge_quests` — and the office and PDF editors'
+  kit modules), adds the tom_forge application
   (`forgeApplicationId`), then each `ForgeSuiteExtension`'s modules (activated
   and registered after Forge's), the file editors module, the extensions'
   applications (added after the tom_forge one), and restores the applications
@@ -30,20 +31,30 @@ Forge's setup:
   id (Webforge's rich Markdown editor under `forgeMarkdownFileKind.id`), and offers another beside it for some files through
   `ForgeSuiteExtension.fileEditorAlternatives` — Open With lists both
   (Webforge's TomSpecs editor for spec documents).
-- **The office editors.** `suite.officeModule` (`tom_forge_office_editors`)
+- **The office editors**, one kit module per route.
+  `suite.officeLokModule` (`ForgeOfficeLokModule`, `tom_forge_office_lok`)
   opens `.docx .xlsx .pptx .odt .ods .odp` and the older `.doc .xls .ppt
   .rtf` in the LibreOfficeKit editor (the default; the installed LibreOffice
-  through `tom_office_host` from the binaries layer) or ZetaOffice in a
-  webview (*Open With*), and adds LibreOffice's row to *External Tools*.
-  It is registered after the quests module and before the PDF editors and
-  the extensions' modules; the file editors leave those files to it, and
-  `.csv` stays theirs (the office editors are offered for it under *Open
-  With*).
-- **The PDF editors.** `suite.pdfModule` (`tom_forge_pdf_editors`) opens
-  every `.pdf` in the PDFium editor (the default) or pdf.js (*Open With*).
-  It is registered after the quests module and before the extensions'
+  through `tom_office_host` from the binaries layer) and adds LibreOffice's
+  row to *External Tools*; `suite.officeZetaOfficeModule`
+  (`ForgeZetaOfficeModule`, `tom_forge_office_zetaoffice`) offers ZetaOffice
+  in a webview under *Open With*, and the suite wires it into the
+  LibreOfficeKit module as its alternative route
+  (`ForgeOfficeAlternativeRoute`: the missing-LibreOffice panel's *Open with
+  ZetaOffice*, and the file-type default when it names ZetaOffice). Both are
+  registered after the quests module, LibreOfficeKit first, before the PDF
+  editors and the extensions' modules; the file editors leave those files to
+  them, and `.csv` stays theirs (the office editors are offered for it under
+  *Open With*). `composeForgeSuite(officeLokModule:, officeZetaOfficeModule:)`
+  takes other modules (a test's, whose detection starts no process).
+- **The PDF editors**, one kit module per engine. `suite.pdfiumModule`
+  (`ForgePdfiumModule`, `tom_forge_pdf_pdfium`) opens every `.pdf` in the
+  PDFium editor (the default); `suite.pdfJsModule` (`ForgePdfJsModule`,
+  `tom_forge_pdf_pdfjs`) offers pdf.js under *Open With*. Both are registered
+  after the office editors, PDFium first, and before the extensions'
   modules, so an extension's PDF editor adds a choice rather than replacing
-  the default, and the file editors leave PDFs to it.
+  the default, and the file editors leave PDFs to them. An app that takes
+  `tom_forge_pdf_pdfium` alone has no webview and no pdf.js (R6).
 - `resolveForgeWorkspace(folder)` resolves a picked folder to its workspace
   root and state.
 - `ForgeSuiteLauncher(appName:, extensions:, workspace:, dartSummaryAssets:,
@@ -64,8 +75,8 @@ gives a dependency's assets, by passing `forgeSuiteDartSummaries`.
 other argument not starting with `-` is a file opened in it (with no folder,
 the first file's folder is the workspace; the user's file-type defaults
 choose their editors), `--trail=pdf` switches the PDF editors' debug trails
-on (`[FP]`, `[PE]`, `[PE:js]`) and `--trail=office` the office editors' (`[FO]`,
-`[OE]`, `[ZO]`). Webforge passes its
+on (`[FP]`, `[FPJ]`, `[PE]`, `[PE:js]`) and `--trail=office` the office
+editors' (`[FO]`, `[FZO]`, `[OE]`, `[ZO]`). Webforge passes its
 extensions (the Webwork full-screen application, the quest extension) and
 `forgeSuiteDartSummaries`. The library names no Webwork package: Forge's
 licence direction holds.

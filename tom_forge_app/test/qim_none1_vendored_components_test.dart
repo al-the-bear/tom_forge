@@ -347,9 +347,9 @@ void main() {
     expect(
       ids,
       containsAll([
-        'tom_pdf_editor/third_party/pdfium',
-        'tom_pdf_editor/third_party/pdfjs',
-        'tom_office_editor/assets/zetaoffice',
+        'tom_pdf_pdfium/third_party/pdfium',
+        'tom_pdf_pdfjs/third_party/pdfjs',
+        'tom_office_zetaoffice/assets/zetaoffice',
       ]),
     );
     final pdfjs = components.firstWhere((c) => c.folder == 'third_party/pdfjs');

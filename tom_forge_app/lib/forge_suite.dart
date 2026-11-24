@@ -11,12 +11,23 @@ export 'src/app.dart' show ForgeApp;
 export 'src/forge_app_module.dart' show ForgeAppModule;
 export 'src/forge_suite.dart';
 export 'src/forge_launch.dart';
-// The office editors (`suite.officeModule`).
-export 'package:tom_forge_office_editors/tom_forge_office_editors.dart'
-    show ForgeOfficeEditorsModule, LibreOfficeInstallation, LibreOfficeState;
-// The PDF editors (`suite.pdfModule`).
-export 'package:tom_forge_pdf_editors/tom_forge_pdf_editors.dart'
-    show ForgePdfEditorsModule;
+// The office editors, one module per route: LibreOfficeKit
+// (`suite.officeLokModule`, the default) and ZetaOffice
+// (`suite.officeZetaOfficeModule`).
+export 'package:tom_forge_office_lok/tom_forge_office_lok.dart'
+    show
+        ForgeOfficeAlternativeRoute,
+        ForgeOfficeLokModule,
+        LibreOfficeInstallation,
+        LibreOfficeState;
+export 'package:tom_forge_office_zetaoffice/tom_forge_office_zetaoffice.dart'
+    show ForgeZetaOfficeModule;
+// The PDF editors, one module per engine: PDFium (`suite.pdfiumModule`, the
+// default) and pdf.js (`suite.pdfJsModule`).
+export 'package:tom_forge_pdf_pdfium/tom_forge_pdf_pdfium.dart'
+    show ForgePdfiumModule;
+export 'package:tom_forge_pdf_pdfjs/tom_forge_pdf_pdfjs.dart'
+    show ForgePdfJsModule;
 // The file editors (`suite.fileEditorsModule`) and what an extension's
 // `fileEditorBuilders` names.
 export 'package:tom_forge_file_editors/tom_forge_file_editors.dart'
