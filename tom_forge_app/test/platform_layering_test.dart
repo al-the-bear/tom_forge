@@ -102,8 +102,13 @@ const Map<String, int> _layers = <String, int>{
   'tom_forge_office_zetaoffice_testing': 9,
   'tom_forge_pdf_pdfium_testing': 9,
   'tom_forge_pdf_pdfjs_testing': 9,
-  // 10 Apps.
+  // 10 Apps: Tom Forge, and the two examples of a lighter build — a
+  // single-window YAML tool on the kit and the shared look, without the
+  // panel shell, and the light panel shell with the file explorer and the
+  // YAML editor.
   'tom_forge_app': 10,
+  'tom_forge_single_window_example': 10,
+  'tom_forge_lite_example': 10,
 };
 
 /// The layer of the applications: a harness package may depend on anything
