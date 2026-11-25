@@ -131,18 +131,48 @@ flutter run --debug --dart-entrypoint-args=--trail=office \
 
 The macOS build needs CocoaPods on the `PATH` (`/opt/homebrew/bin`).
 
+**Native binaries in the release bundle.** An app started from the Finder sees
+no shell variable, so a release carries the native parts of the office and PDF
+editors in its bundle, where `tom_basics`' `TomNativeBinaries` looks first. The
+Runner target's last build phase, *Bundle Native Binaries*
+(`macos/scripts/bundle_native_binaries.sh`), copies them from the binaries
+layer on every `flutter build macos --release` (and `--profile`):
+
+- `Contents/MacOS/`: `tom_office_host` and its trampoline
+  `libtom_office_host_lok.dylib`, from `tom_binaries/tom/darwin-arm64/`;
+- `Contents/Frameworks/`: `libpdfium.dylib`, from
+  `tom_binaries/pdfium/darwin-arm64/`;
+- `Contents/Resources/`: `pdfium.version.json` and PDFium's licences
+  (`licenses/pdfium/`: its `LICENSE` and `licenses/`), from the same folder.
+
+The `tom_binaries` clone is `TOM_BINARIES_ROOT` (environment or build
+setting), else the parent of `TOM_BINARY_PATH`, else the clone beside
+`tom_forge` in the agent container (`../../../tom_binaries` from `macos/`). A
+release or profile build fails, naming the missing files, when one of them is
+not there. Debug builds skip the phase — `flutter run` finds the binaries
+through `TOM_BINARY_PATH`, so a rebuilt helper is used without rebuilding the
+app; `TOM_BUNDLE_NATIVE_BINARIES=YES` bundles them in a debug build too, `NO`
+builds a release without them. Each binary is copied to a new file, signed ad
+hoc (`codesign --force --sign -`) and renamed into place before Xcode signs
+the app; overwriting a signed executable in place hangs later starts. The app
+has no hardened runtime, so it loads the ad-hoc signed `libpdfium` and the
+helper its trampoline without library validation. The release bundle is
+169 MB with the binaries, 154 MB without them (`du -sh`; the helper 7.3 MB,
+PDFium 7.2 MB, the trampoline 68 KB, PDFium's licences 172 KB). LibreOffice
+itself is not bundled: the office editor finds it in `/Applications`.
+
 **Not sandboxed.** The release build ships without the App Sandbox, like the
 debug and profile builds (`macos/Runner/Release.entitlements`; TD-25 of the
 office/PDF prototype). The native editors need what the sandbox blocks: the
-office editor starts its helper process (`tom_office_host`) from the binaries
-layer and LibreOffice loads from `/Applications`; the PDF editor loads PDFium,
-a library from outside the bundle; pdf.js and ZetaOffice are served by a local
-HTTP server on `127.0.0.1`; and Forge edits the files of its workspace tree,
-not only files picked in an open panel. Risk R-1 of the prototype's working
-document lists every denial of a sandboxed build. Forge is not distributed
-through the App Store, so the sandbox buys nothing it needs. A build that ran
-sandboxed once keeps a container, and the `defaults` tool then names the
-container's preferences; the unsandboxed app reads
+office editor starts its helper process (`tom_office_host`), and LibreOffice
+loads from `/Applications`; the PDF editor loads PDFium, from the binaries
+layer when the app runs from `flutter run`; pdf.js and ZetaOffice are served
+by a local HTTP server on `127.0.0.1`; and Forge edits the files of its
+workspace tree, not only files picked in an open panel. Risk R-1 of the
+prototype's working document lists every denial of a sandboxed build. Forge
+is not distributed through the App Store, so the sandbox buys nothing it
+needs. A build that ran sandboxed once keeps a container, and the `defaults`
+tool then names the container's preferences; the unsandboxed app reads
 `~/Library/Preferences/com.example.tomForgeApp.plist`.
 
 ## Linux WebView Rendering Notes

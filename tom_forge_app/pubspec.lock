@@ -873,10 +873,10 @@ packages:
     dependency: transitive
     description:
       name: tom_basics
-      sha256: "0a0a8cc6909e23d3a8922b563ce74d67a30c8ad696c5296e928b0a641959b5dc"
+      sha256: a50f7dd1f2d5fea06fb909173ee8a8af7f7fa1638c6cc69ebfc86d006396327f
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.1"
+    version: "3.4.0"
   tom_dart_analysis:
     dependency: transitive
     description:
@@ -1206,7 +1206,7 @@ packages:
       path: "../../tom_ai/modules/tom_office_editor"
       relative: true
     source: path
-    version: "0.7.0"
+    version: "0.8.0"
   tom_office_protocol:
     dependency: transitive
     description:
@@ -1234,7 +1234,7 @@ packages:
       path: "../../tom_ai/modules/tom_pdf_pdfium"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   tom_pdf_pdfjs:
     dependency: transitive
     description:
