@@ -113,11 +113,21 @@ void main() {
     });
 
     test(
-      'QIMN1-2: no build tooling, so no LGPL `ini`, in the resolved graph',
+      'QIMN1-2: no LGPL `ini` anywhere, and no build tooling the app links',
       () {
-        // tom_build_base is CLI tooling; its dcli brought `ini` (LGPL-3.0).
-        for (final tooling in ['tom_build_base', 'dcli', 'dcli_core', 'ini']) {
-          expect(packages.keys, isNot(contains(tooling)), reason: tooling);
+        // `ini` (LGPL-3.0), which upstream dcli brought, may not be resolved
+        // at all, not even through a test dependency.
+        expect(packages.keys, isNot(contains('ini')));
+        // Build tooling may come with test support (tom_test_support takes
+        // tom_build_base, which takes tom_dcli), never into what ships.
+        final names = linked.map((e) => e.name).toSet();
+        for (final tooling in [
+          'tom_build_base',
+          'tom_dcli',
+          'dcli',
+          'dcli_core',
+        ]) {
+          expect(names, isNot(contains(tooling)), reason: tooling);
         }
       },
     );
