@@ -15,54 +15,54 @@ dependencies:
   # look, the shell, the terminal, the code editor adapters, the platform
   # keychain and the desktop host.
   tom_forge_kit:
-    path: ../tom_forge_kit
+    path: ../../tom_ai/forge_modules/tom_forge_kit
   tom_forge_shared_ui:
-    path: ../tom_forge_shared_ui
+    path: ../../tom_ai/forge_modules/tom_forge_shared_ui
   tom_forge_shell:
-    path: ../tom_forge_shell
+    path: ../../tom_ai/forge_modules/tom_forge_shell
   # The views, packages of their own (the test app module shows the
   # Explorer, Problems, Search, Outline and Output views).
   tom_forge_file_explorer:
-    path: ../tom_forge_file_explorer
+    path: ../../tom_ai/forge_modules/tom_forge_file_explorer
   tom_forge_search_view:
-    path: ../tom_forge_search_view
+    path: ../../tom_ai/forge_modules/tom_forge_search_view
   tom_forge_problems_view:
-    path: ../tom_forge_problems_view
+    path: ../../tom_ai/forge_modules/tom_forge_problems_view
   tom_forge_outline_view:
-    path: ../tom_forge_outline_view
+    path: ../../tom_ai/forge_modules/tom_forge_outline_view
   tom_forge_output_view:
-    path: ../tom_forge_output_view
+    path: ../../tom_ai/forge_modules/tom_forge_output_view
   # Quick open and the command palette, packages of their own: the overlay
   # the shell shows.
   tom_forge_quick_open:
-    path: ../tom_forge_quick_open
+    path: ../../tom_ai/forge_modules/tom_forge_quick_open
   tom_forge_command_palette:
-    path: ../tom_forge_command_palette
+    path: ../../tom_ai/forge_modules/tom_forge_command_palette
   # The plain-text editor (ForgePlainTextEditor).
   tom_forge_plain_text_editor:
-    path: ../tom_forge_plain_text_editor
+    path: ../../tom_ai/forge_modules/tom_forge_plain_text_editor
   tom_forge_terminal:
-    path: ../tom_forge_terminal
+    path: ../../tom_ai/forge_modules/tom_forge_terminal
   tom_forge_md_editor:
-    path: ../tom_forge_md_editor
+    path: ../../tom_ai/forge_modules/tom_forge_md_editor
   tom_forge_dart_editor:
-    path: ../tom_forge_dart_editor
+    path: ../../tom_ai/forge_modules/tom_forge_dart_editor
   tom_forge_yaml_editor:
-    path: ../tom_forge_yaml_editor
+    path: ../../tom_ai/forge_modules/tom_forge_yaml_editor
   tom_forge_platform_secrets:
-    path: ../tom_forge_platform_secrets
+    path: ../../tom_ai/forge_modules/tom_forge_platform_secrets
   tom_forge_desktop_host:
-    path: ../tom_forge_desktop_host
+    path: ../../tom_ai/forge_modules/tom_forge_desktop_host
   tom_forge_core:
-    path: ../tom_forge_core
+    path: ../../tom_ai/forge_modules/tom_forge_core
   tom_editors_shared:
-    path: ../tom_editors_shared
+    path: ../../tom_ai/forge_modules/tom_editors_shared
   tom_md_editor:
-    path: ../tom_md_editor
+    path: ../../tom_ai/forge_modules/tom_md_editor
   tom_dart_editor:
-    path: ../tom_dart_editor
+    path: ../../tom_ai/forge_modules/tom_dart_editor
   tom_yaml_editor:
-    path: ../tom_yaml_editor
+    path: ../../tom_ai/forge_modules/tom_yaml_editor
 
 dev_dependencies:
   flutter_test:

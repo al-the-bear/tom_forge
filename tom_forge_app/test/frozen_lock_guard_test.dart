@@ -1,5 +1,7 @@
-// REPO-WIDE GUARD (tom_forge_app) — no package in tom_forge resolves a tom_*
-// version behind one already in the pub cache.
+// REPO-WIDE GUARD (tom_forge_app) — no package of the Forge platform (the
+// libraries in tom_forge_modules, cloned at tom_ai/forge_modules, and the
+// application's packages in tom_forge) resolves a tom_* version behind one
+// already in the pub cache.
 //
 // This is the tom_forge repo's own copy of the d4rt repo's
 // `tom_d4rt_ast/test/scc45_resolution_guard_test.dart`, which is the model and
@@ -53,8 +55,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Packages whose presence identifies the tom_forge repo root.
-const _repoMarkers = ['tom_forge_app', 'tom_forge_ui', 'tom_forge_core'];
+/// Packages whose presence identifies the tom_forge repo root (the
+/// application) and the tom_forge_modules root (the libraries, cloned at
+/// `tom_ai/forge_modules` beside it).
+const _repoMarkers = ['tom_forge_app', 'tom_forge_ui_test'];
+const _modulesMarkers = ['tom_forge_ui', 'tom_forge_core'];
 
 /// Only this workspace's own packages: a third-party dependency cannot suffer
 /// an unpropagated publish from here.
@@ -118,11 +123,19 @@ class _StaleLock {
       'pub cache';
 }
 
-Directory? _repoRoot() {
+/// The libraries' root and the application's root, or null when either is
+/// not reachable.
+List<Directory>? _repoRoots() {
   var dir = Directory.current.absolute;
   for (var i = 0; i < 6; i++) {
     if (_repoMarkers.every((p) => Directory('${dir.path}/$p').existsSync())) {
-      return dir;
+      final modules = Directory('${dir.parent.path}/tom_ai/forge_modules');
+      if (!_modulesMarkers.every(
+        (p) => Directory('${modules.path}/$p').existsSync(),
+      )) {
+        return null;
+      }
+      return [modules, dir];
     }
     final parent = dir.parent;
     if (parent.path == dir.path) break;
@@ -163,6 +176,12 @@ List<Directory> _packagesUnder(Directory root) {
   walk(root, 0);
   return found;
 }
+
+/// Every package under each of [roots], with the root it is under.
+Iterable<(Directory, Directory)> _packagesUnderAll(List<Directory> roots) => [
+  for (final root in roots)
+    for (final package in _packagesUnder(root)) (root, package),
+];
 
 List<_Resolution> _lockedTomPackages(Directory package) {
   final lock = File('${package.path}/pubspec.lock');
@@ -267,16 +286,16 @@ String _relativeTo(Directory root, Directory dir) =>
             : dir.path)
         .replaceAll(r'\', '/');
 
-/// Every lock under [root] resolving a hosted `tom_*` older than the cache
+/// Every lock under [roots] resolving a hosted `tom_*` older than the cache
 /// holds, skipping top-level packages in [exceptions] and the [heldBack]
 /// ranges.
 List<_StaleLock> _staleLocks(
-  Directory root, {
+  List<Directory> roots, {
   Map<String, String> exceptions = const {},
   Map<String, _HeldBack> heldBack = _heldBackVersions,
 }) {
   final out = <_StaleLock>[];
-  for (final package in _packagesUnder(root)) {
+  for (final (root, package) in _packagesUnderAll(roots)) {
     final rel = _relativeTo(root, package);
     if (exceptions.containsKey(rel.split('/').first)) continue;
     for (final res in _lockedTomPackages(package)) {
@@ -319,7 +338,7 @@ Set<String> _declaredPathDependencies(Directory package) {
 }
 
 void main() {
-  final root = _repoRoot();
+  final roots = _repoRoots();
 
   group('frozen locks (tom_forge): resolutions match declarations', () {
     var cachedPackages = 0;
@@ -365,15 +384,17 @@ void main() {
     }
 
     bool rootReachable() {
-      if (root != null) return true;
-      markTestSkipped('tom_forge repo root not reachable — nothing to check');
+      if (roots != null) return true;
+      markTestSkipped(
+        'tom_forge / tom_forge_modules roots not reachable — nothing to check',
+      );
       return false;
     }
 
     test('FL-1: no undeclared path resolution', () {
       if (!rootReachable()) return;
       final offenders = <String>[];
-      for (final package in _packagesUnder(root!)) {
+      for (final (root, package) in _packagesUnderAll(roots!)) {
         // An overrides file is a declaration too.
         if (File('${package.path}/pubspec_overrides.yaml').existsSync()) {
           continue;
@@ -406,7 +427,7 @@ void main() {
     test('FL-2: no lock is behind a version already in the pub cache', () {
       if (!rootReachable() || !canDiscriminate('FL-2')) return;
       final offenders = _staleLocks(
-        root!,
+        roots!,
         exceptions: _frozenLockExceptions,
       ).map((s) => s.toString()).toList();
       expect(
@@ -430,7 +451,7 @@ void main() {
       // Measured with NO exceptions applied: the question is which packages
       // are still frozen, and the exception list would hide exactly those.
       final stillFrozen = _staleLocks(
-        root!,
+        roots!,
       ).map((s) => s.package.split('/').first).toSet();
       final obsolete = _frozenLockExceptions.keys.toSet().difference(
         stillFrozen,
@@ -450,7 +471,7 @@ void main() {
       // Measured with NO holds applied, for the reason FL-3 measures without
       // exceptions: the holds would hide exactly the locks being asked about.
       final lagging = _staleLocks(
-        root!,
+        roots!,
         exceptions: _frozenLockExceptions,
         heldBack: const {},
       );

@@ -880,14 +880,14 @@ packages:
   tom_dart_analysis:
     dependency: transitive
     description:
-      path: "../tom_dart_analysis"
+      path: "../../tom_ai/forge_modules/tom_dart_analysis"
       relative: true
     source: path
     version: "0.1.0"
   tom_dart_editor:
     dependency: transitive
     description:
-      path: "../tom_dart_editor"
+      path: "../../tom_ai/forge_modules/tom_dart_editor"
       relative: true
     source: path
     version: "0.1.0"
@@ -909,7 +909,7 @@ packages:
   tom_editors_shared:
     dependency: "direct main"
     description:
-      path: "../tom_editors_shared"
+      path: "../../tom_ai/forge_modules/tom_editors_shared"
       relative: true
     source: path
     version: "0.1.0"
@@ -944,203 +944,203 @@ packages:
   tom_forge_command_palette:
     dependency: "direct main"
     description:
-      path: "../tom_forge_command_palette"
+      path: "../../tom_ai/forge_modules/tom_forge_command_palette"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_core:
     dependency: "direct main"
     description:
-      path: "../tom_forge_core"
+      path: "../../tom_ai/forge_modules/tom_forge_core"
       relative: true
     source: path
     version: "2.0.0"
   tom_forge_dart_editor:
     dependency: "direct main"
     description:
-      path: "../tom_forge_dart_editor"
+      path: "../../tom_ai/forge_modules/tom_forge_dart_editor"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_desktop_host:
     dependency: "direct main"
     description:
-      path: "../tom_forge_desktop_host"
+      path: "../../tom_ai/forge_modules/tom_forge_desktop_host"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_file_editors:
     dependency: "direct main"
     description:
-      path: "../tom_forge_file_editors"
+      path: "../../tom_ai/forge_modules/tom_forge_file_editors"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_file_editors_testing:
     dependency: "direct dev"
     description:
-      path: "../tom_forge_file_editors_testing"
+      path: "../../tom_ai/forge_modules/tom_forge_file_editors_testing"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_file_explorer:
     dependency: "direct main"
     description:
-      path: "../tom_forge_file_explorer"
+      path: "../../tom_ai/forge_modules/tom_forge_file_explorer"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_kit:
     dependency: "direct main"
     description:
-      path: "../tom_forge_kit"
+      path: "../../tom_ai/forge_modules/tom_forge_kit"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_md_editor:
     dependency: "direct main"
     description:
-      path: "../tom_forge_md_editor"
+      path: "../../tom_ai/forge_modules/tom_forge_md_editor"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_md_editor_testing:
     dependency: "direct dev"
     description:
-      path: "../tom_forge_md_editor_testing"
+      path: "../../tom_ai/forge_modules/tom_forge_md_editor_testing"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_office_lok:
     dependency: "direct main"
     description:
-      path: "../tom_forge_office_lok"
+      path: "../../tom_ai/forge_modules/tom_forge_office_lok"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_office_zetaoffice:
     dependency: "direct main"
     description:
-      path: "../tom_forge_office_zetaoffice"
+      path: "../../tom_ai/forge_modules/tom_forge_office_zetaoffice"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_outline_view:
     dependency: "direct main"
     description:
-      path: "../tom_forge_outline_view"
+      path: "../../tom_ai/forge_modules/tom_forge_outline_view"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_output_view:
     dependency: "direct main"
     description:
-      path: "../tom_forge_output_view"
+      path: "../../tom_ai/forge_modules/tom_forge_output_view"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_pdf_pdfium:
     dependency: "direct main"
     description:
-      path: "../tom_forge_pdf_pdfium"
+      path: "../../tom_ai/forge_modules/tom_forge_pdf_pdfium"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_pdf_pdfjs:
     dependency: "direct main"
     description:
-      path: "../tom_forge_pdf_pdfjs"
+      path: "../../tom_ai/forge_modules/tom_forge_pdf_pdfjs"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_plain_text_editor:
     dependency: "direct main"
     description:
-      path: "../tom_forge_plain_text_editor"
+      path: "../../tom_ai/forge_modules/tom_forge_plain_text_editor"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_platform_secrets:
     dependency: "direct main"
     description:
-      path: "../tom_forge_platform_secrets"
+      path: "../../tom_ai/forge_modules/tom_forge_platform_secrets"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_problems_view:
     dependency: "direct main"
     description:
-      path: "../tom_forge_problems_view"
+      path: "../../tom_ai/forge_modules/tom_forge_problems_view"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_quests:
     dependency: "direct main"
     description:
-      path: "../tom_forge_quests"
+      path: "../../tom_ai/forge_modules/tom_forge_quests"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_quick_open:
     dependency: "direct main"
     description:
-      path: "../tom_forge_quick_open"
+      path: "../../tom_ai/forge_modules/tom_forge_quick_open"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_revision_view:
     dependency: "direct main"
     description:
-      path: "../tom_forge_revision_view"
+      path: "../../tom_ai/forge_modules/tom_forge_revision_view"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_search_view:
     dependency: "direct main"
     description:
-      path: "../tom_forge_search_view"
+      path: "../../tom_ai/forge_modules/tom_forge_search_view"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_shared_ui:
     dependency: "direct main"
     description:
-      path: "../tom_forge_shared_ui"
+      path: "../../tom_ai/forge_modules/tom_forge_shared_ui"
       relative: true
     source: path
     version: "0.2.0"
   tom_forge_shell:
     dependency: "direct main"
     description:
-      path: "../tom_forge_shell"
+      path: "../../tom_ai/forge_modules/tom_forge_shell"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_terminal:
     dependency: "direct main"
     description:
-      path: "../tom_forge_terminal"
+      path: "../../tom_ai/forge_modules/tom_forge_terminal"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_ui_testing:
     dependency: "direct dev"
     description:
-      path: "../tom_forge_ui_testing"
+      path: "../../tom_ai/forge_modules/tom_forge_ui_testing"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_yaml_editor:
     dependency: "direct main"
     description:
-      path: "../tom_forge_yaml_editor"
+      path: "../../tom_ai/forge_modules/tom_forge_yaml_editor"
       relative: true
     source: path
     version: "0.1.0"
   tom_forge_yaml_editor_testing:
     dependency: "direct dev"
     description:
-      path: "../tom_forge_yaml_editor_testing"
+      path: "../../tom_ai/forge_modules/tom_forge_yaml_editor_testing"
       relative: true
     source: path
     version: "0.1.0"
@@ -1161,35 +1161,35 @@ packages:
   tom_md_docspecs:
     dependency: transitive
     description:
-      path: "../tom_md_docspecs"
+      path: "../../tom_ai/forge_modules/tom_md_docspecs"
       relative: true
     source: path
     version: "0.1.0"
   tom_md_editor:
     dependency: transitive
     description:
-      path: "../tom_md_editor"
+      path: "../../tom_ai/forge_modules/tom_md_editor"
       relative: true
     source: path
     version: "0.1.0"
   tom_md_math:
     dependency: transitive
     description:
-      path: "../tom_md_math"
+      path: "../../tom_ai/forge_modules/tom_md_math"
       relative: true
     source: path
     version: "0.1.0"
   tom_md_mermaid:
     dependency: transitive
     description:
-      path: "../tom_md_mermaid"
+      path: "../../tom_ai/forge_modules/tom_md_mermaid"
       relative: true
     source: path
     version: "0.1.0"
   tom_md_review:
     dependency: transitive
     description:
-      path: "../tom_md_review"
+      path: "../../tom_ai/forge_modules/tom_md_review"
       relative: true
     source: path
     version: "0.1.0"
@@ -1252,7 +1252,7 @@ packages:
   tom_terminal_view:
     dependency: transitive
     description:
-      path: "../tom_terminal_view"
+      path: "../../tom_ai/forge_modules/tom_terminal_view"
       relative: true
     source: path
     version: "0.1.0"
@@ -1309,21 +1309,21 @@ packages:
   tom_website_editor:
     dependency: "direct main"
     description:
-      path: "../tom_website_editor"
+      path: "../../tom_ai/forge_modules/tom_website_editor"
       relative: true
     source: path
     version: "0.0.1"
   tom_website_editor_core:
     dependency: transitive
     description:
-      path: "../tom_website_editor_core"
+      path: "../../tom_ai/forge_modules/tom_website_editor_core"
       relative: true
     source: path
     version: "0.0.1"
   tom_yaml_editor:
     dependency: transitive
     description:
-      path: "../tom_yaml_editor"
+      path: "../../tom_ai/forge_modules/tom_yaml_editor"
       relative: true
     source: path
     version: "0.1.0"

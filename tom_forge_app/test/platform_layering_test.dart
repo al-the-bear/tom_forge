@@ -1,8 +1,10 @@
-// REPO-WIDE GUARD (tom_forge_app) — every package in tom_forge sits in its
-// layer of the platform architecture and depends only downwards.
+// REPO-WIDE GUARD (tom_forge_app) — every package of the platform (the
+// libraries in tom_forge_modules, cloned at tom_ai/forge_modules, and the
+// application's packages in tom_forge) sits in its layer of the platform
+// architecture and depends only downwards.
 //
 // The layers, their contracts and the rules are
-// `tom_forge/_agent_guidelines/platform_architecture.md` §1 and §3; the
+// `tom_ai/forge_modules/_agent_guidelines/platform_architecture.md` §1 and §3; the
 // table below is that document's table. A package the table does not know
 // fails PL-1, so a new package is placed on purpose, not by accident.
 //
@@ -271,12 +273,20 @@ class _Package {
   bool dependsOnFlutter() => dependencies.any((d) => d.name == 'flutter');
 }
 
-Directory? _repoRoot() {
+/// The two repositories of the platform, found from the working directory:
+/// the libraries (`tom_forge_modules`, cloned at `tom_ai/forge_modules`) and
+/// the application (`tom_forge`); null when either is not reachable.
+List<Directory>? _repoRoots() {
   var dir = Directory.current.absolute;
   for (var i = 0; i < 4; i++) {
     if (File('${dir.path}/tom_repository.yaml').existsSync() &&
-        Directory('${dir.path}/tom_forge_ui').existsSync()) {
-      return dir;
+        Directory('${dir.path}/tom_forge_app').existsSync()) {
+      final modules = Directory('${dir.parent.path}/tom_ai/forge_modules');
+      if (!File('${modules.path}/tom_repository.yaml').existsSync() ||
+          !Directory('${modules.path}/tom_forge_ui').existsSync()) {
+        return null;
+      }
+      return [modules, dir];
     }
     final parent = dir.parent;
     if (parent.path == dir.path) break;
@@ -321,10 +331,12 @@ List<_Dependency> _dependenciesOf(File pubspec) {
   return out;
 }
 
-/// Every top-level package of the repository, by name.
-Map<String, _Package> _packages(Directory root) {
+/// Every top-level package of the two repositories, by name.
+Map<String, _Package> _packages(List<Directory> roots) {
   final out = <String, _Package>{};
-  for (final dir in root.listSync().whereType<Directory>()) {
+  for (final dir in [
+    for (final root in roots) ...root.listSync().whereType<Directory>(),
+  ]) {
     final pubspec = File('${dir.path}/pubspec.yaml');
     if (!pubspec.existsSync()) continue;
     final name = RegExp(
@@ -340,12 +352,14 @@ bool _isWebworkRepoPath(String path) =>
     path.replaceAll(r'\', '/').contains('app_webwork/');
 
 void main() {
-  final root = _repoRoot();
-  final packages = root == null ? <String, _Package>{} : _packages(root);
+  final roots = _repoRoots();
+  final packages = roots == null ? <String, _Package>{} : _packages(roots);
 
   bool reachable() {
-    if (root != null) return true;
-    markTestSkipped('tom_forge repo root not reachable — nothing to check');
+    if (roots != null) return true;
+    markTestSkipped(
+      'tom_forge / tom_forge_modules roots not reachable — nothing to check',
+    );
     return false;
   }
 
@@ -715,7 +729,8 @@ void main() {
             }
             if (directive.hasMatch(file.readAsStringSync())) {
               offenders.add(
-                '${package.name}: ${file.path.substring(root!.path.length + 1)} '
+                '${package.name}: '
+                '${file.path.substring(package.dir.parent.path.length + 1)} '
                 'imports tom_forge_ui',
               );
             }

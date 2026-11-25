@@ -1,14 +1,20 @@
 # Tom Forge
 
-Composable visual development tools for the Tom framework: editor components
-that work on their own, a panel shell that hosts them, modules that bring
-editors, views and actions into the shell, and applications that lay them out.
-Tom Forge's own app (`tom_forge_app`) composes them, one quest application per
-open quest included; other apps compose them through `composeForgeSuite` and
-its extension points.
+Tom Forge, the application: `tom_forge_app` composes the Forge platform into
+one desktop tool, one quest application per open quest included, and
+`tom_forge_ui_test` is the harness that runs the composed shell in tests.
 
-The packages, their layers and the contracts between them:
-`_agent_guidelines/platform_architecture.md` (development guidelines).
+The libraries it is built from — the editor components, the panel shell, the
+modules and their testing packages — live in the repository
+[tom_forge_modules](https://github.com/al-the-bear/tom_forge_modules), cloned
+at `tom_ai/forge_modules` beside this repository's `tom_forge`. The packages,
+their layers and the contracts between them are described there, in
+`_agent_guidelines/platform_architecture.md`.
+
+| Package | What it is |
+| ------- | ---------- |
+| [tom_forge_app](tom_forge_app) | The Tom Forge desktop application |
+| [tom_forge_ui_test](tom_forge_ui_test) | Test harness for the composed Forge shell |
 
 ## License
 

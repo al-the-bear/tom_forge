@@ -1,3 +1,0 @@
-# Written with the summary beside it; it is rebuilt when this differs.
-toolchain: 3.13.7+d752
-dart-ui: yes

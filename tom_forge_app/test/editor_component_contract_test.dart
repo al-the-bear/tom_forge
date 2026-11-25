@@ -1,10 +1,12 @@
-// REPO-WIDE GUARD (tom_forge_app) — every editor in tom_forge is placed in
-// the editor component contract: a document editor runs the undo
+// REPO-WIDE GUARD (tom_forge_app) — every editor of the platform (the
+// libraries in tom_forge_modules, cloned at tom_ai/forge_modules, and the
+// application's packages in tom_forge) is placed in the editor component
+// contract: a document editor runs the undo
 // conformance harness, a surface extends ForgeSurfaceEditor, and every
 // editor component carries its debug trail, web build check and embedding
 // documentation.
 //
-// The contract is `tom_forge/_agent_guidelines/editor_component_contract.md`;
+// The contract is `tom_ai/forge_modules/_agent_guidelines/editor_component_contract.md`;
 // the register below is its §2 table. It reads the source (class
 // declarations, test files), so it needs no editor to be constructed. It
 // skips when the repo root is not reachable.
@@ -70,12 +72,20 @@ class _Class {
   final bool isAbstract;
 }
 
-Directory? _repoRoot() {
+/// The two repositories of the platform, found from the working directory:
+/// the libraries (`tom_forge_modules`, cloned at `tom_ai/forge_modules`) and
+/// the application (`tom_forge`); null when either is not reachable.
+List<Directory>? _repoRoots() {
   var dir = Directory.current.absolute;
   for (var i = 0; i < 4; i++) {
     if (File('${dir.path}/tom_repository.yaml').existsSync() &&
-        Directory('${dir.path}/tom_forge_ui').existsSync()) {
-      return dir;
+        Directory('${dir.path}/tom_forge_app').existsSync()) {
+      final modules = Directory('${dir.parent.path}/tom_ai/forge_modules');
+      if (!File('${modules.path}/tom_repository.yaml').existsSync() ||
+          !Directory('${modules.path}/tom_forge_ui').existsSync()) {
+        return null;
+      }
+      return [modules, dir];
     }
     final parent = dir.parent;
     if (parent.path == dir.path) break;
@@ -87,26 +97,29 @@ Directory? _repoRoot() {
 String _rel(Directory root, File file) =>
     file.path.substring(root.path.length + 1).replaceAll(r'\', '/');
 
-/// Every class declared under the packages' `lib/`, by name.
-Map<String, _Class> _classes(Directory root) {
+/// Every class declared under the packages' `lib/` in both repositories, by
+/// name; each file relative to its repository.
+Map<String, _Class> _classes(List<Directory> roots) {
   final declaration = RegExp(
     r'^((?:abstract |base |final |sealed |interface )*)class (\w+)'
     r'(?:<[^>{]*>)?(?:\s+extends\s+(\w+))?',
     multiLine: true,
   );
   final out = <String, _Class>{};
-  for (final package in root.listSync().whereType<Directory>()) {
-    final lib = Directory('${package.path}/lib');
-    if (!lib.existsSync()) continue;
-    for (final file in lib.listSync(recursive: true).whereType<File>()) {
-      if (!file.path.endsWith('.dart')) continue;
-      for (final m in declaration.allMatches(file.readAsStringSync())) {
-        out[m.group(2)!] = _Class(
-          m.group(2)!,
-          m.group(3),
-          _rel(root, file),
-          isAbstract: m.group(1)!.contains('abstract'),
-        );
+  for (final root in roots) {
+    for (final package in root.listSync().whereType<Directory>()) {
+      final lib = Directory('${package.path}/lib');
+      if (!lib.existsSync()) continue;
+      for (final file in lib.listSync(recursive: true).whereType<File>()) {
+        if (!file.path.endsWith('.dart')) continue;
+        for (final m in declaration.allMatches(file.readAsStringSync())) {
+          out[m.group(2)!] = _Class(
+            m.group(2)!,
+            m.group(3),
+            _rel(root, file),
+            isAbstract: m.group(1)!.contains('abstract'),
+          );
+        }
       }
     }
   }
@@ -125,8 +138,10 @@ List<String> _bases(Map<String, _Class> classes, String name) {
 }
 
 void main() {
-  final root = _repoRoot();
-  final classes = root == null ? <String, _Class>{} : _classes(root);
+  final roots = _repoRoots();
+  // The register's paths and the editor components are the libraries'.
+  final root = roots?.first;
+  final classes = roots == null ? <String, _Class>{} : _classes(roots);
 
   /// The concrete `ForgeEditor`s, by name.
   final editors = <String, _Class>{
@@ -141,7 +156,9 @@ void main() {
 
   bool reachable() {
     if (root != null) return true;
-    markTestSkipped('tom_forge repo root not reachable — nothing to check');
+    markTestSkipped(
+      'tom_forge / tom_forge_modules roots not reachable — nothing to check',
+    );
     return false;
   }
 

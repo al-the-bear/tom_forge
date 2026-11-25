@@ -16,74 +16,74 @@ dependencies:
   # and the shell parts it hands every shell (the terminal, the code editor
   # adapters, the platform keychain, the desktop host).
   tom_forge_kit:
-    path: ../tom_forge_kit
+    path: ../../tom_ai/forge_modules/tom_forge_kit
   tom_forge_shared_ui:
-    path: ../tom_forge_shared_ui
+    path: ../../tom_ai/forge_modules/tom_forge_shared_ui
   tom_forge_shell:
-    path: ../tom_forge_shell
+    path: ../../tom_ai/forge_modules/tom_forge_shell
   # The views, packages of their own on the kit, registered as modules and
   # placed by their hints (forgeFileExplorerModule, forgeSearchViewModule,
   # forgeProblemsViewModule, forgeOutlineViewModule, forgeOutputViewModule,
   # forgeRevisionViewModule); quick open and the command palette, the
   # overlay the shell shows (forgeQuickOpenModule, forgeCommandPaletteModule).
   tom_forge_file_explorer:
-    path: ../tom_forge_file_explorer
+    path: ../../tom_ai/forge_modules/tom_forge_file_explorer
   tom_forge_search_view:
-    path: ../tom_forge_search_view
+    path: ../../tom_ai/forge_modules/tom_forge_search_view
   tom_forge_problems_view:
-    path: ../tom_forge_problems_view
+    path: ../../tom_ai/forge_modules/tom_forge_problems_view
   tom_forge_outline_view:
-    path: ../tom_forge_outline_view
+    path: ../../tom_ai/forge_modules/tom_forge_outline_view
   tom_forge_output_view:
-    path: ../tom_forge_output_view
+    path: ../../tom_ai/forge_modules/tom_forge_output_view
   tom_forge_revision_view:
-    path: ../tom_forge_revision_view
+    path: ../../tom_ai/forge_modules/tom_forge_revision_view
   tom_forge_quick_open:
-    path: ../tom_forge_quick_open
+    path: ../../tom_ai/forge_modules/tom_forge_quick_open
   tom_forge_command_palette:
-    path: ../tom_forge_command_palette
+    path: ../../tom_ai/forge_modules/tom_forge_command_palette
   # The plain-text editor (ForgePlainTextEditor).
   tom_forge_plain_text_editor:
-    path: ../tom_forge_plain_text_editor
+    path: ../../tom_ai/forge_modules/tom_forge_plain_text_editor
   tom_forge_terminal:
-    path: ../tom_forge_terminal
+    path: ../../tom_ai/forge_modules/tom_forge_terminal
   tom_forge_md_editor:
-    path: ../tom_forge_md_editor
+    path: ../../tom_ai/forge_modules/tom_forge_md_editor
   # Code blocks in every highlight.js language (useForgeCodeHighlighting).
   tom_highlight_js:
     path: ../../tom_ai/modules/tom_highlight_js
   tom_text_highlight:
     path: ../../tom_ai/modules/tom_text_highlight
   tom_forge_dart_editor:
-    path: ../tom_forge_dart_editor
+    path: ../../tom_ai/forge_modules/tom_forge_dart_editor
   tom_forge_yaml_editor:
-    path: ../tom_forge_yaml_editor
+    path: ../../tom_ai/forge_modules/tom_forge_yaml_editor
   tom_forge_platform_secrets:
-    path: ../tom_forge_platform_secrets
+    path: ../../tom_ai/forge_modules/tom_forge_platform_secrets
   tom_forge_desktop_host:
-    path: ../tom_forge_desktop_host
+    path: ../../tom_ai/forge_modules/tom_forge_desktop_host
   # StandardEditingActions: the Edit menu dispatches undo/redo by the same
   # action ids the keystroke uses.
   tom_editors_shared:
-    path: ../tom_editors_shared
+    path: ../../tom_ai/forge_modules/tom_editors_shared
   tom_forge_core:
-    path: ../tom_forge_core
+    path: ../../tom_ai/forge_modules/tom_forge_core
   tom_website_editor:
-    path: ../tom_website_editor
+    path: ../../tom_ai/forge_modules/tom_website_editor
   # The file editors: todo files, .env and text, each over a ForgeFileSession,
   # and the Markdown and YAML file kinds the suite registers with them
   # (forgeSuiteFileKinds, from tom_forge_md_editor and tom_forge_yaml_editor).
   tom_forge_file_editors:
-    path: ../tom_forge_file_editors
+    path: ../../tom_ai/forge_modules/tom_forge_file_editors
   # The quest applications: one per open quest, the picker, the frame.
   tom_forge_quests:
-    path: ../tom_forge_quests
+    path: ../../tom_ai/forge_modules/tom_forge_quests
   # The office editors, one adapter per route: LibreOfficeKit (the default
   # for the office kinds) and ZetaOffice (offered under Open With).
   tom_forge_office_lok:
-    path: ../tom_forge_office_lok
+    path: ../../tom_ai/forge_modules/tom_forge_office_lok
   tom_forge_office_zetaoffice:
-    path: ../tom_forge_office_zetaoffice
+    path: ../../tom_ai/forge_modules/tom_forge_office_zetaoffice
   # Their editors' debug trail switches, which the command line's
   # --trail=office sets (kOfficeEditorDebug, kZetaOfficeDebug).
   tom_office_editor:
@@ -93,9 +93,9 @@ dependencies:
   # The PDF editors, one adapter per engine: PDFium (the default for .pdf)
   # and pdf.js (offered under Open With).
   tom_forge_pdf_pdfium:
-    path: ../tom_forge_pdf_pdfium
+    path: ../../tom_ai/forge_modules/tom_forge_pdf_pdfium
   tom_forge_pdf_pdfjs:
-    path: ../tom_forge_pdf_pdfjs
+    path: ../../tom_ai/forge_modules/tom_forge_pdf_pdfjs
   # The PDF editor's debug trail switch, which the command line's --trail=pdf
   # sets.
   tom_pdf_editor:
@@ -110,15 +110,15 @@ dev_dependencies:
   shared_preferences: ^2.2.0
   # The undo conformance harness and the shell test doubles.
   tom_forge_ui_testing:
-    path: ../tom_forge_ui_testing
+    path: ../../tom_ai/forge_modules/tom_forge_ui_testing
   # The file editors' undo subjects (qim_none5_file_editors_test).
   tom_forge_file_editors_testing:
-    path: ../tom_forge_file_editors_testing
+    path: ../../tom_ai/forge_modules/tom_forge_file_editors_testing
   # The Markdown and YAML file kinds' undo subjects (the same suite).
   tom_forge_md_editor_testing:
-    path: ../tom_forge_md_editor_testing
+    path: ../../tom_ai/forge_modules/tom_forge_md_editor_testing
   tom_forge_yaml_editor_testing:
-    path: ../tom_forge_yaml_editor_testing
+    path: ../../tom_ai/forge_modules/tom_forge_yaml_editor_testing
   flutter_lints: ^6.0.0
   # Joining the paths the licence audit test reads and writes.
   path: ^1.9.0
