@@ -74,6 +74,10 @@ const Map<String, int> _layers = <String, int>{
   // (ForgeQuickOpenExtra), which the shell asks the registry for.
   'tom_forge_quick_open': 3,
   'tom_forge_command_palette': 3,
+  // The configuration tiles: the sections of the components' configuration
+  // descriptions drawn with the shared look, no layout; any application on
+  // the kit takes them, the panel shell (layer 4) shows them (PL-12).
+  'tom_configuration_ui': 3,
   // 4 Shell core.
   'tom_forge_shell': 4,
   // 5 Shell parts: what plugs into the core (ForgeShellComponents). The
@@ -174,6 +178,23 @@ const Set<String> _views = <String>{
   'tom_forge_revision_view',
   'tom_forge_quick_open',
   'tom_forge_command_palette',
+};
+
+/// The configuration tiles (layer 3): kit UI drawn with the shared look
+/// (PL-2 lets them take it) and below the panel shell, which shows them.
+const String _configurationTiles = 'tom_configuration_ui';
+
+/// What the configuration tiles take beyond the kit, the shared look and
+/// `tom_forge_core` (PL-12), each with why.
+const Map<String, String> _configurationTilesExtras = <String, String>{
+  'tom_flutter_ui':
+      'the declarative form system\'s field widgets the editors are built '
+      'on (TomFormFieldFamily, TomField, TomFormStyleScope) and its label '
+      'resolution (TomCtr, TomFormLabels)',
+  'tom_core_kernel':
+      'Tom Core\'s text resources the labels are resolved through '
+      '(TomTextResourceProvider, appResourcesRevision) and the observables '
+      'the fields are watched with',
 };
 
 /// What one view takes beyond the kit and the light shared packages
@@ -406,7 +427,9 @@ void main() {
           if (dep.dev && _testSupport.contains(to)) continue;
           // Layer 3 holds the shared look and the editor adapters; an
           // adapter may take the shared look (PL-8), never the other way.
-          if ((_editorAdapters.containsKey(from) || _views.contains(from)) &&
+          if ((_editorAdapters.containsKey(from) ||
+                  _views.contains(from) ||
+                  from == _configurationTiles) &&
               to == 'tom_forge_shared_ui') {
             continue;
           }
@@ -695,6 +718,44 @@ void main() {
             'and the shell builds without it; an application registers the '
             'view\'s module (platform_architecture.md §1).\n'
             '${offenders.join('\n')}',
+      );
+    });
+
+    test('PL-12: the configuration tiles take the kit, the shared look, '
+        'tom_forge_core, tom_flutter_ui and tom_core_kernel only, never '
+        'the shell', () {
+      if (!reachable()) return;
+      final tiles = packages[_configurationTiles];
+      expect(tiles, isNotNull);
+      const shared = {
+        'flutter',
+        'tom_forge_kit',
+        'tom_forge_shared_ui',
+        'tom_forge_core',
+      };
+      const allowedDev = {
+        'flutter_test',
+        'flutter_lints',
+        // The golden harness (real fonts, failures in testlog/).
+        'tom_ui_testing',
+        // The kit API a test's module registers with.
+        'tom_file_system',
+      };
+      expect(
+        {
+          for (final d in tiles!.dependencies)
+            if (!(d.dev
+                ? allowedDev.contains(d.name) || _testSupport.contains(d.name)
+                : shared.contains(d.name) ||
+                      _configurationTilesExtras.containsKey(d.name)))
+              '${d.name}${d.dev ? ' (dev)' : ''}',
+        },
+        isEmpty,
+        reason:
+            'tom_configuration_ui draws the configuration descriptions for '
+            'any application on the kit: the kit, the shared look and Tom '
+            'Core\'s forms and texts, never the shell or a view '
+            '(platform_architecture.md §1).',
       );
     });
 
