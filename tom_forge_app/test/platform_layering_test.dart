@@ -184,6 +184,13 @@ const Map<String, Map<String, String>> _viewExtras =
         'tom_file_system':
             'the file tree it lists and changes (TomFileSystem, '
             'TomFileEntry), which the kit does not re-export',
+        'tom_file_session':
+            'the filter rules and their presets (ForgeFilter, '
+            'ForgeBuiltInPresets), the rule list Webwork\'s Workspace browser '
+            'filters with (D36 §4), which the kit does not re-export',
+        'tom_basics':
+            'the .gitignore matching of the filter\'s gitignored rule '
+            '(TomGitignore), pure Dart',
       },
       'tom_forge_quick_open': {
         'tom_file_system':
