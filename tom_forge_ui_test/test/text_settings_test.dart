@@ -428,6 +428,9 @@ class _TestModule implements ForgeModule {
   String get displayName => 'Test Module';
 
   @override
+  ForgeTextScope get textScope => ForgeTextScope.root;
+
+  @override
   List<ForgeEditorChoice> editorChoicesFor(Uri uri) => const [];
 
   @override

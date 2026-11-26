@@ -121,8 +121,8 @@ const Map<String, int> _layers = <String, int>{
 /// below it.
 const int _appsLayer = 10;
 
-/// Test support: packages built on `flutter_test` for other packages'
-/// suites. Any package may take one as a dev_dependency, also a lower one
+/// Test support: packages for other packages' suites (built on
+/// `flutter_test`, or pure Dart like `tom_text_testing`). Any package may take one as a dev_dependency, also a lower one
 /// (`tom_forge_ui`'s suites run the harness built on `tom_forge_ui`); as a
 /// dependency they follow the layers like every other package.
 const Set<String> _testSupport = <String>{
@@ -134,6 +134,10 @@ const Set<String> _testSupport = <String>{
   'tom_forge_office_zetaoffice_testing',
   'tom_forge_pdf_pdfium_testing',
   'tom_forge_pdf_pdfjs_testing',
+  // Tom Core's test support for internationalised packages (a package's
+  // texts under a scope, the coverage check; workspace guideline i18n.md):
+  // pure Dart on tom_core_kernel, a dev dependency of any package with texts.
+  'tom_text_testing',
 };
 
 /// The plugin packages of a layer-2 component, each with its component: a
